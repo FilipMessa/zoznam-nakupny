@@ -14,6 +14,7 @@ export default defineConfig({
       'src/test/firestore.rules.test.ts',
       'src/test/auth.integration.test.ts',
       'src/test/lists.integration.test.ts',
+      'src/test/items.integration.test.ts',
     ],
   },
 })

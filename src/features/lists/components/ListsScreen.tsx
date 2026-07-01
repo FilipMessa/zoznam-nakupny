@@ -10,7 +10,7 @@ import { RenameListForm } from './RenameListForm'
 import { DeleteListConfirmDialog } from './DeleteListConfirmDialog'
 import { ListSwitcherOverlay } from './ListSwitcherOverlay'
 import { ListHeader } from './ListHeader'
-import { ListContentPlaceholder } from './ListContentPlaceholder'
+import { ShoppingListScreen } from '../../items/components/ShoppingListScreen'
 
 export function ListsScreen() {
   const { user } = useAuth()
@@ -101,7 +101,7 @@ export function ListsScreen() {
             onRenameClick={() => setShowRenameForm(true)}
             onDeleteClick={() => setShowDeleteConfirm(true)}
           />
-          <ListContentPlaceholder listName={selectedList.name} />
+          <ShoppingListScreen listId={selectedList.id} />
         </>
       )}
 
