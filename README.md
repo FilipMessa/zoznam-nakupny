@@ -1,75 +1,103 @@
-# React + TypeScript + Vite
+# Rodinny Nakupny Zoznam
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Mobile-first webova appka pre rodinu na spravu spolocnych nakupnych zoznamov. Prihlasenie cez Google, pripojenie k rodine cez invite kod, realtime synchronizacia poloziek medzi vsetkymi clenmi. Postavene na Vite + React + TypeScript, backend je Firebase (Auth, Firestore, Hosting).
 
-Currently, two official plugins are available:
+Detaily o domenovom modeli a terminologii su v [`CONTEXT.md`](./CONTEXT.md), architektonicke rozhodnutia v [`docs/adr/`](./docs/adr), povodny implementacny plan v [`PLAN.md`](./PLAN.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Predpoklady
 
-## React Compiler
+- **Node.js** — aktualna LTS verzia (projekt je vyvijany a testovany na Node 22; v repozitari nie je `.nvmrc` ani `engines` pole, takze staci akakolvek relativne cerstva LTS verzia).
+- **JDK 21+** — potrebny pre prikazy, ktore spustaju Firebase emulatory (`test:rules`, `test:integration`, `test:e2e`). Bez neho `firebase emulators:exec` zlyha.
+- **Firebase CLI** — bud globalne (`npm install -g firebase-tools`), alebo bez instalacie cez `npx firebase <prikaz>` (balik `firebase-tools` je aj v `devDependencies`, takze `npx firebase` funguje hned po `npm install`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Nastavenie Firebase projektu
 
-## Expanding the ESLint configuration
+1. V [Firebase Console](https://console.firebase.google.com/) vytvor novy projekt.
+2. V sekcii **Authentication** zapni **Google** ako sign-in provider.
+3. V sekcii **Firestore Database** vytvor databazu (produkcny alebo test mode podla potreby — bezpecnostne pravidla su definovane v `firestore.rules`).
+4. V nastaveniach projektu zaregistruj novu **Web App** a skopiruj si jej konfiguracne hodnoty (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) — budes ich potrebovat v `.env`.
+5. Priprav lokalny alias na projekt: `firebase use --add` (alebo priamo uprav `.firebaserc`), aby `firebase deploy` mieril na tvoj realny projekt. `.firebaserc` v repozitari obsahuje iba placeholder `zoznam-nakupny-dev` — je zamerne neuplny a ma sa nahradit tvojim vlastnym project ID.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Premenne prostredia
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Skopiruj `.env.example` do `.env` a vyplň hodnoty z Firebase Console:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+cp .env.example .env
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
 ```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_USE_FIREBASE_EMULATOR=false
+```
+
+`VITE_USE_FIREBASE_EMULATOR=true` prepne appku na lokalne Firebase emulatory (Auth + Firestore) — vhodne pre lokalny vyvoj bez dotykania sa produkcnych dat. `false` znamena pripojenie na realny Firebase backend podla ostatnych `VITE_FIREBASE_*` hodnot.
+
+## Seed skript (invite kod)
+
+Invite kod nie je nikde v UI generovany — vytvara sa jednorazovo skriptom:
+
+```bash
+npm run seed
+```
+
+Skript (`scripts/seed.ts`):
+
+- pripoji sa na Firestore emulator na `127.0.0.1:8080` (pokial nie je nastavena premenna `FIRESTORE_EMULATOR_HOST`, doplni si ju sam) — pred spustenim teda musi byt Firestore emulator zapnuty (`firebase emulators:start` alebo `emulators:exec`),
+- inicializuje Firebase Admin SDK s natvrdo zapisanym `projectId: 'zoznam-nakupny-dev'`,
+- vygeneruje nahodny invite kod (32 hex znakov),
+- zapise/mergne dokument `families/{FAMILY_ID}` a vytvori dokument `invites/{inviteCode}` odkazujuci na tuto rodinu,
+- vypise vygenerovany invite kod do konzoly — ten sa potom zada v appke pri onboardingu noveho clena.
+
+Pre pouzitie oproti realnemu (nie emulovanemu) projektu treba `projectId` v skripte zmenit na svoje skutocne project ID a nastavit spravne prihlasovacie udaje pre Admin SDK (napr. `GOOGLE_APPLICATION_CREDENTIALS`).
+
+## Testy
+
+- **`npm run test`** — unit testy (Vitest). Nepotrebuju ziadny emulator.
+- **`npm run test:rules`** a **`npm run test:integration`** — vyzaduju JDK 21+. Firebase emulatory sa nespustaju manualne — oba prikazy si ich sami zabalia cez `firebase emulators:exec` (spustia potrebne emulatory, pockaju kym su ready, spustia testy, a na konci emulatory ukoncia).
+- **`npm run test:e2e`** — Playwright testy. Na rozdiel od predoslych dvoch, tento prikaz **nie je** zabaleny do `emulators:exec` v `package.json` skripte — `playwright.config.ts` si sam spusti dev server (`npm run dev`) ako svoj `webServer`. Firestore/Auth emulatory pre testy vyzadujuce prihlaseneho clena (`e2e/mobile-smoke.spec.ts`) treba mat spustene bokom, inak taky test zlyha. Odporucany sposob spustenia celej e2e sady je obalit ju rovnako cez emulatory:
+
+  ```bash
+  firebase emulators:exec --only firestore,auth "npm run test:e2e"
+  ```
+
+  Nepodmienene (unauthenticated) testy ako `e2e/smoke.spec.ts` by fungovali aj bez emulatorov, kedze sa vobec nedotykaju Auth/Firestore.
+
+## Vyvoj
+
+```bash
+npm run dev
+```
+
+Spusti Vite dev server na `http://localhost:5173`.
+
+## Build
+
+```bash
+npm run build
+```
+
+Spusti typecheck (`tsc -b`) a Vite produkcny build do priecinku `dist/`.
+
+## Deploy
+
+```bash
+npm run build
+firebase deploy
+```
+
+(prip. `npx firebase deploy`, ak nemas `firebase-tools` nainstalovane globalne)
+
+`firebase.json` ma `hosting.public` nastavene na `dist`, co zodpoveda skutocnemu Vite build outputu (v `vite.config.ts` nie je ziadny custom `build.outDir`).
+
+Predtym, nez `firebase deploy` zafunguje, je potrebne:
+
+1. **`firebase login`** — interaktivne prihlasenie cez tvoj Google ucet. Toto je manualny krok, ktory nevie zabezpecit ziadna automatizacia v tomto repozitari.
+2. Mat nastaveny **realny Firebase projekt** namiesto placeholder hodnoty v `.firebaserc` (`zoznam-nakupny-dev`) — bud cez `firebase use <project-id>`, alebo priamou upravou `.firebaserc`. Toto zamerne robi vlastnik projektu, nie automatizovany proces.
+
+`firebase deploy` (bez `--only`) nasadi Hosting (build z `dist/`), Firestore rules (`firestore.rules`) aj Firestore indexy (`firestore.indexes.json`).
