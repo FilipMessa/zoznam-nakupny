@@ -14,19 +14,39 @@ export function ListHeader({
   onDeleteClick,
 }: ListHeaderProps) {
   return (
-    <header>
+    <header className="list-header">
       <h1>{listName}</h1>
-      <button type="button" onClick={onOpenSwitcher}>
-        Switch list
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Prepnúť zoznam"
+        onClick={onOpenSwitcher}
+      >
+        Prepnúť zoznam
       </button>
-      <button type="button" onClick={onRenameClick}>
-        Rename
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Premenovať"
+        onClick={onRenameClick}
+      >
+        Premenovať
       </button>
-      <button type="button" onClick={onDeleteClick}>
-        Delete list
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Zmazať zoznam"
+        onClick={onDeleteClick}
+      >
+        Zmazať zoznam
       </button>
-      <button type="button" onClick={() => void signOutUser()}>
-        Sign out
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Odhlásiť sa"
+        onClick={() => void signOutUser()}
+      >
+        Odhlásiť sa
       </button>
     </header>
   )

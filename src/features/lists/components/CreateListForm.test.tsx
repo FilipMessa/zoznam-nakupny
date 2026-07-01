@@ -11,15 +11,15 @@ describe('CreateListForm', () => {
     const onSubmit = vi.fn()
     render(<CreateListForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    expect(screen.getByRole('button', { name: /create/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /vytvoriť/i })).toBeDisabled()
 
     const user = userEvent.setup()
     await user.type(
-      screen.getByRole('textbox', { name: /list name/i }),
+      screen.getByRole('textbox', { name: /názov zoznamu/i }),
       'Groceries',
     )
 
-    expect(screen.getByRole('button', { name: /create/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /vytvoriť/i })).toBeEnabled()
   })
 
   it('calls onSubmit with the trimmed list name', async () => {
@@ -28,10 +28,10 @@ describe('CreateListForm', () => {
     render(<CreateListForm onSubmit={onSubmit} pending={false} error={null} />)
 
     await user.type(
-      screen.getByRole('textbox', { name: /list name/i }),
+      screen.getByRole('textbox', { name: /názov zoznamu/i }),
       '  Groceries  ',
     )
-    await user.click(screen.getByRole('button', { name: /create/i }))
+    await user.click(screen.getByRole('button', { name: /vytvoriť/i }))
 
     expect(onSubmit).toHaveBeenCalledWith('Groceries')
   })
@@ -39,8 +39,8 @@ describe('CreateListForm', () => {
   it('shows a pending state and disables the form while submitting', () => {
     render(<CreateListForm onSubmit={vi.fn()} pending={true} error={null} />)
 
-    expect(screen.getByRole('button', { name: /create/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /list name/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /vytvoriť/i })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: /názov zoznamu/i })).toBeDisabled()
   })
 
   it('renders an error message when creation fails', async () => {
@@ -50,7 +50,7 @@ describe('CreateListForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/something went wrong|try again/i),
+        screen.getByText(/niečo sa pokazilo|skúste to znova/i),
       ).toBeInTheDocument()
     })
   })

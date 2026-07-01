@@ -94,7 +94,7 @@ export function ListsScreen() {
   return (
     <div>
       {selectedList && (
-        <>
+        <div className="shopping-list-screen">
           <ListHeader
             listName={selectedList.name}
             onOpenSwitcher={() => setSwitcherOpen(true)}
@@ -102,7 +102,7 @@ export function ListsScreen() {
             onDeleteClick={() => setShowDeleteConfirm(true)}
           />
           <ShoppingListScreen listId={selectedList.id} />
-        </>
+        </div>
       )}
 
       {showRenameForm && selectedList && (

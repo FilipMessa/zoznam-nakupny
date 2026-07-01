@@ -67,8 +67,22 @@ describe('DoneItemRow', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /delete/i }))
+    await user.click(screen.getByRole('button', { name: /zmazať/i }))
 
     expect(onDelete).toHaveBeenCalledWith('item-9')
+  })
+
+  // Touch-target polish (Phase 7): icon-only actions must be at least 44px
+  // tappable, enforced via the shared `.icon-btn` class (min-width/min-height
+  // set from --touch-target in CSS). We assert the class hook only, since
+  // jsdom cannot reliably resolve CSS custom properties into computed pixels.
+  it('applies the icon-btn touch-target class to the delete button', () => {
+    render(
+      <DoneItemRow item={makeDoneItem()} onUncheck={vi.fn()} onDelete={vi.fn()} />,
+    )
+
+    expect(screen.getByRole('button', { name: /zmazať/i })).toHaveClass(
+      'icon-btn',
+    )
   })
 })

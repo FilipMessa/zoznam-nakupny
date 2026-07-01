@@ -18,7 +18,7 @@ describe('SignInScreen', () => {
   it('renders a sign-in button', () => {
     render(<SignInScreen />)
     expect(
-      screen.getByRole('button', { name: /sign in/i }),
+      screen.getByRole('button', { name: /prihlásiť/i }),
     ).toBeInTheDocument()
   })
 
@@ -27,7 +27,7 @@ describe('SignInScreen', () => {
     const user = userEvent.setup()
     render(<SignInScreen />)
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.click(screen.getByRole('button', { name: /prihlásiť/i }))
 
     expect(mockedSignIn).toHaveBeenCalledTimes(1)
   })
@@ -39,13 +39,13 @@ describe('SignInScreen', () => {
       const user = userEvent.setup()
       render(<SignInScreen />)
 
-      await user.click(screen.getByRole('button', { name: /sign in/i }))
+      await user.click(screen.getByRole('button', { name: /prihlásiť/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/try again/i)).toBeInTheDocument()
+        expect(screen.getByText(/skúste to znova/i)).toBeInTheDocument()
       })
       expect(
-        screen.getByRole('button', { name: /sign in/i }),
+        screen.getByRole('button', { name: /prihlásiť/i }),
       ).toBeInTheDocument()
     },
   )

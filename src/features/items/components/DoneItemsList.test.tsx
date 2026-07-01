@@ -35,7 +35,7 @@ describe('DoneItemsList', () => {
   it('shows an empty state when there are no done items', () => {
     render(<DoneItemsList items={[]} onUncheck={vi.fn()} onDelete={vi.fn()} />)
 
-    expect(screen.getByText(/no done items|nothing done yet/i)).toBeInTheDocument()
+    expect(screen.getByText(/zatiaľ nič hotové/i)).toBeInTheDocument()
   })
 
   it('does not show the empty state when items are present', () => {
@@ -48,7 +48,7 @@ describe('DoneItemsList', () => {
     )
 
     expect(
-      screen.queryByText(/no done items|nothing done yet/i),
+      screen.queryByText(/zatiaľ nič hotové/i),
     ).not.toBeInTheDocument()
   })
 
@@ -76,7 +76,7 @@ describe('DoneItemsList', () => {
     ]
     render(<DoneItemsList items={items} onUncheck={vi.fn()} onDelete={onDelete} />)
 
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+    const deleteButtons = screen.getAllByRole('button', { name: /zmazať/i })
     await user.click(deleteButtons[1])
 
     expect(onDelete).toHaveBeenCalledWith('b')

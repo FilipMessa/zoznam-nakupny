@@ -23,26 +23,38 @@ export function ListSwitcherOverlay({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Switch list">
-      <ul>
-        {lists.map((list) => (
-          <ListSwitcherItem
-            key={list.id}
-            list={list}
-            selected={list.id === selectedListId}
-            onSelect={(listId) => {
-              onSelect(listId)
-              onClose()
-            }}
-          />
-        ))}
-      </ul>
-      <button type="button" onClick={onCreate}>
-        Create new list
-      </button>
-      <button type="button" onClick={onClose}>
-        Close
-      </button>
+    <div className="list-switcher-overlay">
+      <div
+        className="list-switcher-backdrop"
+        data-testid="list-switcher-backdrop"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Prepnúť zoznam"
+        className="list-switcher-sheet"
+      >
+        <ul>
+          {lists.map((list) => (
+            <ListSwitcherItem
+              key={list.id}
+              list={list}
+              selected={list.id === selectedListId}
+              onSelect={(listId) => {
+                onSelect(listId)
+                onClose()
+              }}
+            />
+          ))}
+        </ul>
+        <button type="button" onClick={onCreate}>
+          Vytvoriť nový zoznam
+        </button>
+        <button type="button" onClick={onClose}>
+          Zatvoriť
+        </button>
+      </div>
     </div>
   )
 }

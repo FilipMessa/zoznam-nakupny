@@ -22,7 +22,7 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor="create-list-name-input">List name</label>
+      <label htmlFor="create-list-name-input">Názov zoznamu</label>
       <input
         id="create-list-name-input"
         type="text"
@@ -31,9 +31,9 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
         onChange={(event) => setName(event.target.value)}
       />
       <button type="submit" disabled={submitDisabled}>
-        Create list
+        Vytvoriť
       </button>
-      {error && <p role="alert">Something went wrong. Please try again.</p>}
+      {error && <p role="alert">Niečo sa pokazilo. Skúste to znova.</p>}
     </form>
   )
 }

@@ -23,7 +23,7 @@ export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor="invite-code-input">Invite code</label>
+      <label htmlFor="invite-code-input">Pozývací kód</label>
       <input
         id="invite-code-input"
         type="text"
@@ -32,11 +32,11 @@ export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps
         onChange={(event) => setCode(event.target.value)}
       />
       <button type="submit" disabled={submitDisabled}>
-        Join
+        Pripojiť sa
       </button>
-      {error === 'invalid-code' && <p role="alert">Invalid invite code</p>}
+      {error === 'invalid-code' && <p role="alert">Neplatný pozývací kód</p>}
       {error === 'unknown' && (
-        <p role="alert">Something went wrong. Please try again.</p>
+        <p role="alert">Niečo sa pokazilo. Skúste to znova.</p>
       )}
     </form>
   )

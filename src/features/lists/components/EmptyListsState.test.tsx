@@ -7,7 +7,7 @@ describe('EmptyListsState', () => {
   it('shows copy inviting the user to create their first list', () => {
     render(<EmptyListsState onCreateClick={vi.fn()} />)
 
-    expect(screen.getByText(/create your first list/i)).toBeInTheDocument()
+    expect(screen.getByText(/vytvorte.*prvý zoznam/i)).toBeInTheDocument()
   })
 
   it('calls onCreateClick when the CTA is clicked', async () => {
@@ -16,7 +16,7 @@ describe('EmptyListsState', () => {
     render(<EmptyListsState onCreateClick={onCreateClick} />)
 
     await user.click(
-      screen.getByRole('button', { name: /create.*list/i }),
+      screen.getByRole('button', { name: /vytvoriť zoznam/i }),
     )
 
     expect(onCreateClick).toHaveBeenCalledTimes(1)

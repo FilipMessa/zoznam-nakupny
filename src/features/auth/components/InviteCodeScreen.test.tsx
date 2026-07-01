@@ -32,8 +32,8 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'ABC123')
-    await user.click(screen.getByRole('button', { name: /join/i }))
+    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
+    await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     await waitFor(() => {
       expect(mockedRedeem).toHaveBeenCalledWith('uid-1', 'ABC123')
@@ -46,11 +46,11 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'BADCODE')
-    await user.click(screen.getByRole('button', { name: /join/i }))
+    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'BADCODE')
+    await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/invalid/i)).toBeInTheDocument()
+      expect(screen.getByText(/neplatný/i)).toBeInTheDocument()
     })
     expect(markAsMember).not.toHaveBeenCalled()
   })
@@ -66,10 +66,10 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'ABC123')
-    await user.click(screen.getByRole('button', { name: /join/i }))
+    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
+    await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
-    expect(screen.getByRole('button', { name: /join/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()
 
     resolveRedeem({ ok: true })
     await waitFor(() => expect(markAsMember).toHaveBeenCalled())

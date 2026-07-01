@@ -17,7 +17,7 @@ export function SignInScreen() {
     } catch (error) {
       const code = (error as { code?: string } | undefined)?.code
       if (code && NON_FATAL_ERROR_CODES.has(code)) {
-        setRetryMessage('Sign-in was interrupted. Please try again.')
+        setRetryMessage('Prihlásenie bolo prerušené. Skúste to znova.')
       } else {
         console.error('Sign-in failed', error)
       }
@@ -27,9 +27,9 @@ export function SignInScreen() {
   return (
     <div>
       <h1>Zoznam nákupný</h1>
-      <p>Sign in to continue.</p>
+      <p>Prihláste sa a pokračujte.</p>
       <button type="button" onClick={handleSignIn}>
-        Sign in with Google
+        Prihlásiť sa cez Google
       </button>
       {retryMessage && <p role="alert">{retryMessage}</p>}
     </div>

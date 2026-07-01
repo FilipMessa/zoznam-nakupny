@@ -11,13 +11,13 @@ describe('ClearDoneButton', () => {
   it('is disabled when there are no done items', () => {
     render(<ClearDoneButton doneCount={0} onClear={vi.fn()} />)
 
-    expect(screen.getByRole('button', { name: /clear/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /vymazať/i })).toBeDisabled()
   })
 
   it('is enabled when there is at least one done item', () => {
     render(<ClearDoneButton doneCount={3} onClear={vi.fn()} />)
 
-    expect(screen.getByRole('button', { name: /clear/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /vymazať/i })).toBeEnabled()
   })
 
   it('calls onClear when clicked, with no confirmation step', async () => {
@@ -25,7 +25,7 @@ describe('ClearDoneButton', () => {
     const user = userEvent.setup()
     render(<ClearDoneButton doneCount={2} onClear={onClear} />)
 
-    await user.click(screen.getByRole('button', { name: /clear/i }))
+    await user.click(screen.getByRole('button', { name: /vymazať/i }))
 
     expect(onClear).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()

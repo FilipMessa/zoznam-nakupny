@@ -60,7 +60,7 @@ describe('DeleteListConfirmDialog', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /delete/i }))
+    await user.click(screen.getByRole('button', { name: /zmazať/i }))
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
@@ -78,7 +78,7 @@ describe('DeleteListConfirmDialog', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /zrušiť/i }))
 
     expect(onCancel).toHaveBeenCalledTimes(1)
     expect(onConfirm).not.toHaveBeenCalled()

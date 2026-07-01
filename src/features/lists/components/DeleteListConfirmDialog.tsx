@@ -16,16 +16,16 @@ export function DeleteListConfirmDialog({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Delete list">
+    <div role="dialog" aria-modal="true" aria-label="Zmazať zoznam">
       <p>
-        Are you sure you want to delete <strong>{listName}</strong>? This will
-        also delete all of its items.
+        Naozaj chcete zmazať zoznam <strong>{listName}</strong>? Zmažú sa tým
+        aj všetky jeho položky.
       </p>
       <button type="button" onClick={onCancel}>
-        Cancel
+        Zrušiť
       </button>
       <button type="button" onClick={onConfirm}>
-        Delete
+        Zmazať
       </button>
     </div>
   )

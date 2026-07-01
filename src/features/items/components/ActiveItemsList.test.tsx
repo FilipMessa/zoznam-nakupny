@@ -35,7 +35,7 @@ describe('ActiveItemsList', () => {
   it('shows an empty state when there are no active items', () => {
     render(<ActiveItemsList items={[]} onCheck={vi.fn()} />)
 
-    expect(screen.getByText(/no active items|nothing to buy/i)).toBeInTheDocument()
+    expect(screen.getByText(/žiadne položky na kúpu/i)).toBeInTheDocument()
   })
 
   it('does not show the empty state when items are present', () => {
@@ -47,7 +47,7 @@ describe('ActiveItemsList', () => {
     )
 
     expect(
-      screen.queryByText(/no active items|nothing to buy/i),
+      screen.queryByText(/žiadne položky na kúpu/i),
     ).not.toBeInTheDocument()
   })
 

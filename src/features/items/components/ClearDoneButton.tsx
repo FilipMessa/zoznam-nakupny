@@ -6,7 +6,7 @@ export interface ClearDoneButtonProps {
 export function ClearDoneButton({ doneCount, onClear }: ClearDoneButtonProps) {
   return (
     <button type="button" disabled={doneCount === 0} onClick={onClear}>
-      Clear done items
+      Vymazať hotové
     </button>
   )
 }

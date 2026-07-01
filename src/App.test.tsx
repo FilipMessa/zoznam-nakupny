@@ -35,13 +35,15 @@ describe('App state machine', () => {
   it('renders LoadingScreen while auth is loading', () => {
     mockedUseAuth.mockReturnValue({ user: null, authLoading: true })
     render(<App />)
-    expect(screen.getByText(/loading/i)).toBeInTheDocument()
+    expect(screen.getByText(/načítava/i)).toBeInTheDocument()
   })
 
   it('renders SignInScreen when there is no user', () => {
     mockedUseAuth.mockReturnValue({ user: null, authLoading: false })
     render(<App />)
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /prihlásiť/i }),
+    ).toBeInTheDocument()
   })
 
   it.each(['idle', 'loading'] as const)(
@@ -53,7 +55,7 @@ describe('App state machine', () => {
       })
       mockedUseMembership.mockReturnValue({ status, markAsMember: vi.fn() })
       render(<App />)
-      expect(screen.getByText(/loading/i)).toBeInTheDocument()
+      expect(screen.getByText(/načítava/i)).toBeInTheDocument()
     },
   )
 
@@ -67,7 +69,9 @@ describe('App state machine', () => {
       markAsMember: vi.fn(),
     })
     render(<App />)
-    expect(screen.getByRole('textbox', { name: /invite code/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+    ).toBeInTheDocument()
   })
 
   it('renders ListsScreen when membership status is member', () => {
@@ -85,6 +89,6 @@ describe('App state machine', () => {
       selectList: vi.fn(),
     })
     render(<App />)
-    expect(screen.getByText(/create your first list/i)).toBeInTheDocument()
+    expect(screen.getByText(/vytvorte.*prvý zoznam/i)).toBeInTheDocument()
   })
 })

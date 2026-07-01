@@ -91,4 +91,97 @@ describe('ListSwitcherOverlay', () => {
 
     unmount()
   })
+
+  // Phase 7 (Mobile UI Polish): the switcher becomes a bottom sheet with a
+  // backdrop. It must keep its existing dialog semantics (role="dialog",
+  // aria-modal="true") so screen readers still treat it as a modal, while
+  // gaining a backdrop that closes it on click -- the common mobile pattern
+  // for dismissing a sheet by tapping outside it.
+  it('keeps dialog semantics for assistive tech', () => {
+    render(
+      <ListSwitcherOverlay
+        open={true}
+        lists={lists}
+        selectedListId="list-a"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    )
+
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+  })
+
+  it('renders a backdrop element when open', () => {
+    render(
+      <ListSwitcherOverlay
+        open={true}
+        lists={lists}
+        selectedListId="list-a"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+        onCreate={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('list-switcher-backdrop')).toBeInTheDocument()
+  })
+
+  it('calls onClose when the backdrop is clicked', async () => {
+    const onClose = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ListSwitcherOverlay
+        open={true}
+        lists={lists}
+        selectedListId="list-a"
+        onSelect={vi.fn()}
+        onClose={onClose}
+        onCreate={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByTestId('list-switcher-backdrop'))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a close button that calls onClose', async () => {
+    const onClose = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ListSwitcherOverlay
+        open={true}
+        lists={lists}
+        selectedListId="list-a"
+        onSelect={vi.fn()}
+        onClose={onClose}
+        onCreate={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /zatvoriť/i }))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a create-list button that calls onCreate', async () => {
+    const onCreate = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ListSwitcherOverlay
+        open={true}
+        lists={lists}
+        selectedListId="list-a"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+        onCreate={onCreate}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /vytvoriť nový zoznam/i }))
+
+    expect(onCreate).toHaveBeenCalledTimes(1)
+  })
 })

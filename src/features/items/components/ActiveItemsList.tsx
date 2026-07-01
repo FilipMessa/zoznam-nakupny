@@ -30,7 +30,7 @@ export function ActiveItemsList({
   )
 
   if (items.length === 0) {
-    return <p>No active items. Nothing to buy!</p>
+    return <p>Žiadne položky na kúpu. Skvelá práca!</p>
   }
 
   const handleDragEnd = (event: DragEndEvent) => {

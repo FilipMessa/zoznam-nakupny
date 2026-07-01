@@ -30,7 +30,7 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor="add-item-text-input">Item</label>
+      <label htmlFor="add-item-text-input">Položka</label>
       <input
         id="add-item-text-input"
         type="text"
@@ -39,9 +39,9 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         onChange={(event) => setText(event.target.value)}
       />
       <button type="submit" disabled={submitDisabled}>
-        Add item
+        Pridať
       </button>
-      {error && <p role="alert">Something went wrong. Please try again.</p>}
+      {error && <p role="alert">Niečo sa pokazilo. Skúste to znova.</p>}
     </form>
   )
 }

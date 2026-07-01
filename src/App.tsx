@@ -1,4 +1,3 @@
-import './App.css'
 import { useAuth } from './features/auth/useAuth'
 import { useMembership } from './features/auth/useMembership'
 import { LoadingScreen } from './features/auth/components/LoadingScreen'

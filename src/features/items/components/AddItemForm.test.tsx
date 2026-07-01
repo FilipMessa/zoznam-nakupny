@@ -11,15 +11,15 @@ describe('AddItemForm', () => {
     const onSubmit = vi.fn()
     render(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    expect(screen.getByRole('button', { name: /add/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /pridať/i })).toBeDisabled()
 
     const user = userEvent.setup()
     await user.type(
-      screen.getByRole('textbox', { name: /item/i }),
+      screen.getByRole('textbox', { name: /položka/i }),
       'mlieko',
     )
 
-    expect(screen.getByRole('button', { name: /add/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /pridať/i })).toBeEnabled()
   })
 
   it('calls onSubmit with the trimmed item text', async () => {
@@ -28,10 +28,10 @@ describe('AddItemForm', () => {
     render(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
 
     await user.type(
-      screen.getByRole('textbox', { name: /item/i }),
+      screen.getByRole('textbox', { name: /položka/i }),
       '  mlieko  ',
     )
-    await user.click(screen.getByRole('button', { name: /add/i }))
+    await user.click(screen.getByRole('button', { name: /pridať/i }))
 
     expect(onSubmit).toHaveBeenCalledWith('mlieko')
   })
@@ -43,9 +43,9 @@ describe('AddItemForm', () => {
       <AddItemForm onSubmit={onSubmit} pending={false} error={null} />,
     )
 
-    const input = screen.getByRole('textbox', { name: /item/i })
+    const input = screen.getByRole('textbox', { name: /položka/i })
     await user.type(input, 'mlieko')
-    await user.click(screen.getByRole('button', { name: /add/i }))
+    await user.click(screen.getByRole('button', { name: /pridať/i }))
 
     // Simulate the parent flipping pending true->false after a successful
     // add, the same lifecycle CreateListForm relies on to observe a cleared
@@ -54,15 +54,15 @@ describe('AddItemForm', () => {
     rerender(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
 
     expect(
-      screen.getByRole('textbox', { name: /item/i }),
+      screen.getByRole('textbox', { name: /položka/i }),
     ).toHaveValue('')
   })
 
   it('disables the form while pending', () => {
     render(<AddItemForm onSubmit={vi.fn()} pending={true} error={null} />)
 
-    expect(screen.getByRole('button', { name: /add/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /item/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /pridať/i })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: /položka/i })).toBeDisabled()
   })
 
   it('shows an error message when adding fails', async () => {
@@ -70,7 +70,7 @@ describe('AddItemForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/something went wrong|try again/i),
+        screen.getByText(/niečo sa pokazilo|skúste to znova/i),
       ).toBeInTheDocument()
     })
   })

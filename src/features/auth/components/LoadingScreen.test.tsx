@@ -5,6 +5,6 @@ import { LoadingScreen } from './LoadingScreen'
 describe('LoadingScreen', () => {
   it('renders a loading indicator', () => {
     render(<LoadingScreen />)
-    expect(screen.getByText(/loading/i)).toBeInTheDocument()
+    expect(screen.getByText(/načítava/i)).toBeInTheDocument()
   })
 })

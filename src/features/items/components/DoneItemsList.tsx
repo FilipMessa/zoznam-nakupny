@@ -9,7 +9,7 @@ export interface DoneItemsListProps {
 
 export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps) {
   if (items.length === 0) {
-    return <p>No done items. Nothing done yet!</p>
+    return <p>Zatiaľ nič hotové.</p>
   }
 
   return (

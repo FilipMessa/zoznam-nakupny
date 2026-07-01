@@ -72,36 +72,40 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
   }
 
   return (
-    <div>
-      <AddItemForm
-        onSubmit={(text) => void handleAdd(text)}
-        pending={addPending}
-        error={addError}
-      />
+    <div className="shopping-list-content">
+      <main className="shopping-list-main">
+        <section>
+          <h2>Na kúpu</h2>
+          <ActiveItemsList
+            items={active}
+            onCheck={(itemId) => void handleCheck(itemId)}
+            onReorder={(itemId, activeOrder) =>
+              void handleReorder(itemId, activeOrder)
+            }
+          />
+        </section>
 
-      <section>
-        <h2>To buy</h2>
-        <ActiveItemsList
-          items={active}
-          onCheck={(itemId) => void handleCheck(itemId)}
-          onReorder={(itemId, activeOrder) =>
-            void handleReorder(itemId, activeOrder)
-          }
-        />
-      </section>
+        <section>
+          <h2>Hotové</h2>
+          <ClearDoneButton
+            doneCount={done.length}
+            onClear={() => void handleClearDone()}
+          />
+          <DoneItemsList
+            items={done}
+            onUncheck={(itemId) => void handleUncheck(itemId)}
+            onDelete={(itemId) => void handleDelete(itemId)}
+          />
+        </section>
+      </main>
 
-      <section>
-        <h2>Done</h2>
-        <ClearDoneButton
-          doneCount={done.length}
-          onClear={() => void handleClearDone()}
+      <div className="add-item-bar">
+        <AddItemForm
+          onSubmit={(text) => void handleAdd(text)}
+          pending={addPending}
+          error={addError}
         />
-        <DoneItemsList
-          items={done}
-          onUncheck={(itemId) => void handleUncheck(itemId)}
-          onDelete={(itemId) => void handleDelete(itemId)}
-        />
-      </section>
+      </div>
     </div>
   )
 }

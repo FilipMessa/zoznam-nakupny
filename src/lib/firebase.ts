@@ -1,6 +1,16 @@
 import { initializeApp } from 'firebase/app'
-import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import {
+  connectAuthEmulator,
+  getAuth,
+  signInWithCustomToken,
+} from 'firebase/auth'
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
+
+declare global {
+  interface Window {
+    __e2eSignIn?: (customToken: string) => Promise<void>
+  }
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -23,5 +33,17 @@ export const db = getFirestore(app)
 
 if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, 'localhost', 8080)
-  connectAuthEmulator(auth, 'http://localhost:9099')
+  // `disableWarnings` suppresses the Auth SDK's fixed-to-bottom "Running in
+  // emulator mode" banner. That banner otherwise overlaps the app's own
+  // sticky bottom add-item bar (Phase 7 one-screen mobile layout) and
+  // intercepts pointer events meant for it. Emulator-only, so this can never
+  // affect a production build.
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
+
+  // E2E test hook only: lets Playwright exchange an admin-minted custom
+  // token for a real signed-in session in the browser (see
+  // e2e/mobile-smoke.spec.ts). Gated behind the same emulator flag so it
+  // can never be reached in a production build.
+  window.__e2eSignIn = (token: string) =>
+    signInWithCustomToken(auth, token).then(() => undefined)
 }

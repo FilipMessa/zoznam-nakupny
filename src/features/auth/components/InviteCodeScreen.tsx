@@ -31,8 +31,8 @@ export function InviteCodeScreen({ markAsMember }: InviteCodeScreenProps) {
 
   return (
     <div>
-      <h1>Join your family</h1>
-      <p>Enter the invite code you received to join.</p>
+      <h1>Pripojte sa k rodine</h1>
+      <p>Zadajte pozývací kód, ktorý ste dostali.</p>
       <InviteCodeForm onSubmit={handleSubmit} pending={pending} error={error} />
     </div>
   )

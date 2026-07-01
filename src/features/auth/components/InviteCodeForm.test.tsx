@@ -8,12 +8,12 @@ describe('InviteCodeForm', () => {
     const onSubmit = vi.fn()
     render(<InviteCodeForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    expect(screen.getByRole('button', { name: /join/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()
 
     const user = userEvent.setup()
-    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'ABC123')
+    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
 
-    expect(screen.getByRole('button', { name: /join/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /pripojiť/i })).toBeEnabled()
   })
 
   it('calls onSubmit with the trimmed code value', async () => {
@@ -21,8 +21,8 @@ describe('InviteCodeForm', () => {
     const user = userEvent.setup()
     render(<InviteCodeForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    await user.type(screen.getByRole('textbox', { name: /invite code/i }), '  ABC123  ')
-    await user.click(screen.getByRole('button', { name: /join/i }))
+    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), '  ABC123  ')
+    await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     expect(onSubmit).toHaveBeenCalledWith('ABC123')
   })
@@ -30,8 +30,8 @@ describe('InviteCodeForm', () => {
   it('shows a pending state and disables the form while submitting', () => {
     render(<InviteCodeForm onSubmit={vi.fn()} pending={true} error={null} />)
 
-    expect(screen.getByRole('button', { name: /join/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /invite code/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: /pozývací kód/i })).toBeDisabled()
   })
 
   it('renders an error message for an invalid code', async () => {
@@ -40,13 +40,13 @@ describe('InviteCodeForm', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/invalid/i)).toBeInTheDocument()
+      expect(screen.getByText(/neplatný/i)).toBeInTheDocument()
     })
   })
 
   it('renders a generic error message for unknown errors', () => {
     render(<InviteCodeForm onSubmit={vi.fn()} pending={false} error="unknown" />)
 
-    expect(screen.getByText(/something went wrong|try again/i)).toBeInTheDocument()
+    expect(screen.getByText(/niečo sa pokazilo|skúste to znova/i)).toBeInTheDocument()
   })
 })

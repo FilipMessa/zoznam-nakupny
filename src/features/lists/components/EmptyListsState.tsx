@@ -5,9 +5,9 @@ export interface EmptyListsStateProps {
 export function EmptyListsState({ onCreateClick }: EmptyListsStateProps) {
   return (
     <div>
-      <p>Create your first list to get started.</p>
+      <p>Vytvorte si svoj prvý zoznam a začnite nakupovať.</p>
       <button type="button" onClick={onCreateClick}>
-        Create list
+        Vytvoriť zoznam
       </button>
     </div>
   )

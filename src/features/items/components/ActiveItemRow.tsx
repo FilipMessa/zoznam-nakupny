@@ -21,7 +21,8 @@ export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
     <li ref={setNodeRef} style={style}>
       <button
         type="button"
-        aria-label="Drag to reorder"
+        className="icon-btn"
+        aria-label="Presunúť"
         {...attributes}
         {...listeners}
       >

@@ -17,8 +17,13 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
         />
         {item.text}
       </label>
-      <button type="button" onClick={() => onDelete(item.id)}>
-        Delete
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Zmazať"
+        onClick={() => onDelete(item.id)}
+      >
+        Zmazať
       </button>
     </li>
   )
