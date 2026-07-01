@@ -77,6 +77,19 @@ export async function uncheckItem(
   await updateDoc(itemRef, patch as unknown as Record<string, unknown>)
 }
 
+export async function reorderItem(
+  listId: string,
+  itemId: string,
+  activeOrder: number,
+  firestore: Firestore = db,
+): Promise<void> {
+  const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
+  await updateDoc(itemRef, {
+    activeOrder,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function deleteItem(
   listId: string,
   itemId: string,

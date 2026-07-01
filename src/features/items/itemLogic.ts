@@ -77,3 +77,55 @@ export function nextActiveOrder(items: ShoppingItem[]): number {
 
   return Math.max(...orders) + 1
 }
+
+// Computes the activeOrder a dragged item should take on after a reorder.
+// `fromIndex`/`toIndex` are both positions within `activeItems` as currently
+// sorted (i.e. the array the drag interaction observed) -- `toIndex` refers
+// to the destination position in the array with the moved item removed, per
+// ADR 0002 (fractional-index reordering).
+export function reorderActiveItems(
+  activeItems: ShoppingItem[],
+  fromIndex: number,
+  toIndex: number,
+): number {
+  if (fromIndex === toIndex) {
+    return activeItems[fromIndex].activeOrder as number
+  }
+
+  const withoutMoved = activeItems.filter((_, index) => index !== fromIndex)
+
+  const prev = withoutMoved[toIndex - 1]
+  const next = withoutMoved[toIndex]
+
+  if (!prev) {
+    // Moving to the very top of the list.
+    const nextOrder = next.activeOrder as number
+    if (nextOrder === 0) {
+      return -1
+    }
+    if (nextOrder < 0) {
+      return nextOrder * 2
+    }
+    return nextOrder / 2
+  }
+
+  if (!next) {
+    // Moving to the very bottom of the list.
+    return nextActiveOrder(withoutMoved)
+  }
+
+  const prevOrder = prev.activeOrder as number
+  const nextOrder = next.activeOrder as number
+  const midpoint = (prevOrder + nextOrder) / 2
+
+  if (
+    !Number.isFinite(midpoint) ||
+    Number.isNaN(midpoint) ||
+    midpoint <= prevOrder ||
+    midpoint >= nextOrder
+  ) {
+    return prevOrder + Number.EPSILON
+  }
+
+  return midpoint
+}

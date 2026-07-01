@@ -1,3 +1,6 @@
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
 import type { ShoppingItem } from '../types'
 
 export interface ActiveItemRowProps {
@@ -6,8 +9,24 @@ export interface ActiveItemRowProps {
 }
 
 export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: item.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
   return (
-    <li>
+    <li ref={setNodeRef} style={style}>
+      <button
+        type="button"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical />
+      </button>
       <label>
         <input
           type="checkbox"

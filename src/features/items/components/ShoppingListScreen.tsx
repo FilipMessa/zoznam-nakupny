@@ -9,6 +9,7 @@ import {
   uncheckItem,
   deleteItem,
   clearDoneItems,
+  reorderItem,
 } from '../itemService'
 import { AddItemForm } from './AddItemForm'
 import { ActiveItemsList } from './ActiveItemsList'
@@ -58,6 +59,10 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
     await uncheckItem(listId, itemId, active)
   }
 
+  const handleReorder = async (itemId: string, activeOrder: number) => {
+    await reorderItem(listId, itemId, activeOrder)
+  }
+
   const handleDelete = async (itemId: string) => {
     await deleteItem(listId, itemId)
   }
@@ -79,6 +84,9 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         <ActiveItemsList
           items={active}
           onCheck={(itemId) => void handleCheck(itemId)}
+          onReorder={(itemId, activeOrder) =>
+            void handleReorder(itemId, activeOrder)
+          }
         />
       </section>
 
