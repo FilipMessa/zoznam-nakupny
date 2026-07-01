@@ -1,0 +1,77 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { InviteCodeScreen } from './InviteCodeScreen'
+import { redeemInviteCode } from '../inviteService'
+import { useAuth } from '../useAuth'
+
+vi.mock('../inviteService', () => ({
+  redeemInviteCode: vi.fn(),
+}))
+vi.mock('../useAuth', () => ({
+  useAuth: vi.fn(),
+}))
+
+const mockedRedeem = vi.mocked(redeemInviteCode)
+const mockedUseAuth = vi.mocked(useAuth)
+
+describe('InviteCodeScreen', () => {
+  const markAsMember = vi.fn()
+
+  beforeEach(() => {
+    mockedRedeem.mockReset()
+    markAsMember.mockReset()
+    mockedUseAuth.mockReturnValue({
+      user: { uid: 'uid-1' } as never,
+      authLoading: false,
+    })
+  })
+
+  it('redeems a valid code and calls markAsMember on success', async () => {
+    mockedRedeem.mockResolvedValueOnce({ ok: true })
+    const user = userEvent.setup()
+    render(<InviteCodeScreen markAsMember={markAsMember} />)
+
+    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'ABC123')
+    await user.click(screen.getByRole('button', { name: /join/i }))
+
+    await waitFor(() => {
+      expect(mockedRedeem).toHaveBeenCalledWith('uid-1', 'ABC123')
+      expect(markAsMember).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('shows an invalid-code error and does not call markAsMember', async () => {
+    mockedRedeem.mockResolvedValueOnce({ ok: false, error: 'invalid-code' })
+    const user = userEvent.setup()
+    render(<InviteCodeScreen markAsMember={markAsMember} />)
+
+    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'BADCODE')
+    await user.click(screen.getByRole('button', { name: /join/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid/i)).toBeInTheDocument()
+    })
+    expect(markAsMember).not.toHaveBeenCalled()
+  })
+
+  it('disables the form while the redemption is pending', async () => {
+    let resolveRedeem: (value: { ok: true }) => void = () => {}
+    mockedRedeem.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRedeem = resolve
+        }),
+    )
+    const user = userEvent.setup()
+    render(<InviteCodeScreen markAsMember={markAsMember} />)
+
+    await user.type(screen.getByRole('textbox', { name: /invite code/i }), 'ABC123')
+    await user.click(screen.getByRole('button', { name: /join/i }))
+
+    expect(screen.getByRole('button', { name: /join/i })).toBeDisabled()
+
+    resolveRedeem({ ok: true })
+    await waitFor(() => expect(markAsMember).toHaveBeenCalled())
+  })
+})

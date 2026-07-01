@@ -11,7 +11,12 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+// Initialize under an explicit app name (rather than the default '[DEFAULT]'
+// app) so that test files which need their own `initializeApp()` call
+// against the default app (e.g. src/test/auth.integration.test.ts, which
+// connects a raw client SDK instance to the emulators) don't collide with
+// this module's side-effectful app initialization on import.
+const app = initializeApp(firebaseConfig, 'zoznam-nakupny')
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)

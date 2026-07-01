@@ -8,6 +8,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    exclude: ['e2e/**', 'node_modules/**', 'src/test/firestore.rules.test.ts'],
+    exclude: [
+      'e2e/**',
+      'node_modules/**',
+      'src/test/firestore.rules.test.ts',
+      'src/test/auth.integration.test.ts',
+    ],
   },
 })
