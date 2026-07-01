@@ -13,6 +13,7 @@ export default defineConfig({
       'node_modules/**',
       'src/test/firestore.rules.test.ts',
       'src/test/auth.integration.test.ts',
+      'src/test/lists.integration.test.ts',
     ],
   },
 })

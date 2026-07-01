@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react'
 import App from './App'
 import { useAuth } from './features/auth/useAuth'
 import { useMembership } from './features/auth/useMembership'
+import { useLists } from './features/lists/useLists'
+import { useSelectedListId } from './features/lists/useSelectedListId'
 
 vi.mock('./features/auth/useAuth', () => ({
   useAuth: vi.fn(),
@@ -10,9 +12,17 @@ vi.mock('./features/auth/useAuth', () => ({
 vi.mock('./features/auth/useMembership', () => ({
   useMembership: vi.fn(),
 }))
+vi.mock('./features/lists/useLists', () => ({
+  useLists: vi.fn(),
+}))
+vi.mock('./features/lists/useSelectedListId', () => ({
+  useSelectedListId: vi.fn(),
+}))
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseMembership = vi.mocked(useMembership)
+const mockedUseLists = vi.mocked(useLists)
+const mockedUseSelectedListId = vi.mocked(useSelectedListId)
 
 describe('App state machine', () => {
   beforeEach(() => {
@@ -60,7 +70,7 @@ describe('App state machine', () => {
     expect(screen.getByRole('textbox', { name: /invite code/i })).toBeInTheDocument()
   })
 
-  it('renders MemberPlaceholder when membership status is member', () => {
+  it('renders ListsScreen when membership status is member', () => {
     mockedUseAuth.mockReturnValue({
       user: { uid: 'uid-1' } as never,
       authLoading: false,
@@ -69,7 +79,12 @@ describe('App state machine', () => {
       status: 'member',
       markAsMember: vi.fn(),
     })
+    mockedUseLists.mockReturnValue({ lists: [], listsLoading: false })
+    mockedUseSelectedListId.mockReturnValue({
+      selectedListId: null,
+      selectList: vi.fn(),
+    })
     render(<App />)
-    expect(screen.getByText(/welcome|member/i)).toBeInTheDocument()
+    expect(screen.getByText(/create your first list/i)).toBeInTheDocument()
   })
 })

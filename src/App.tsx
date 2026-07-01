@@ -4,7 +4,7 @@ import { useMembership } from './features/auth/useMembership'
 import { LoadingScreen } from './features/auth/components/LoadingScreen'
 import { SignInScreen } from './features/auth/components/SignInScreen'
 import { InviteCodeScreen } from './features/auth/components/InviteCodeScreen'
-import { MemberPlaceholder } from './features/auth/components/MemberPlaceholder'
+import { ListsScreen } from './features/lists/components/ListsScreen'
 
 function App() {
   const { user, authLoading } = useAuth()
@@ -26,7 +26,7 @@ function App() {
     return <InviteCodeScreen markAsMember={markAsMember} />
   }
 
-  return <MemberPlaceholder />
+  return <ListsScreen />
 }
 
 export default App

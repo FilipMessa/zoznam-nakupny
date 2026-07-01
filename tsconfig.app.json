@@ -23,5 +23,9 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["src/test/firestore.rules.test.ts", "src/test/auth.integration.test.ts"]
+  "exclude": [
+    "src/test/firestore.rules.test.ts",
+    "src/test/auth.integration.test.ts",
+    "src/test/lists.integration.test.ts"
+  ]
 }
