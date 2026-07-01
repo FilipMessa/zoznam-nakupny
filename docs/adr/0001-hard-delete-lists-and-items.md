@@ -1,0 +1,3 @@
+# Hard delete for Lists (and their Items), no archive/trash
+
+Deleting a Shopping List permanently deletes it and all its Items (active and done) in the same operation — there is no soft delete, archive state, or recovery mechanism. We considered soft-deleting/archiving Lists to guard against accidental deletion, but rejected it: this is a personal family app where the cost of losing a list (re-typing a few items) is trivial, and archive/trash machinery would add a whole hidden-state concept (archived-list rules, an empty-trash flow) for a low-value safety net. If accidental deletion turns out to be a real problem in practice, a simple confirm dialog is the cheaper fix — not a soft-delete data model.
