@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, Flex, Heading } from '@chakra-ui/react'
 import { useAuth } from '../../auth/useAuth'
 import { LoadingScreen } from '../../auth/components/LoadingScreen'
 import { useItems } from '../useItems'
@@ -71,15 +72,24 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
     await clearDoneItems(listId)
   }
 
+  const sectionHeadingStyle = {
+    fontWeight: '800',
+    fontSize: '11px',
+    color: 'fg.muted',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const,
+    m: '0',
+  }
+
   return (
-    <div className="shopping-list-content">
-      <main className="shopping-list-main">
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-label">
+    <Flex direction="column" flex="1 1 auto" minH="0">
+      <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
+        <Box as="section">
+          <Flex align="center" justify="space-between" padding="14px 16px 6px">
+            <Heading as="h2" {...sectionHeadingStyle}>
               {active.length > 0 ? `Na kúpu · ${active.length}` : 'Na kúpu'}
-            </h2>
-          </div>
+            </Heading>
+          </Flex>
           <ActiveItemsList
             items={active}
             onCheck={(itemId) => void handleCheck(itemId)}
@@ -87,33 +97,33 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
               void handleReorder(itemId, activeOrder)
             }
           />
-        </section>
+        </Box>
 
-        <section className="section">
-          <div className="section-header">
-            <h2 className="section-label">
+        <Box as="section" borderTop="1px solid" borderColor="border">
+          <Flex align="center" justify="space-between" padding="14px 16px 6px">
+            <Heading as="h2" {...sectionHeadingStyle}>
               {done.length > 0 ? `Hotové · ${done.length}` : 'Hotové'}
-            </h2>
+            </Heading>
             <ClearDoneButton
               doneCount={done.length}
               onClear={() => void handleClearDone()}
             />
-          </div>
+          </Flex>
           <DoneItemsList
             items={done}
             onUncheck={(itemId) => void handleUncheck(itemId)}
             onDelete={(itemId) => void handleDelete(itemId)}
           />
-        </section>
-      </main>
+        </Box>
+      </Box>
 
-      <div className="add-item-bar">
+      <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
         <AddItemForm
           onSubmit={(text) => void handleAdd(text)}
           pending={addPending}
           error={addError}
         />
-      </div>
-    </div>
+      </Box>
+    </Flex>
   )
 }

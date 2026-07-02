@@ -1,3 +1,4 @@
+import { Box, Text } from '@chakra-ui/react'
 import {
   DndContext,
   closestCenter,
@@ -30,7 +31,11 @@ export function ActiveItemsList({
   )
 
   if (items.length === 0) {
-    return <p className="empty-hint">Žiadne položky na kúpu. Skvelá práca!</p>
+    return (
+      <Text padding="10px 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
+        Žiadne položky na kúpu. Skvelá práca!
+      </Text>
+    )
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -65,11 +70,11 @@ export function ActiveItemsList({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ul className="item-list">
+        <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
           {items.map((item) => (
             <ActiveItemRow key={item.id} item={item} onCheck={onCheck} />
           ))}
-        </ul>
+        </Box>
       </SortableContext>
     </DndContext>
   )

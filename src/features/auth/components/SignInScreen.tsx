@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react'
 import { signInWithGoogle } from '../googleAuth'
 
 const NON_FATAL_ERROR_CODES = new Set([
@@ -25,8 +26,28 @@ export function SignInScreen() {
   }
 
   return (
-    <div className="screen signin-screen">
-      <div className="brand-logo" aria-hidden="true">
+    <Flex
+      direction="column"
+      flex="1 1 auto"
+      minH="100dvh"
+      align="center"
+      justify="center"
+      textAlign="center"
+      padding="32px"
+      bg="linear-gradient(160deg, #fff8f2 0%, #fdfaf6 60%)"
+    >
+      <Flex
+        aria-hidden="true"
+        align="center"
+        justify="center"
+        w="80px"
+        h="80px"
+        borderRadius="22px"
+        bg="terracotta.solid"
+        color="white"
+        boxShadow="0 6px 24px rgba(200, 98, 43, 0.4)"
+        mb="24px"
+      >
         <svg
           viewBox="0 0 24 24"
           width={42}
@@ -40,10 +61,31 @@ export function SignInScreen() {
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
-      </div>
-      <h1 className="brand-title">Zoznam nákupný</h1>
-      <p className="brand-subtitle">Spoločný nákupný zoznam pre celú rodinu.</p>
-      <button type="button" className="google-btn" onClick={handleSignIn}>
+      </Flex>
+      <Heading as="h1" fontSize="30px" fontWeight="900" color="fg" letterSpacing="-0.8px" m="0 0 8px">
+        Zoznam nákupný
+      </Heading>
+      <Text fontSize="16px" color="fg.muted" lineHeight="1.5" m="0 0 56px" maxW="240px">
+        Spoločný nákupný zoznam pre celú rodinu.
+      </Text>
+      <Button
+        type="button"
+        onClick={handleSignIn}
+        w="full"
+        h="auto"
+        py="15px"
+        px="24px"
+        gap="12px"
+        fontWeight="700"
+        fontSize="17px"
+        color="fg"
+        bg="bg.panel"
+        border="1.5px solid"
+        borderColor="border"
+        borderRadius="14px"
+        boxShadow="sm"
+        _hover={{ boxShadow: 'md' }}
+      >
         <svg viewBox="0 0 24 24" width={22} height={22} aria-hidden="true">
           <path
             fill="#4285F4"
@@ -63,12 +105,26 @@ export function SignInScreen() {
           />
         </svg>
         Prihlásiť sa cez Google
-      </button>
+      </Button>
       {retryMessage && (
-        <p role="alert" className="form-error" style={{ marginTop: 20 }}>
+        <Box
+          as="p"
+          role="alert"
+          mt="20px"
+          display="flex"
+          alignItems="center"
+          gap="8px"
+          padding="10px 14px"
+          bg="red.subtle"
+          border="1px solid rgba(184, 48, 48, 0.15)"
+          borderRadius="10px"
+          fontSize="14px"
+          fontWeight="700"
+          color="red.solid"
+        >
           {retryMessage}
-        </p>
+        </Box>
       )}
-    </div>
+    </Flex>
   )
 }

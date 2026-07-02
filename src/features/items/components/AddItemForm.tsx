@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Box, IconButton, Input, VisuallyHidden, chakra } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
 
 export interface AddItemFormProps {
@@ -30,32 +31,67 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
   }
 
   return (
-    <form className="add-item-form" onSubmit={handleSubmit}>
-      <label className="sr-only" htmlFor="add-item-text-input">
-        Položka
-      </label>
-      <input
+    <chakra.form
+      onSubmit={handleSubmit}
+      display="flex"
+      alignItems="center"
+      gap="10px"
+      padding="10px 12px 14px"
+    >
+      <VisuallyHidden asChild>
+        <chakra.label htmlFor="add-item-text-input">Položka</chakra.label>
+      </VisuallyHidden>
+      <Input
         id="add-item-text-input"
-        className="add-item-input"
         type="text"
         value={text}
         placeholder="Pridať položku…"
         disabled={pending}
         onChange={(event) => setText(event.target.value)}
+        flex="1 1 auto"
+        minW="0"
+        h="50px"
+        fontSize="16px"
+        fontWeight="600"
+        bg="bg.muted"
+        border="2px solid transparent"
+        borderRadius="12px"
+        color="fg"
+        _focus={{ borderColor: 'terracotta.solid', bg: 'bg.panel', outline: 'none' }}
       />
-      <button
+      <IconButton
         type="submit"
-        className="icon-btn add-item-btn"
+        className="icon-btn"
         aria-label="Pridať"
         disabled={submitDisabled}
+        w="50px"
+        h="50px"
+        minW="50px"
+        borderRadius="12px"
+        flexShrink="0"
+        color="white"
+        bg="terracotta.solid"
+        boxShadow="accent"
+        _hover={{ bg: 'terracotta.emphasized' }}
+        _disabled={{ bg: 'bg.muted', color: 'fg.subtle', boxShadow: 'none' }}
       >
         <Plus size={22} />
-      </button>
+      </IconButton>
       {error && (
-        <p role="alert" className="form-error">
+        <Box
+          as="p"
+          role="alert"
+          padding="10px 14px"
+          bg="red.subtle"
+          border="1px solid rgba(184, 48, 48, 0.15)"
+          borderRadius="10px"
+          fontSize="14px"
+          fontWeight="700"
+          color="red.solid"
+        >
           Niečo sa pokazilo. Skúste to znova.
-        </p>
+        </Box>
       )}
-    </form>
+    </chakra.form>
   )
 }

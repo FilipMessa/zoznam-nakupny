@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from './test/render'
 import App from './App'
 import { useAuth } from './features/auth/useAuth'
 import { useMembership } from './features/auth/useMembership'

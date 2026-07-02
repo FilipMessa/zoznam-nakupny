@@ -1,3 +1,4 @@
+import { Box, Text } from '@chakra-ui/react'
 import type { ShoppingItem } from '../types'
 import { DoneItemRow } from './DoneItemRow'
 
@@ -9,11 +10,15 @@ export interface DoneItemsListProps {
 
 export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps) {
   if (items.length === 0) {
-    return <p className="empty-hint">Zatiaľ nič hotové.</p>
+    return (
+      <Text padding="10px 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
+        Zatiaľ nič hotové.
+      </Text>
+    )
   }
 
   return (
-    <ul className="item-list">
+    <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
       {items.map((item) => (
         <DoneItemRow
           key={item.id}
@@ -22,6 +27,6 @@ export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps
           onDelete={onDelete}
         />
       ))}
-    </ul>
+    </Box>
   )
 }

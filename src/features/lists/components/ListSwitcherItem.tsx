@@ -1,3 +1,4 @@
+import { Box, Button } from '@chakra-ui/react'
 import type { ShoppingList } from '../types'
 
 export interface ListSwitcherItemProps {
@@ -12,14 +13,37 @@ export function ListSwitcherItem({
   onSelect,
 }: ListSwitcherItemProps) {
   return (
-    <li className="list-switcher-item">
-      <button
+    <Box as="li" m="2px 10px">
+      <Button
         type="button"
         aria-current={selected ? 'true' : undefined}
         onClick={() => onSelect(list.id)}
+        display="flex"
+        alignItems="center"
+        gap="12px"
+        w="full"
+        minH="54px"
+        padding="0 14px"
+        bg={selected ? 'terracotta.subtle' : 'transparent'}
+        border="1.5px solid"
+        borderColor={selected ? 'rgba(200, 98, 43, 0.18)' : 'transparent'}
+        borderRadius="12px"
+        justifyContent="flex-start"
+        textAlign="left"
+        fontWeight={selected ? '900' : '600'}
+        fontSize="16px"
+        color={selected ? 'terracotta.solid' : 'fg'}
       >
+        <Box
+          aria-hidden="true"
+          w="8px"
+          h="8px"
+          borderRadius="50%"
+          flexShrink="0"
+          bg={selected ? 'terracotta.solid' : 'border'}
+        />
         {list.name}
-      </button>
-    </li>
+      </Button>
+    </Box>
   )
 }

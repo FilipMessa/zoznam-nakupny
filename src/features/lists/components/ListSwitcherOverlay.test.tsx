@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { ListSwitcherOverlay } from './ListSwitcherOverlay'
@@ -68,7 +68,10 @@ describe('ListSwitcherOverlay', () => {
 
   it('keeps the underlying list content mounted while the overlay opens and closes', async () => {
     const { unmount } = render(<Harness />)
-    const user = userEvent.setup()
+    // The Chakra/Ark drawer applies a body-level pointer-events lock via a
+    // microtask while modal; jsdom doesn't settle that timing reliably, so
+    // the pointer-events hit-test check is disabled for this interaction.
+    const user = userEvent.setup({ pointerEventsCheck: 0 })
 
     // Overlay starts open; underlying content must already be present.
     expect(
@@ -130,7 +133,7 @@ describe('ListSwitcherOverlay', () => {
 
   it('calls onClose when the backdrop is clicked', async () => {
     const onClose = vi.fn()
-    const user = userEvent.setup()
+    const user = userEvent.setup({ pointerEventsCheck: 0 })
     render(
       <ListSwitcherOverlay
         open={true}

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Box, Button, Input, chakra } from '@chakra-ui/react'
 import type { RedeemError } from '../types'
 
 export interface InviteCodeFormProps {
@@ -22,33 +23,88 @@ export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps
   }
 
   return (
-    <form className="invite-form" onSubmit={handleSubmit}>
-      <label className="field-label" htmlFor="invite-code-input">
+    <chakra.form display="flex" flexDirection="column" flex="1 1 auto" onSubmit={handleSubmit}>
+      <chakra.label
+        htmlFor="invite-code-input"
+        display="block"
+        fontWeight="800"
+        fontSize="12px"
+        color="fg.muted"
+        letterSpacing="0.08em"
+        textTransform="uppercase"
+        mb="8px"
+      >
         Pozývací kód
-      </label>
-      <input
+      </chakra.label>
+      <Input
         id="invite-code-input"
-        className="text-input invite-input"
         type="text"
         value={code}
         placeholder="RODINA-2024"
         autoCapitalize="characters"
         disabled={pending}
         onChange={(event) => setCode(event.target.value)}
+        h="54px"
+        fontSize="20px"
+        fontWeight="800"
+        letterSpacing="0.12em"
+        textTransform="uppercase"
+        bg="bg.panel"
+        border="2px solid"
+        borderColor="border"
+        borderRadius="12px"
+        color="fg"
+        _focus={{ borderColor: 'terracotta.solid', outline: 'none' }}
       />
       {error === 'invalid-code' && (
-        <p role="alert" className="form-error">
+        <Box
+          as="p"
+          role="alert"
+          mt="10px"
+          padding="10px 14px"
+          bg="red.subtle"
+          border="1px solid rgba(184, 48, 48, 0.15)"
+          borderRadius="10px"
+          fontSize="14px"
+          fontWeight="700"
+          color="red.solid"
+        >
           Neplatný pozývací kód
-        </p>
+        </Box>
       )}
       {error === 'unknown' && (
-        <p role="alert" className="form-error">
+        <Box
+          as="p"
+          role="alert"
+          mt="10px"
+          padding="10px 14px"
+          bg="red.subtle"
+          border="1px solid rgba(184, 48, 48, 0.15)"
+          borderRadius="10px"
+          fontSize="14px"
+          fontWeight="700"
+          color="red.solid"
+        >
           Niečo sa pokazilo. Skúste to znova.
-        </p>
+        </Box>
       )}
-      <button type="submit" className="primary-btn" disabled={submitDisabled}>
+      <Button
+        type="submit"
+        disabled={submitDisabled}
+        mt="auto"
+        w="full"
+        minH="54px"
+        fontWeight="800"
+        fontSize="17px"
+        color="white"
+        bg="terracotta.solid"
+        borderRadius="14px"
+        boxShadow="accent"
+        _hover={{ bg: 'terracotta.emphasized' }}
+        _disabled={{ opacity: 0.55, boxShadow: 'none' }}
+      >
         Pripojiť sa
-      </button>
-    </form>
+      </Button>
+    </chakra.form>
   )
 }

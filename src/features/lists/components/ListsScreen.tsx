@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Flex } from '@chakra-ui/react'
 import { useAuth } from '../../auth/useAuth'
 import { LoadingScreen } from '../../auth/components/LoadingScreen'
 import { useLists } from '../useLists'
@@ -94,7 +95,7 @@ export function ListsScreen() {
   return (
     <div>
       {selectedList && (
-        <div className="shopping-list-screen">
+        <Flex direction="column" h="100dvh" minH="0" bg="bg">
           <ListHeader
             listName={selectedList.name}
             onOpenSwitcher={() => setSwitcherOpen(true)}
@@ -102,7 +103,7 @@ export function ListsScreen() {
             onDeleteClick={() => setShowDeleteConfirm(true)}
           />
           <ShoppingListScreen listId={selectedList.id} />
-        </div>
+        </Flex>
       )}
 
       {showRenameForm && selectedList && (
