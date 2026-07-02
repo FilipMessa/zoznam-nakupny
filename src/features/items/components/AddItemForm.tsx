@@ -1,6 +1,6 @@
-import { useRef, useState, type FormEvent } from 'react'
 import { Box, IconButton, Input, VisuallyHidden, chakra } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
+import { useAddItemForm } from '../useAddItemForm'
 
 export interface AddItemFormProps {
   onSubmit: (text: string) => void
@@ -8,20 +8,8 @@ export interface AddItemFormProps {
 }
 
 export function AddItemForm({ onSubmit, error }: AddItemFormProps) {
-  const [text, setText] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const trimmedText = text.trim()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (trimmedText.length === 0) {
-      inputRef.current?.focus()
-      return
-    }
-    setText('')
-    onSubmit(trimmedText)
-  }
+  const { text, handleTextChange, inputRef, handleSubmit } =
+    useAddItemForm(onSubmit)
 
   return (
     <chakra.form
@@ -42,7 +30,7 @@ export function AddItemForm({ onSubmit, error }: AddItemFormProps) {
         value={text}
         placeholder="Pridať položku…"
         enterKeyHint="send"
-        onChange={(event) => setText(event.target.value)}
+        onChange={handleTextChange}
         flex="1 1 auto"
         minW="0"
         h="50px"
