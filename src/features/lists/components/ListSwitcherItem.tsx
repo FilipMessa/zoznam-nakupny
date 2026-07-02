@@ -44,19 +44,23 @@ export function ListSwitcherItem({
           bg={selected ? 'terracotta.solid' : 'border'}
         />
         {list.name}
-        {list.pendingSync && (
-          <Box
-            as="span"
-            title="Zoznam čaká na odoslanie"
-            aria-label="Zoznam čaká na odoslanie"
-            color="fg.subtle"
-            flexShrink="0"
-            display="flex"
-            ml="auto"
-          >
-            <Clock size={15} />
-          </Box>
-        )}
+        {/* Always rendered, space always reserved -- see ActiveItemRow for
+            why this can't be a conditional mount. */}
+        <Box
+          as="span"
+          title={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+          aria-label={
+            list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined
+          }
+          aria-hidden={list.pendingSync ? undefined : true}
+          visibility={list.pendingSync ? 'visible' : 'hidden'}
+          color="fg.subtle"
+          flexShrink="0"
+          display="flex"
+          ml="auto"
+        >
+          <Clock size={15} />
+        </Box>
       </Button>
     </Box>
   )

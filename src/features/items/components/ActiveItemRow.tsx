@@ -148,19 +148,24 @@ export function ActiveItemRow({ item, onCheck, onDelete }: ActiveItemRowProps) {
             </Text>
           </Checkbox.Label>
         </Checkbox.Root>
-        {item.pendingSync && (
-          <Box
-            as="span"
-            title="Čaká na odoslanie"
-            aria-label="Čaká na odoslanie"
-            color="fg.subtle"
-            flexShrink="0"
-            display="flex"
-            m="0 4px"
-          >
-            <Clock size={15} />
-          </Box>
-        )}
+        {/* Always rendered (never conditionally mounted) so this icon's
+            space is permanently reserved -- toggling it in and out of the
+            layout would shift the checkbox next to it, which is exactly
+            what happens if hasPendingWrites flickers while Firestore
+            retries a dropped connection, making the checkbox miss taps. */}
+        <Box
+          as="span"
+          title={item.pendingSync ? 'Čaká na odoslanie' : undefined}
+          aria-label={item.pendingSync ? 'Čaká na odoslanie' : undefined}
+          aria-hidden={item.pendingSync ? undefined : true}
+          visibility={item.pendingSync ? 'visible' : 'hidden'}
+          color="fg.subtle"
+          flexShrink="0"
+          display="flex"
+          m="0 4px"
+        >
+          <Clock size={15} />
+        </Box>
         <IconButton
           type="button"
           className="icon-btn"

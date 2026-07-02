@@ -59,18 +59,20 @@ export function ListHeader({
         >
           {listName}
         </Box>
-        {pendingSync && (
-          <Box
-            as="span"
-            title="Zoznam čaká na odoslanie"
-            aria-label="Zoznam čaká na odoslanie"
-            color="fg.subtle"
-            flexShrink="0"
-            display="flex"
-          >
-            <Clock size={15} />
-          </Box>
-        )}
+        {/* Always rendered, space always reserved -- see ActiveItemRow for
+            why this can't be a conditional mount. */}
+        <Box
+          as="span"
+          title={pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+          aria-label={pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+          aria-hidden={pendingSync ? undefined : true}
+          visibility={pendingSync ? 'visible' : 'hidden'}
+          color="fg.subtle"
+          flexShrink="0"
+          display="flex"
+        >
+          <Clock size={15} />
+        </Box>
         <Box as="span" color="fg.subtle" flexShrink="0" display="flex">
           <ChevronDown size={18} />
         </Box>

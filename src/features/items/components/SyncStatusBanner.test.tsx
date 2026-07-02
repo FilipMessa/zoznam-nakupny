@@ -35,6 +35,12 @@ describe('SyncStatusBanner', () => {
 
     rerender(<SyncStatusBanner pendingCount={0} />)
 
+    // The drop to zero is debounced briefly to smooth out transient
+    // reconnect churn, so it doesn't flip to "synced" immediately.
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
+
     expect(screen.getByRole('status')).toHaveTextContent('Zosynchronizované')
 
     act(() => {
@@ -42,5 +48,25 @@ describe('SyncStatusBanner', () => {
     })
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('keeps showing "Synchronizujem" through a brief flicker back to zero, instead of jittering', () => {
+    // Regression test: while genuinely offline, Firestore retries its
+    // Listen/Write streams and can flip hasPendingWrites false/true a few
+    // times a second. Without debouncing the drop to zero, this banner
+    // (and the item list below it) would flicker in and out of the page,
+    // which was observed to make nearby tap targets miss in e2e runs.
+    vi.useFakeTimers()
+    const { rerender } = render(<SyncStatusBanner pendingCount={1} />)
+
+    rerender(<SyncStatusBanner pendingCount={0} />)
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
+    rerender(<SyncStatusBanner pendingCount={1} />)
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Synchronizujem 1 položku…',
+    )
   })
 })

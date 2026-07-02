@@ -107,19 +107,21 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
             </Text>
           </Checkbox.Label>
         </Checkbox.Root>
-        {item.pendingSync && (
-          <Box
-            as="span"
-            title="Čaká na odoslanie"
-            aria-label="Čaká na odoslanie"
-            color="fg.subtle"
-            flexShrink="0"
-            display="flex"
-            m="0 4px"
-          >
-            <Clock size={15} />
-          </Box>
-        )}
+        {/* Always rendered (never conditionally mounted) so this icon's
+            space is permanently reserved -- see ActiveItemRow for why. */}
+        <Box
+          as="span"
+          title={item.pendingSync ? 'Čaká na odoslanie' : undefined}
+          aria-label={item.pendingSync ? 'Čaká na odoslanie' : undefined}
+          aria-hidden={item.pendingSync ? undefined : true}
+          visibility={item.pendingSync ? 'visible' : 'hidden'}
+          color="fg.subtle"
+          flexShrink="0"
+          display="flex"
+          m="0 4px"
+        >
+          <Clock size={15} />
+        </Box>
         <IconButton
           type="button"
           className="icon-btn"
