@@ -104,6 +104,7 @@ export function ListsScreen() {
         <Flex direction="column" h="100dvh" minH="0" bg="bg">
           <ListHeader
             listName={selectedList.name}
+            pendingSync={selectedList.pendingSync}
             onOpenSwitcher={() => setSwitcherOpen(true)}
             onRenameClick={() => setShowRenameForm(true)}
             onDeleteClick={() => setShowDeleteConfirm(true)}

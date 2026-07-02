@@ -1,10 +1,11 @@
 import { Box, Flex, IconButton } from '@chakra-ui/react'
-import { ChevronDown, LogOut, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Clock, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { signOutUser } from '../../auth/googleAuth'
 import { useOnlineStatus } from '../../../lib/useOnlineStatus'
 
 export interface ListHeaderProps {
   listName: string
+  pendingSync?: boolean
   onOpenSwitcher: () => void
   onRenameClick: () => void
   onDeleteClick: () => void
@@ -12,6 +13,7 @@ export interface ListHeaderProps {
 
 export function ListHeader({
   listName,
+  pendingSync,
   onOpenSwitcher,
   onRenameClick,
   onDeleteClick,
@@ -57,6 +59,18 @@ export function ListHeader({
         >
           {listName}
         </Box>
+        {pendingSync && (
+          <Box
+            as="span"
+            title="Zoznam čaká na odoslanie"
+            aria-label="Zoznam čaká na odoslanie"
+            color="fg.subtle"
+            flexShrink="0"
+            display="flex"
+          >
+            <Clock size={15} />
+          </Box>
+        )}
         <Box as="span" color="fg.subtle" flexShrink="0" display="flex">
           <ChevronDown size={18} />
         </Box>

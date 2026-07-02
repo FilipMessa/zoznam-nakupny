@@ -1,4 +1,5 @@
 import { Box, Button } from '@chakra-ui/react'
+import { Clock } from 'lucide-react'
 import type { ShoppingList } from '../types'
 
 export interface ListSwitcherItemProps {
@@ -43,6 +44,19 @@ export function ListSwitcherItem({
           bg={selected ? 'terracotta.solid' : 'border'}
         />
         {list.name}
+        {list.pendingSync && (
+          <Box
+            as="span"
+            title="Zoznam čaká na odoslanie"
+            aria-label="Zoznam čaká na odoslanie"
+            color="fg.subtle"
+            flexShrink="0"
+            display="flex"
+            ml="auto"
+          >
+            <Clock size={15} />
+          </Box>
+        )}
       </Button>
     </Box>
   )

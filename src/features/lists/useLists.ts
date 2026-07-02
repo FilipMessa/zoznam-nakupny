@@ -19,15 +19,20 @@ export function useLists(): UseListsResult {
       orderBy('createdAt', 'asc'),
     )
 
-    const unsubscribe = onSnapshot(listsQuery, (snapshot) => {
-      setLists(
-        snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<ShoppingList, 'id'>),
-        })),
-      )
-      setListsLoading(false)
-    })
+    const unsubscribe = onSnapshot(
+      listsQuery,
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        setLists(
+          snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<ShoppingList, 'id'>),
+            pendingSync: docSnap.metadata.hasPendingWrites,
+          })),
+        )
+        setListsLoading(false)
+      },
+    )
 
     return unsubscribe
   }, [])

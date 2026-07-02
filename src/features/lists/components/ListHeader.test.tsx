@@ -163,4 +163,34 @@ describe('ListHeader', () => {
 
     expect(screen.getByTitle('Offline')).toBeInTheDocument()
   })
+
+  it('shows a pending-sync badge when the selected list has not synced yet', () => {
+    render(
+      <ListHeader
+        listName="Groceries"
+        pendingSync={true}
+        onOpenSwitcher={vi.fn()}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTitle('Zoznam čaká na odoslanie')).toBeInTheDocument()
+  })
+
+  it('does not show a pending-sync badge once the selected list has synced', () => {
+    render(
+      <ListHeader
+        listName="Groceries"
+        pendingSync={false}
+        onOpenSwitcher={vi.fn()}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.queryByTitle('Zoznam čaká na odoslanie'),
+    ).not.toBeInTheDocument()
+  })
 })
