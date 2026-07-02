@@ -1,6 +1,7 @@
 import { Box, Flex, IconButton } from '@chakra-ui/react'
 import { ChevronDown, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { signOutUser } from '../../auth/googleAuth'
+import { useOnlineStatus } from '../../../lib/useOnlineStatus'
 
 export interface ListHeaderProps {
   listName: string
@@ -15,6 +16,8 @@ export function ListHeader({
   onRenameClick,
   onDeleteClick,
 }: ListHeaderProps) {
+  const isOnline = useOnlineStatus()
+
   return (
     <Flex
       as="header"
@@ -60,15 +63,15 @@ export function ListHeader({
       </IconButton>
       <Box
         as="span"
-        title="Živé spojenie"
+        title={isOnline ? 'Živé spojenie' : 'Offline'}
         aria-hidden="true"
         w="8px"
         h="8px"
         borderRadius="50%"
-        bg="#4ade80"
+        bg={isOnline ? '#4ade80' : 'border'}
         flexShrink="0"
         m="0 4px"
-        animation="livePulse 2s ease-in-out infinite"
+        animation={isOnline ? 'livePulse 2s ease-in-out infinite' : 'none'}
       />
       <IconButton
         type="button"

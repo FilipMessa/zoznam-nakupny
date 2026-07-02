@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
+import { act } from '@testing-library/react'
 import { ListHeader } from './ListHeader'
 import { signOutUser } from '../../auth/googleAuth'
 
@@ -14,6 +15,10 @@ describe('ListHeader', () => {
   beforeEach(() => {
     mockedSignOutUser.mockReset()
     mockedSignOutUser.mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('renders the list name', () => {
@@ -123,5 +128,39 @@ describe('ListHeader', () => {
     expect(screen.getByRole('button', { name: /odhlásiť sa/i })).toHaveClass(
       'icon-btn',
     )
+  })
+
+  it('shows the connection dot as live when online', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
+
+    render(
+      <ListHeader
+        listName="Groceries"
+        onOpenSwitcher={vi.fn()}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTitle('Živé spojenie')).toBeInTheDocument()
+  })
+
+  it('shows the connection dot as offline when the browser goes offline', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
+
+    render(
+      <ListHeader
+        listName="Groceries"
+        onOpenSwitcher={vi.fn()}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      window.dispatchEvent(new Event('offline'))
+    })
+
+    expect(screen.getByTitle('Offline')).toBeInTheDocument()
   })
 })
