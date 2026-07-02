@@ -36,6 +36,7 @@ import {
   checkItem,
   uncheckItem,
   deleteItem,
+  editItemText,
   clearDoneItems,
 } from '../features/items/itemService'
 import type { ShoppingItem } from '../features/items/types'
@@ -273,6 +274,47 @@ describe('itemService (emulator)', () => {
       expect(itemDoc.data()?.activeOrder).toBeGreaterThan(3)
       expect(itemDoc.data()?.completedAt).toBeNull()
       expect(itemDoc.data()?.completedBy).toBeNull()
+    })
+  })
+
+  describe('editItemText', () => {
+    it('trims and saves the new text, stamping updatedAt', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', {
+        text: 'mlieko',
+        status: 'active',
+        activeOrder: 1,
+        completedAt: null,
+        completedBy: null,
+        createdBy: uid,
+      })
+
+      await editItemText('list-1', 'item-1', '  mlieko 2l  ', db)
+
+      const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
+      expect(itemDoc.data()?.text).toBe('mlieko 2l')
+      expect(itemDoc.data()?.updatedAt).toBeTruthy()
+    })
+
+    it('rejects empty-after-trim text without writing', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', {
+        text: 'mlieko',
+        status: 'active',
+        activeOrder: 1,
+        completedAt: null,
+        completedBy: null,
+        createdBy: uid,
+      })
+
+      await expect(
+        editItemText('list-1', 'item-1', '   ', db),
+      ).rejects.toThrow('invalid-item-text')
+
+      const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
+      expect(itemDoc.data()?.text).toBe('mlieko')
     })
   })
 

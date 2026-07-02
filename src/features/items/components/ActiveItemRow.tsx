@@ -3,7 +3,11 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Clock, GripVertical, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
-import { swipeActionWidth, useSwipeToDelete } from '../useSwipeToDelete'
+import { useSwipeActions } from '../useSwipeActions'
+
+// TODO(phase 2): becomes two 72px actions (Upraviť + Zmazať) once the
+// inline-edit swipe trigger lands; single delete action for now.
+const swipeActionWidth = 84
 
 export interface ActiveItemRowProps {
   item: ShoppingItem
@@ -28,7 +32,7 @@ export function ActiveItemRow({ item, onCheck, onDelete }: ActiveItemRowProps) {
     closeSwipeAction,
     swipeHandlers,
     onForegroundClickCapture,
-  } = useSwipeToDelete()
+  } = useSwipeActions(swipeActionWidth)
 
   const style = {
     transform: CSS.Transform.toString(transform),

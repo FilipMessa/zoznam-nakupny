@@ -1,7 +1,12 @@
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
-import { swipeActionWidth, useSwipeToDelete } from '../useSwipeToDelete'
+import { useSwipeActions } from '../useSwipeActions'
+
+// Done items only ever reveal a single "Zmazať" action -- editing a
+// checked-off item's text isn't supported (see ActiveItemRow for the
+// two-action swipe used by active items).
+const swipeActionWidth = 84
 
 export interface DoneItemRowProps {
   item: ShoppingItem
@@ -16,7 +21,7 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
     closeSwipeAction,
     swipeHandlers,
     onForegroundClickCapture,
-  } = useSwipeToDelete()
+  } = useSwipeActions(swipeActionWidth)
 
   const handleDelete = () => {
     closeSwipeAction()

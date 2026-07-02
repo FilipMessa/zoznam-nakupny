@@ -77,6 +77,24 @@ export async function uncheckItem(
   await updateDoc(itemRef, patch as unknown as Record<string, unknown>)
 }
 
+export async function editItemText(
+  listId: string,
+  itemId: string,
+  text: string,
+  firestore: Firestore = db,
+): Promise<void> {
+  const trimmed = text.trim()
+  if (trimmed.length === 0) {
+    throw new Error('invalid-item-text')
+  }
+
+  const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
+  await updateDoc(itemRef, {
+    text: trimmed,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function reorderItem(
   listId: string,
   itemId: string,

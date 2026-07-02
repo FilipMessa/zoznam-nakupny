@@ -1,10 +1,9 @@
 import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 
-export const swipeActionWidth = 84
 const swipeOpenThreshold = 36
 
-function clampSwipeOffset(value: number) {
-  return Math.min(0, Math.max(-swipeActionWidth, value))
+function clampSwipeOffset(actionsWidth: number, value: number) {
+  return Math.min(0, Math.max(-actionsWidth, value))
 }
 
 // Uses Pointer Events (onPointerDown/Move/Up/Cancel) rather than Touch
@@ -14,7 +13,11 @@ function clampSwipeOffset(value: number) {
 // still resolved from an 8px dead zone (matching dnd-kit's own
 // `tolerance: 8` touch activation constraint) so a fast horizontal swipe
 // naturally cancels dnd-kit's pending long-press drag before it starts.
-export function useSwipeToDelete() {
+//
+// `actionsWidth` is the total width of the revealed action button(s) --
+// callers with a single action (DoneItemRow) and callers with two stacked
+// actions (ActiveItemRow's Upraviť + Zmazať) pass their own total.
+export function useSwipeActions(actionsWidth: number) {
   const [swipeOffset, setSwipeOffsetState] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
   const swipeOffsetRef = useRef(0)
@@ -26,7 +29,7 @@ export function useSwipeToDelete() {
   } | null>(null)
 
   const setSwipeOffset = (value: number) => {
-    const clampedValue = clampSwipeOffset(value)
+    const clampedValue = clampSwipeOffset(actionsWidth, value)
     swipeOffsetRef.current = clampedValue
     setSwipeOffsetState(clampedValue)
   }
@@ -85,7 +88,7 @@ export function useSwipeToDelete() {
     const shouldOpen =
       touchStart.swiping && swipeOffsetRef.current <= -swipeOpenThreshold
     setIsSwiping(false)
-    setSwipeOffset(shouldOpen ? -swipeActionWidth : 0)
+    setSwipeOffset(shouldOpen ? -actionsWidth : 0)
     touchStartRef.current = null
   }
 
