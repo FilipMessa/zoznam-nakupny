@@ -2,7 +2,8 @@ import { Box, Text } from '@chakra-ui/react'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -27,7 +28,13 @@ export function ActiveItemsList({
   onReorder,
 }: ActiveItemsListProps) {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 180,
+        tolerance: 8,
+      },
+    }),
   )
 
   if (items.length === 0) {

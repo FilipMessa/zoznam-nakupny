@@ -1,4 +1,4 @@
-import { Box, Checkbox, IconButton, Text } from '@chakra-ui/react'
+import { Box, Checkbox, Text } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
@@ -10,8 +10,15 @@ export interface ActiveItemRowProps {
 }
 
 export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: item.id })
+  const {
+    attributes,
+    listeners,
+    setActivatorNodeRef,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -21,13 +28,24 @@ export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
   return (
     <Box
       as="li"
-      ref={setNodeRef}
+      ref={(node: HTMLLIElement | null) => {
+        setNodeRef(node)
+        setActivatorNodeRef(node)
+      }}
       style={style}
       display="flex"
       alignItems="center"
       minH="56px"
       padding="0 8px 0 0"
       animation="itemIn 0.3s ease"
+      cursor="grab"
+      data-testid={`active-item-${item.id}`}
+      _active={{ cursor: 'grabbing' }}
+      css={{
+        touchAction: 'manipulation',
+      }}
+      {...attributes}
+      {...listeners}
       {...(isDragging && {
         bg: 'bg.panel',
         borderRadius: '14px',
@@ -36,23 +54,18 @@ export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
         zIndex: '20',
       })}
     >
-      <IconButton
-        type="button"
-        className="icon-btn"
-        aria-label="Presunúť"
-        variant="ghost"
-        minW="touchTarget"
+      <Box
+        aria-hidden="true"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        minW="48px"
         w="48px"
         h="56px"
         color="fg.subtle"
-        cursor="grab"
-        css={{ touchAction: 'none' }}
-        _hover={{ bg: 'transparent', color: 'fg.muted' }}
-        {...attributes}
-        {...listeners}
       >
         <GripVertical size={20} />
-      </IconButton>
+      </Box>
       <Checkbox.Root
         checked={false}
         onCheckedChange={() => onCheck(item.id)}
