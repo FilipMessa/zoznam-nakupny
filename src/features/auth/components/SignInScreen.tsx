@@ -1,29 +1,8 @@
-import { useState } from 'react'
 import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react'
-import { signInWithGoogle } from '../googleAuth'
-
-const NON_FATAL_ERROR_CODES = new Set([
-  'auth/popup-closed-by-user',
-  'auth/cancelled-popup-request',
-  'auth/popup-blocked',
-])
+import { useGoogleSignIn } from '../useGoogleSignIn'
 
 export function SignInScreen() {
-  const [retryMessage, setRetryMessage] = useState<string | null>(null)
-
-  const handleSignIn = async () => {
-    setRetryMessage(null)
-    try {
-      await signInWithGoogle()
-    } catch (error) {
-      const code = (error as { code?: string } | undefined)?.code
-      if (code && NON_FATAL_ERROR_CODES.has(code)) {
-        setRetryMessage('Prihlásenie bolo prerušené. Skúste to znova.')
-      } else {
-        console.error('Sign-in failed', error)
-      }
-    }
-  }
+  const { retryMessage, handleSignIn } = useGoogleSignIn()
 
   return (
     <Flex
