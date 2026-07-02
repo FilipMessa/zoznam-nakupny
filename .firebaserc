@@ -1,7 +1,5 @@
 {
   "projects": {
-    "default": "zoznam-nakupny-dev",
-    "dev": "zoznam-nakupny-dev",
-    "prod": "zoznam-nakupny"
+    "default": "zoznam-nakupny"
   }
 }
