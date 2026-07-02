@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
@@ -12,9 +13,17 @@ export interface DoneItemRowProps {
   item: ShoppingItem
   onUncheck: (id: string) => void
   onDelete: (id: string) => void
+  isSwipeOpen: boolean
+  onSwipeOpenChange: (open: boolean) => void
 }
 
-export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
+export function DoneItemRow({
+  item,
+  onUncheck,
+  onDelete,
+  isSwipeOpen,
+  onSwipeOpenChange,
+}: DoneItemRowProps) {
   const {
     swipeOffset,
     isSwiping,
@@ -23,8 +32,21 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
     onForegroundClickCapture,
   } = useSwipeActions(swipeActionWidth)
 
+  // See ActiveItemRow for why this is a render-time correction rather than
+  // an effect, and why the reverse direction (below) has to be an effect.
+  if (!isSwipeOpen && swipeOffset !== 0) {
+    closeSwipeAction()
+  }
+
+  useEffect(() => {
+    if (swipeOffset !== 0) {
+      onSwipeOpenChange(true)
+    }
+  }, [swipeOffset, onSwipeOpenChange])
+
   const handleDelete = () => {
     closeSwipeAction()
+    onSwipeOpenChange(false)
     onDelete(item.id)
   }
 
@@ -35,6 +57,7 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
       minH="52px"
       overflow="hidden"
       data-testid={`done-item-${item.id}`}
+      data-swipe-row={item.id}
     >
       <Button
         type="button"

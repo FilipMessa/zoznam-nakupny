@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { fireEvent, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { DoneItemRow } from './DoneItemRow'
+import { DoneItemRow, type DoneItemRowProps } from './DoneItemRow'
 import type { ShoppingItem } from '../types'
 
 function makeDoneItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
@@ -19,23 +19,28 @@ function makeDoneItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   }
 }
 
+function makeProps(
+  overrides: Partial<DoneItemRowProps> = {},
+): DoneItemRowProps {
+  return {
+    item: makeDoneItem(),
+    onUncheck: vi.fn(),
+    onDelete: vi.fn(),
+    isSwipeOpen: true,
+    onSwipeOpenChange: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('DoneItemRow', () => {
   it('renders the item text', () => {
-    render(
-      <DoneItemRow
-        item={makeDoneItem({ text: 'mlieko' })}
-        onUncheck={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    )
+    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ text: 'mlieko' }) })} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
   })
 
   it('renders a checked checkbox', () => {
-    render(
-      <DoneItemRow item={makeDoneItem()} onUncheck={vi.fn()} onDelete={vi.fn()} />,
-    )
+    render(<DoneItemRow {...makeProps()} />)
 
     expect(screen.getByRole('checkbox')).toBeChecked()
   })
@@ -45,9 +50,7 @@ describe('DoneItemRow', () => {
     const user = userEvent.setup()
     render(
       <DoneItemRow
-        item={makeDoneItem({ id: 'item-7' })}
-        onUncheck={onUncheck}
-        onDelete={vi.fn()}
+        {...makeProps({ item: makeDoneItem({ id: 'item-7' }), onUncheck })}
       />,
     )
 
@@ -57,9 +60,7 @@ describe('DoneItemRow', () => {
   })
 
   it('does not expose a persistent delete button by default', () => {
-    render(
-      <DoneItemRow item={makeDoneItem()} onUncheck={vi.fn()} onDelete={vi.fn()} />,
-    )
+    render(<DoneItemRow {...makeProps()} />)
 
     expect(
       screen.queryByRole('button', { name: /vymazať položku/i }),
@@ -71,9 +72,7 @@ describe('DoneItemRow', () => {
     const user = userEvent.setup()
     render(
       <DoneItemRow
-        item={makeDoneItem({ id: 'item-9' })}
-        onUncheck={vi.fn()}
-        onDelete={onDelete}
+        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), onDelete })}
       />,
     )
 
@@ -103,26 +102,54 @@ describe('DoneItemRow', () => {
   })
 
   it('shows a pending-sync icon when the item has not synced yet', () => {
-    render(
-      <DoneItemRow
-        item={makeDoneItem({ pendingSync: true })}
-        onUncheck={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    )
+    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ pendingSync: true }) })} />)
 
     expect(screen.getByTitle('Čaká na odoslanie')).toBeInTheDocument()
   })
 
   it('does not show a pending-sync icon once the item has synced', () => {
-    render(
+    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ pendingSync: false }) })} />)
+
+    expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
+  })
+
+  it('snaps an open swipe closed when it loses exclusive open status', () => {
+    const { container, rerender } = render(
+      <DoneItemRow {...makeProps({ item: makeDoneItem({ id: 'item-9' }) })} />,
+    )
+
+    const rowContent = screen.getByTestId('done-item-content-item-9')
+    fireEvent.pointerDown(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.pointerMove(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+    fireEvent.pointerUp(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+
+    expect(
+      container.querySelector('button[aria-label="Vymazať položku"]'),
+    ).toHaveAttribute('aria-hidden', 'false')
+
+    rerender(
       <DoneItemRow
-        item={makeDoneItem({ pendingSync: false })}
-        onUncheck={vi.fn()}
-        onDelete={vi.fn()}
+        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: false })}
       />,
     )
 
-    expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
+    expect(
+      container.querySelector('button[aria-label="Vymazať položku"]'),
+    ).toHaveAttribute('aria-hidden', 'true')
   })
 })

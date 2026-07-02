@@ -21,6 +21,12 @@ export interface ActiveItemsListProps {
   onCheck: (id: string) => void
   onDelete: (id: string) => void
   onReorder?: (itemId: string, activeOrder: number) => void
+  editingItemId: string | null
+  onStartEdit: (id: string) => void
+  onSubmitEdit: (id: string, text: string) => void
+  onCancelEdit: () => void
+  openSwipeItemId: string | null
+  onSwipeOpenChange: (itemId: string, open: boolean) => void
 }
 
 export function ActiveItemsList({
@@ -28,6 +34,12 @@ export function ActiveItemsList({
   onCheck,
   onDelete,
   onReorder,
+  editingItemId,
+  onStartEdit,
+  onSubmitEdit,
+  onCancelEdit,
+  openSwipeItemId,
+  onSwipeOpenChange,
 }: ActiveItemsListProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -86,6 +98,12 @@ export function ActiveItemsList({
               item={item}
               onCheck={onCheck}
               onDelete={onDelete}
+              isEditing={editingItemId === item.id}
+              onStartEdit={onStartEdit}
+              onSubmitEdit={onSubmitEdit}
+              onCancelEdit={onCancelEdit}
+              isSwipeOpen={openSwipeItemId === item.id}
+              onSwipeOpenChange={(open) => onSwipeOpenChange(item.id, open)}
             />
           ))}
         </Box>

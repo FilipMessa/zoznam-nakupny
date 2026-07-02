@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { DoneItemsList } from './DoneItemsList'
+import { DoneItemsList, type DoneItemsListProps } from './DoneItemsList'
 import type { ShoppingItem } from '../types'
 
 function makeDoneItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
@@ -19,6 +19,19 @@ function makeDoneItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   }
 }
 
+function makeProps(
+  overrides: Partial<DoneItemsListProps> = {},
+): DoneItemsListProps {
+  return {
+    items: [],
+    onUncheck: vi.fn(),
+    onDelete: vi.fn(),
+    openSwipeItemId: null,
+    onSwipeOpenChange: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('DoneItemsList', () => {
   it('renders every done item passed in', () => {
     const items = [
@@ -26,14 +39,14 @@ describe('DoneItemsList', () => {
       makeDoneItem({ id: 'b', text: 'vajcia' }),
     ]
 
-    render(<DoneItemsList items={items} onUncheck={vi.fn()} onDelete={vi.fn()} />)
+    render(<DoneItemsList {...makeProps({ items })} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
     expect(screen.getByText('vajcia')).toBeInTheDocument()
   })
 
   it('shows an empty state when there are no done items', () => {
-    render(<DoneItemsList items={[]} onUncheck={vi.fn()} onDelete={vi.fn()} />)
+    render(<DoneItemsList {...makeProps({ items: [] })} />)
 
     expect(screen.getByText(/zatiaľ nič hotové/i)).toBeInTheDocument()
   })
@@ -41,9 +54,7 @@ describe('DoneItemsList', () => {
   it('does not show the empty state when items are present', () => {
     render(
       <DoneItemsList
-        items={[makeDoneItem({ id: 'a', text: 'mlieko' })]}
-        onUncheck={vi.fn()}
-        onDelete={vi.fn()}
+        {...makeProps({ items: [makeDoneItem({ id: 'a', text: 'mlieko' })] })}
       />,
     )
 
@@ -59,7 +70,7 @@ describe('DoneItemsList', () => {
       makeDoneItem({ id: 'a', text: 'mlieko' }),
       makeDoneItem({ id: 'b', text: 'vajcia' }),
     ]
-    render(<DoneItemsList items={items} onUncheck={onUncheck} onDelete={vi.fn()} />)
+    render(<DoneItemsList {...makeProps({ items, onUncheck })} />)
 
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[1])
@@ -74,12 +85,13 @@ describe('DoneItemsList', () => {
       makeDoneItem({ id: 'a', text: 'mlieko' }),
       makeDoneItem({ id: 'b', text: 'vajcia' }),
     ]
-    const { container } = render(
-      <DoneItemsList items={items} onUncheck={vi.fn()} onDelete={onDelete} />,
-    )
+    const { container } = render(<DoneItemsList {...makeProps({ items, onDelete })} />)
 
+    // The desktop icon button is `display: none` below the `md` breakpoint,
+    // which jsdom's default (zero-width) viewport matches, so it's excluded
+    // from the accessibility tree -- query by attribute instead of role.
     const deleteButtons = container.querySelectorAll<HTMLButtonElement>(
-      'button.icon-btn',
+      'button[aria-label="Zmazať"]',
     )
     await user.click(deleteButtons[1])
 

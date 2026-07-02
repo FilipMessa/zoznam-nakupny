@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { ActiveItemsList } from './ActiveItemsList'
+import { ActiveItemsList, type ActiveItemsListProps } from './ActiveItemsList'
 import type { ShoppingItem } from '../types'
 
 function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
@@ -19,6 +19,23 @@ function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   }
 }
 
+function makeProps(
+  overrides: Partial<ActiveItemsListProps> = {},
+): ActiveItemsListProps {
+  return {
+    items: [],
+    onCheck: vi.fn(),
+    onDelete: vi.fn(),
+    editingItemId: null,
+    onStartEdit: vi.fn(),
+    onSubmitEdit: vi.fn(),
+    onCancelEdit: vi.fn(),
+    openSwipeItemId: null,
+    onSwipeOpenChange: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('ActiveItemsList', () => {
   it('renders every active item passed in', () => {
     const items = [
@@ -26,14 +43,14 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'b', text: 'vajcia', activeOrder: 2 }),
     ]
 
-    render(<ActiveItemsList items={items} onCheck={vi.fn()} onDelete={vi.fn()} />)
+    render(<ActiveItemsList {...makeProps({ items })} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
     expect(screen.getByText('vajcia')).toBeInTheDocument()
   })
 
   it('shows an empty state when there are no active items', () => {
-    render(<ActiveItemsList items={[]} onCheck={vi.fn()} onDelete={vi.fn()} />)
+    render(<ActiveItemsList {...makeProps({ items: [] })} />)
 
     expect(screen.getByText(/žiadne položky na kúpu/i)).toBeInTheDocument()
   })
@@ -41,9 +58,7 @@ describe('ActiveItemsList', () => {
   it('does not show the empty state when items are present', () => {
     render(
       <ActiveItemsList
-        items={[makeActiveItem({ id: 'a', text: 'mlieko' })]}
-        onCheck={vi.fn()}
-        onDelete={vi.fn()}
+        {...makeProps({ items: [makeActiveItem({ id: 'a', text: 'mlieko' })] })}
       />,
     )
 
@@ -59,7 +74,7 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'a', text: 'mlieko' }),
       makeActiveItem({ id: 'b', text: 'vajcia' }),
     ]
-    render(<ActiveItemsList items={items} onCheck={onCheck} onDelete={vi.fn()} />)
+    render(<ActiveItemsList {...makeProps({ items, onCheck })} />)
 
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[1])
@@ -74,15 +89,44 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'a', text: 'mlieko' }),
       makeActiveItem({ id: 'b', text: 'vajcia' }),
     ]
-    const { container } = render(
-      <ActiveItemsList items={items} onCheck={vi.fn()} onDelete={onDelete} />,
-    )
+    const { container } = render(<ActiveItemsList {...makeProps({ items, onDelete })} />)
 
+    // The desktop icon buttons are `display: none` below the `md`
+    // breakpoint, which jsdom's default (zero-width) viewport matches, so
+    // they're excluded from the accessibility tree -- query by attribute.
     const deleteButtons = container.querySelectorAll<HTMLButtonElement>(
-      'button.icon-btn',
+      'button[aria-label="Zmazať"]',
     )
     await user.click(deleteButtons[1])
 
     expect(onDelete).toHaveBeenCalledWith('b')
+  })
+
+  it('calls onStartEdit with the id of the item whose edit action is clicked', async () => {
+    const onStartEdit = vi.fn()
+    const user = userEvent.setup()
+    const items = [
+      makeActiveItem({ id: 'a', text: 'mlieko' }),
+      makeActiveItem({ id: 'b', text: 'vajcia' }),
+    ]
+    const { container } = render(<ActiveItemsList {...makeProps({ items, onStartEdit })} />)
+
+    const editButtons = container.querySelectorAll<HTMLButtonElement>(
+      'button[aria-label="Upraviť"]',
+    )
+    await user.click(editButtons[1])
+
+    expect(onStartEdit).toHaveBeenCalledWith('b')
+  })
+
+  it('renders the editing item as an inline input instead of a checkbox row', () => {
+    const items = [
+      makeActiveItem({ id: 'a', text: 'mlieko' }),
+      makeActiveItem({ id: 'b', text: 'vajcia' }),
+    ]
+    render(<ActiveItemsList {...makeProps({ items, editingItemId: 'b' })} />)
+
+    expect(screen.getByRole('textbox')).toHaveValue('vajcia')
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1)
   })
 })

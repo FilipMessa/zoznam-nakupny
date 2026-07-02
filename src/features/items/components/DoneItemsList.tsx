@@ -6,9 +6,17 @@ export interface DoneItemsListProps {
   items: ShoppingItem[]
   onUncheck: (id: string) => void
   onDelete: (id: string) => void
+  openSwipeItemId: string | null
+  onSwipeOpenChange: (itemId: string, open: boolean) => void
 }
 
-export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps) {
+export function DoneItemsList({
+  items,
+  onUncheck,
+  onDelete,
+  openSwipeItemId,
+  onSwipeOpenChange,
+}: DoneItemsListProps) {
   if (items.length === 0) {
     return (
       <Text padding="10px 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
@@ -25,6 +33,8 @@ export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps
           item={item}
           onUncheck={onUncheck}
           onDelete={onDelete}
+          isSwipeOpen={openSwipeItemId === item.id}
+          onSwipeOpenChange={(open) => onSwipeOpenChange(item.id, open)}
         />
       ))}
     </Box>
