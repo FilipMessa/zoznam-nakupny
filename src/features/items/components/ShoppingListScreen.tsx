@@ -16,7 +16,6 @@ import { AddItemForm } from './AddItemForm'
 import { ActiveItemsList } from './ActiveItemsList'
 import { DoneItemsList } from './DoneItemsList'
 import { ClearDoneButton } from './ClearDoneButton'
-import { SyncStatusBanner } from './SyncStatusBanner'
 
 export interface ShoppingListScreenProps {
   listId: string
@@ -34,7 +33,6 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
   }
 
   const { active, done } = sortItems(items)
-  const pendingCount = items.filter((item) => item.pendingSync).length
 
   const handleAdd = async (text: string) => {
     if (!user) {
@@ -86,7 +84,6 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
   return (
     <Flex direction="column" flex="1 1 auto" minH="0">
       <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
-        <SyncStatusBanner pendingCount={pendingCount} />
         <Box as="section">
           <Flex align="center" justify="space-between" padding="14px 16px 6px">
             <Heading as="h2" {...sectionHeadingStyle}>
