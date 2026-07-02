@@ -74,8 +74,12 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
   return (
     <div className="shopping-list-content">
       <main className="shopping-list-main">
-        <section>
-          <h2>Na kúpu</h2>
+        <section className="section">
+          <div className="section-header">
+            <h2 className="section-label">
+              {active.length > 0 ? `Na kúpu · ${active.length}` : 'Na kúpu'}
+            </h2>
+          </div>
           <ActiveItemsList
             items={active}
             onCheck={(itemId) => void handleCheck(itemId)}
@@ -85,12 +89,16 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           />
         </section>
 
-        <section>
-          <h2>Hotové</h2>
-          <ClearDoneButton
-            doneCount={done.length}
-            onClear={() => void handleClearDone()}
-          />
+        <section className="section">
+          <div className="section-header">
+            <h2 className="section-label">
+              {done.length > 0 ? `Hotové · ${done.length}` : 'Hotové'}
+            </h2>
+            <ClearDoneButton
+              doneCount={done.length}
+              onClear={() => void handleClearDone()}
+            />
+          </div>
           <DoneItemsList
             items={done}
             onUncheck={(itemId) => void handleUncheck(itemId)}

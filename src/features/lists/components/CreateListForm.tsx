@@ -21,19 +21,30 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="create-list-name-input">Názov zoznamu</label>
-      <input
-        id="create-list-name-input"
-        type="text"
-        value={name}
-        disabled={pending}
-        onChange={(event) => setName(event.target.value)}
-      />
-      <button type="submit" disabled={submitDisabled}>
-        Vytvoriť
-      </button>
-      {error && <p role="alert">Niečo sa pokazilo. Skúste to znova.</p>}
-    </form>
+    <div className="modal-overlay">
+      <form className="modal-card" onSubmit={handleSubmit}>
+        <p className="modal-title">Nový zoznam</p>
+        <label className="field-label" htmlFor="create-list-name-input">
+          Názov zoznamu
+        </label>
+        <input
+          id="create-list-name-input"
+          className="text-input"
+          type="text"
+          value={name}
+          placeholder="Napr. Týždenný nákup"
+          disabled={pending}
+          onChange={(event) => setName(event.target.value)}
+        />
+        {error && (
+          <p role="alert" className="form-error">
+            Niečo sa pokazilo. Skúste to znova.
+          </p>
+        )}
+        <button type="submit" className="primary-btn" disabled={submitDisabled}>
+          Vytvoriť
+        </button>
+      </form>
+    </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Plus } from 'lucide-react'
 
 export interface AddItemFormProps {
   onSubmit: (text: string) => void
@@ -29,19 +30,32 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="add-item-text-input">Položka</label>
+    <form className="add-item-form" onSubmit={handleSubmit}>
+      <label className="sr-only" htmlFor="add-item-text-input">
+        Položka
+      </label>
       <input
         id="add-item-text-input"
+        className="add-item-input"
         type="text"
         value={text}
+        placeholder="Pridať položku…"
         disabled={pending}
         onChange={(event) => setText(event.target.value)}
       />
-      <button type="submit" disabled={submitDisabled}>
-        Pridať
+      <button
+        type="submit"
+        className="icon-btn add-item-btn"
+        aria-label="Pridať"
+        disabled={submitDisabled}
+      >
+        <Plus size={22} />
       </button>
-      {error && <p role="alert">Niečo sa pokazilo. Skúste to znova.</p>}
+      {error && (
+        <p role="alert" className="form-error">
+          Niečo sa pokazilo. Skúste to znova.
+        </p>
+      )}
     </form>
   )
 }

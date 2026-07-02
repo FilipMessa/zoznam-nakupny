@@ -9,7 +9,7 @@ export interface ActiveItemRowProps {
 }
 
 export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id })
 
   const style = {
@@ -18,23 +18,28 @@ export function ActiveItemRow({ item, onCheck }: ActiveItemRowProps) {
   }
 
   return (
-    <li ref={setNodeRef} style={style}>
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={isDragging ? 'item-row dragging' : 'item-row'}
+    >
       <button
         type="button"
-        className="icon-btn"
+        className="icon-btn drag-handle"
         aria-label="Presunúť"
         {...attributes}
         {...listeners}
       >
-        <GripVertical />
+        <GripVertical size={20} />
       </button>
-      <label>
+      <label className="item-label">
         <input
+          className="item-check"
           type="checkbox"
           checked={false}
           onChange={() => onCheck(item.id)}
         />
-        {item.text}
+        <span className="item-text">{item.text}</span>
       </label>
     </li>
   )

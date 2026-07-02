@@ -30,7 +30,7 @@ export function ActiveItemsList({
   )
 
   if (items.length === 0) {
-    return <p>Žiadne položky na kúpu. Skvelá práca!</p>
+    return <p className="empty-hint">Žiadne položky na kúpu. Skvelá práca!</p>
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -65,7 +65,7 @@ export function ActiveItemsList({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ul>
+        <ul className="item-list">
           {items.map((item) => (
             <ActiveItemRow key={item.id} item={item} onCheck={onCheck} />
           ))}

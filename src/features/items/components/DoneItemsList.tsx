@@ -9,11 +9,11 @@ export interface DoneItemsListProps {
 
 export function DoneItemsList({ items, onUncheck, onDelete }: DoneItemsListProps) {
   if (items.length === 0) {
-    return <p>Zatiaľ nič hotové.</p>
+    return <p className="empty-hint">Zatiaľ nič hotové.</p>
   }
 
   return (
-    <ul>
+    <ul className="item-list">
       {items.map((item) => (
         <DoneItemRow
           key={item.id}

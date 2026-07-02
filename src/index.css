@@ -1,182 +1,840 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Zoznam nákupný — design system
+   Ported from the "Family Shopping List" Claude Design prototype:
+   warm cream/tan surfaces, terracotta accent, Nunito, rounded soft cards.
+   Light theme only (the design is single-theme).
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Surfaces */
+  --page: #eae2d5;      /* behind the app frame */
+  --bg: #fdfaf6;        /* app background */
+  --surface: #ffffff;   /* cards, inputs */
+  --tan: #f0e9df;       /* subtle fills, pills */
+  --tan-dk: #e4d9cc;
+  --border: #e2d7ca;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Text */
+  --t1: #1c1510;        /* primary */
+  --t2: #8a7a6e;        /* secondary */
+  --t3: #c2af9f;        /* tertiary / disabled */
 
-  /* Minimum comfortable tap target size (WCAG 2.5.5 / mobile HIG guidance). */
+  /* Accent (terracotta) */
+  --acc: #c8622b;
+  --acc-dk: #a75222;
+  --acc-bg: #fceee7;
+
+  /* Semantic */
+  --grn: #4e7d57;
+  --grn-bg: #ebf3ec;
+  --red: #b83030;
+  --red-bg: #fdeaea;
+
+  --sans: 'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /* Minimum comfortable tap target (WCAG 2.5.5 / mobile HIG). */
   --touch-target: 44px;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  --shadow-sm: 0 2px 10px rgba(28, 21, 16, 0.08);
+  --shadow-md: 0 4px 16px rgba(28, 21, 16, 0.12);
+  --shadow-acc: 0 4px 16px rgba(200, 98, 43, 0.32);
+
+  font: 16px/1.45 var(--sans);
+  color: var(--t1);
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--page);
+  font-family: var(--sans);
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+input,
+button,
+textarea {
+  font-family: var(--sans);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+/* The whole app lives in a centered, phone-width frame floating on the
+   cream page background — mirrors the prototype's 430px device shell. */
+#root {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.05),
+    0 24px 72px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
+
 p {
   margin: 0;
 }
 
-code {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* Animations from the prototype */
+@keyframes drawerIn {
+  from {
+    transform: translateY(44px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(-7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
+/* ─── Shared primitives ─────────────────────────────────────────────────── */
 
-/* Shared tap-target hook for icon-only buttons (drag handle, delete, header
-   actions). Keeps every icon action at least --touch-target square. */
+/* Icon-only buttons stay at least one comfortable tap target square. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: var(--touch-target);
   min-height: var(--touch-target);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--t2);
+  border-radius: 10px;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+.icon-btn:hover {
+  color: var(--t1);
+  background: var(--tan);
 }
 
-/* One-screen shopping list layout: header stays put, item sections scroll,
-   the add-item bar is pinned to the bottom. This flex column owns the full
-   viewport height; ListHeader and .shopping-list-content are its two
-   children so the header never scrolls out of view above it. */
+/* Solid terracotta call-to-action. */
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 24px;
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  background: var(--acc);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-acc);
+  transition: background 0.12s;
+}
+.primary-btn:hover:not(:disabled) {
+  background: var(--acc-dk);
+}
+.primary-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
+}
+
+.field-label {
+  display: block;
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--t2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.text-input {
+  display: block;
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--t1);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.text-input:focus {
+  border-color: var(--acc);
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: var(--red-bg);
+  border: 1px solid rgba(184, 48, 48, 0.15);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--red);
+}
+
+/* Visually hide a label while keeping it available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Screen scaffold shared by sign-in / invite / empty / loading. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 100dvh;
+  padding: 56px 28px 32px;
+  background: var(--bg);
+}
+.screen-centered {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+}
+.screen-title {
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--t1);
+  letter-spacing: -0.6px;
+  line-height: 1.15;
+  margin: 0 0 10px;
+}
+.screen-subtitle {
+  font-size: 15px;
+  color: var(--t2);
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--acc-bg);
+  color: var(--acc);
+  margin-bottom: 16px;
+}
+
+/* ─── Sign in ───────────────────────────────────────────────────────────── */
+.signin-screen {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  background: linear-gradient(160deg, #fff8f2 0%, #fdfaf6 60%);
+}
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 22px;
+  background: var(--acc);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(200, 98, 43, 0.4);
+  margin-bottom: 24px;
+}
+.brand-title {
+  font-weight: 900;
+  font-size: 30px;
+  color: var(--t1);
+  letter-spacing: -0.8px;
+  margin: 0 0 8px;
+}
+.brand-subtitle {
+  font-size: 16px;
+  color: var(--t2);
+  line-height: 1.5;
+  margin: 0 0 56px;
+  max-width: 240px;
+}
+.google-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+  padding: 15px 24px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--t1);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.15s,
+    transform 0.1s;
+}
+.google-btn:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* ─── Invite ────────────────────────────────────────────────────────────── */
+.invite-input {
+  height: 54px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+.invite-form .primary-btn {
+  margin-top: auto;
+}
+
+/* ─── Empty state ───────────────────────────────────────────────────────── */
+.empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 110px;
+  border-radius: 28px;
+  background: var(--tan);
+  color: var(--t2);
+  margin-bottom: 28px;
+}
+.empty-title {
+  font-weight: 900;
+  font-size: 24px;
+  color: var(--t1);
+  letter-spacing: -0.4px;
+  margin: 0 0 12px;
+}
+.empty-text {
+  font-size: 16px;
+  color: var(--t2);
+  line-height: 1.6;
+  margin: 0 0 44px;
+  max-width: 260px;
+}
+.empty-state .primary-btn {
+  width: auto;
+}
+
+/* ─── Loading ───────────────────────────────────────────────────────────── */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 100dvh;
+  color: var(--t2);
+  font-weight: 700;
+  background: var(--bg);
+}
+
+/* ─── One-screen shopping list layout ───────────────────────────────────── */
 .shopping-list-screen {
   display: flex;
   flex-direction: column;
   height: 100dvh;
   min-height: 0;
+  background: var(--bg);
 }
-
 .shopping-list-content {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
 }
-
 .shopping-list-main {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
 }
 
+/* Header: list-name switcher trigger + live dot + icon actions. */
 .list-header {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.list-title-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 4px 0;
+  text-align: left;
+}
+.list-title-btn:hover {
+  background: none;
+  color: var(--t1);
+}
+.list-title {
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--t1);
+  letter-spacing: -0.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-title-chevron {
+  flex-shrink: 0;
+  color: var(--t3);
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex-shrink: 0;
+  margin: 0 4px;
+  animation: livePulse 2s ease-in-out infinite;
 }
 
+/* Section headers ("Na kúpu", "Hotové"). */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 6px;
+}
+.section + .section .section-header {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.section-label {
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.empty-hint {
+  padding: 10px 16px 20px;
+  font-size: 14px;
+  color: var(--t3);
+  font-weight: 500;
+}
+
+/* Item lists */
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+.item-row {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 8px 0 0;
+  animation: itemIn 0.3s ease;
+}
+.item-row.dragging {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(28, 21, 16, 0.18);
+  position: relative;
+  z-index: 20;
+}
+.drag-handle {
+  width: 48px;
+  min-width: 48px;
+  height: 56px;
+  color: var(--t3);
+  cursor: grab;
+  touch-action: none;
+  border-radius: 0;
+}
+.drag-handle:hover {
+  background: none;
+  color: var(--t2);
+}
+
+.item-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+}
+/* Custom rounded checkbox replacing the native control. */
+.item-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 8px;
+  border: 2.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    transform 0.1s;
+}
+.item-label:hover .item-check:not(:checked) {
+  border-color: var(--grn);
+  background: var(--grn-bg);
+  transform: scale(1.12);
+}
+.item-check:checked {
+  background: var(--grn);
+  border-color: var(--grn);
+}
+.item-check:checked::after {
+  content: '';
+  width: 12px;
+  height: 10px;
+  background: no-repeat center/contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 11' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 5.5 5 9.5 13 1'/%3E%3C/svg%3E");
+}
+.item-text {
+  flex: 1 1 auto;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--t1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Done rows: lighter, struck-through, indented to align with active text. */
+.item-row.item-done {
+  min-height: 52px;
+  animation: none;
+}
+.item-row.item-done .item-label {
+  padding-left: 48px;
+}
+.item-row.item-done .item-text {
+  font-weight: 500;
+  color: var(--t3);
+  text-decoration: line-through;
+}
+.delete-btn {
+  min-width: 36px;
+  min-height: 36px;
+  color: var(--t3);
+}
+.delete-btn:hover {
+  color: var(--red);
+  background: var(--red-bg);
+}
+.clear-done-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.clear-done-btn:disabled {
+  color: var(--t3);
+  cursor: default;
+}
+
+/* Add-item bar pinned to the bottom of the frame. */
 .add-item-bar {
   flex: 0 0 auto;
-  position: sticky;
-  bottom: 0;
   background: var(--bg);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
 }
+.add-item-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 14px;
+}
+.add-item-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 50px;
+  padding: 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--tan);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  color: var(--t1);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.add-item-input:focus {
+  border-color: var(--acc);
+  background: var(--surface);
+}
+.add-item-btn {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  color: #fff;
+  background: var(--acc);
+  box-shadow: var(--shadow-acc);
+}
+.add-item-btn:hover {
+  color: #fff;
+  background: var(--acc-dk);
+}
+.add-item-btn:disabled {
+  background: var(--tan);
+  color: var(--t3);
+  cursor: default;
+  box-shadow: none;
+}
 
-/* List switcher bottom sheet */
+/* ─── List switcher bottom sheet ────────────────────────────────────────── */
 .list-switcher-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   display: flex;
   align-items: flex-end;
-  z-index: 10;
+  z-index: 50;
 }
-
 .list-switcher-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(28, 21, 16, 0.45);
+  backdrop-filter: blur(2px);
 }
-
 .list-switcher-sheet {
   position: relative;
   width: 100%;
-  max-height: 80dvh;
+  max-height: 78dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -6px 32px rgba(28, 21, 16, 0.14);
+  animation: drawerIn 0.24s ease;
+  overflow: hidden;
+}
+.sheet-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sheet-grabber {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.sheet-title {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--t1);
+}
+.sheet-close {
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  min-width: 30px;
+  min-height: 30px;
+  background: var(--tan);
+  color: var(--t2);
+}
+.sheet-body {
   overflow-y: auto;
-  background: var(--bg);
-  border-radius: 16px 16px 0 0;
-  padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  box-shadow: var(--shadow);
+  flex: 1 1 auto;
+  padding: 8px 0;
+  list-style: none;
+  margin: 0;
+}
+.list-switcher-item {
+  margin: 2px 10px;
+}
+.list-switcher-item button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--t1);
+  transition: background 0.12s;
+}
+.list-switcher-item button::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--border);
+}
+.list-switcher-item button[aria-current='true'] {
+  background: var(--acc-bg);
+  border-color: rgba(200, 98, 43, 0.18);
+  font-weight: 900;
+  color: var(--acc);
+}
+.list-switcher-item button[aria-current='true']::before {
+  background: var(--acc);
+}
+.sheet-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  width: calc(100% - 24px);
+  margin: 8px 12px 20px;
+  padding: 13px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--acc);
+  background: var(--acc-bg);
+  border: 1.5px dashed rgba(200, 98, 43, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.sheet-close-secondary {
+  display: none;
+}
+
+/* ─── Floating forms & dialogs (create / rename / delete) ───────────────── */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(28, 21, 16, 0.45);
+  backdrop-filter: blur(2px);
+}
+.modal-card {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+.modal-card .text-input {
+  height: 50px;
+}
+.modal-title {
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--t1);
+  margin: 0;
+}
+.modal-text {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.5;
+  margin: 0;
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.modal-actions button {
+  flex: 1 1 0;
+  min-height: 46px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.btn-secondary {
+  background: var(--tan);
+  color: var(--t1);
+}
+.btn-danger {
+  background: var(--red);
+  color: #fff;
 }

@@ -1,6 +1,6 @@
 export function LoadingScreen() {
   return (
-    <div role="status" aria-live="polite">
+    <div className="loading-screen" role="status" aria-live="polite">
       Načítava sa…
     </div>
   )

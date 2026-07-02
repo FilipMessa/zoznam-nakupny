@@ -27,19 +27,29 @@ export function RenameListForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="rename-list-name-input">List name</label>
-      <input
-        id="rename-list-name-input"
-        type="text"
-        value={name}
-        disabled={pending}
-        onChange={(event) => setName(event.target.value)}
-      />
-      <button type="submit" disabled={submitDisabled}>
-        Save
-      </button>
-      {error && <p role="alert">Something went wrong. Please try again.</p>}
-    </form>
+    <div className="modal-overlay">
+      <form className="modal-card" onSubmit={handleSubmit}>
+        <p className="modal-title">Premenovať zoznam</p>
+        <label className="field-label" htmlFor="rename-list-name-input">
+          List name
+        </label>
+        <input
+          id="rename-list-name-input"
+          className="text-input"
+          type="text"
+          value={name}
+          disabled={pending}
+          onChange={(event) => setName(event.target.value)}
+        />
+        {error && (
+          <p role="alert" className="form-error">
+            Something went wrong. Please try again.
+          </p>
+        )}
+        <button type="submit" className="primary-btn" disabled={submitDisabled}>
+          Save
+        </button>
+      </form>
+    </div>
   )
 }

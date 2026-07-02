@@ -16,17 +16,30 @@ export function DeleteListConfirmDialog({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Zmazať zoznam">
-      <p>
-        Naozaj chcete zmazať zoznam <strong>{listName}</strong>? Zmažú sa tým
-        aj všetky jeho položky.
-      </p>
-      <button type="button" onClick={onCancel}>
-        Zrušiť
-      </button>
-      <button type="button" onClick={onConfirm}>
-        Zmazať
-      </button>
+    <div className="modal-overlay">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Zmazať zoznam"
+        className="modal-card"
+      >
+        <p className="modal-title">Zmazať „{listName}"?</p>
+        <p className="modal-text">
+          Zmaže sa zoznam a všetky jeho položky. Nedá sa vrátiť späť.
+        </p>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+          >
+            Zrušiť
+          </button>
+          <button type="button" className="btn-danger" onClick={onConfirm}>
+            Zmazať
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

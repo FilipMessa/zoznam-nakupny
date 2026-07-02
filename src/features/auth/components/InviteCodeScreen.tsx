@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Users } from 'lucide-react'
 import { InviteCodeForm } from './InviteCodeForm'
 import { redeemInviteCode } from '../inviteService'
 import { useAuth } from '../useAuth'
@@ -30,9 +31,14 @@ export function InviteCodeScreen({ markAsMember }: InviteCodeScreenProps) {
   }
 
   return (
-    <div>
-      <h1>Pripojte sa k rodine</h1>
-      <p>Zadajte pozývací kód, ktorý ste dostali.</p>
+    <div className="screen invite-screen">
+      <div className="icon-badge" aria-hidden="true">
+        <Users size={22} />
+      </div>
+      <h1 className="screen-title">Pripojte sa k rodine</h1>
+      <p className="screen-subtitle">
+        Zadajte pozývací kód, ktorý ste dostali od ostatných členov domácnosti.
+      </p>
       <InviteCodeForm onSubmit={handleSubmit} pending={pending} error={error} />
     </div>
   )

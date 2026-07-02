@@ -1,3 +1,4 @@
+import { ChevronDown, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { signOutUser } from '../../auth/googleAuth'
 
 export interface ListHeaderProps {
@@ -15,22 +16,23 @@ export function ListHeader({
 }: ListHeaderProps) {
   return (
     <header className="list-header">
-      <h1>{listName}</h1>
       <button
         type="button"
-        className="icon-btn"
+        className="icon-btn list-title-btn"
         aria-label="Prepnúť zoznam"
         onClick={onOpenSwitcher}
       >
-        Prepnúť zoznam
+        <span className="list-title">{listName}</span>
+        <ChevronDown className="list-title-chevron" size={18} />
       </button>
+      <span className="live-dot" title="Živé spojenie" aria-hidden="true" />
       <button
         type="button"
         className="icon-btn"
         aria-label="Premenovať"
         onClick={onRenameClick}
       >
-        Premenovať
+        <Pencil size={18} />
       </button>
       <button
         type="button"
@@ -38,7 +40,7 @@ export function ListHeader({
         aria-label="Zmazať zoznam"
         onClick={onDeleteClick}
       >
-        Zmazať zoznam
+        <Trash2 size={18} />
       </button>
       <button
         type="button"
@@ -46,7 +48,7 @@ export function ListHeader({
         aria-label="Odhlásiť sa"
         onClick={() => void signOutUser()}
       >
-        Odhlásiť sa
+        <LogOut size={18} />
       </button>
     </header>
   )

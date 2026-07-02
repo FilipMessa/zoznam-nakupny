@@ -12,7 +12,7 @@ export function ListSwitcherItem({
   onSelect,
 }: ListSwitcherItemProps) {
   return (
-    <li>
+    <li className="list-switcher-item">
       <button
         type="button"
         aria-current={selected ? 'true' : undefined}

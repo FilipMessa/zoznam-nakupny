@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Claude Code local state
+.claude/
+
 # Firebase
 .env
 .firebase/

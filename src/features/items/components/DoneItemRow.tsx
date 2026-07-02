@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
 
 export interface DoneItemRowProps {
@@ -8,22 +9,23 @@ export interface DoneItemRowProps {
 
 export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
   return (
-    <li>
-      <label>
+    <li className="item-row item-done">
+      <label className="item-label">
         <input
+          className="item-check"
           type="checkbox"
           checked={true}
           onChange={() => onUncheck(item.id)}
         />
-        {item.text}
+        <span className="item-text">{item.text}</span>
       </label>
       <button
         type="button"
-        className="icon-btn"
+        className="icon-btn delete-btn"
         aria-label="Zmazať"
         onClick={() => onDelete(item.id)}
       >
-        Zmazať
+        <Trash2 size={17} />
       </button>
     </li>
   )
