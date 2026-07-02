@@ -1,18 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
 import { Box, Flex, Heading } from '@chakra-ui/react'
-import { useAuth } from '../../auth/useAuth'
 import { LoadingScreen } from '../../auth/components/LoadingScreen'
-import { useItems } from '../useItems'
-import { sortItems, latestNewActiveId } from '../itemLogic'
-import {
-  addItem,
-  checkItem,
-  uncheckItem,
-  deleteItem,
-  editItemText,
-  clearDoneItems,
-  reorderItem,
-} from '../itemService'
+import { useShoppingListScreen } from '../useShoppingListScreen'
 import { AddItemForm } from './AddItemForm'
 import { ActiveItemsList } from './ActiveItemsList'
 import { DoneItemsList } from './DoneItemsList'
@@ -23,125 +11,29 @@ export interface ShoppingListScreenProps {
 }
 
 export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
-  const { user } = useAuth()
-  const { items, itemsLoading } = useItems(listId)
-
-  const [addError, setAddError] = useState<string | null>(null)
-
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
-  const [openSwipeItemId, setOpenSwipeItemId] = useState<string | null>(null)
-
-  const mainRef = useRef<HTMLElement>(null)
-  const prevActiveIdsRef = useRef<string[]>([])
-  const [scrollAfterAdd, setScrollAfterAdd] = useState(false)
-
-  // After the user adds an item (which always appends to the bottom of the
-  // active section), scroll it into view so they can see it land -- but only
-  // on their own adds, gated by `scrollAfterAdd`, so a realtime add from
-  // another family member never yanks the local scroll position. The flag is
-  // set synchronously at submit time rather than after awaiting the write,
-  // because with offline persistence the write promise doesn't resolve until
-  // reconnect while the local onSnapshot (and this effect) fires immediately.
-  useEffect(() => {
-    const active = sortItems(items).active
-    const newId = latestNewActiveId(prevActiveIdsRef.current, active)
-    prevActiveIdsRef.current = active.map((item) => item.id)
-
-    if (scrollAfterAdd && newId) {
-      mainRef.current
-        ?.querySelector(`[data-swipe-row="${newId}"]`)
-        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-      setScrollAfterAdd(false)
-    }
-  }, [items, scrollAfterAdd])
-
-  // Native-app swipe-action pattern: an open swipe (Upraviť/Zmazať reveal)
-  // closes on any interaction outside the row it belongs to -- tapping
-  // another row, the add-item bar, or anywhere else on the page.
-  // Opening a *different* row's swipe already forces this one closed via
-  // each row's own "isSwipeOpen" prop; this listener covers everything
-  // that isn't a row at all.
-  useEffect(() => {
-    if (!openSwipeItemId) {
-      return
-    }
-
-    const handlePointerDown = (event: globalThis.PointerEvent) => {
-      const target = event.target as HTMLElement
-      const row = target.closest('[data-swipe-row]')
-      if (row?.getAttribute('data-swipe-row') !== openSwipeItemId) {
-        setOpenSwipeItemId(null)
-      }
-    }
-
-    document.addEventListener('pointerdown', handlePointerDown, true)
-    return () =>
-      document.removeEventListener('pointerdown', handlePointerDown, true)
-  }, [openSwipeItemId])
+  const {
+    itemsLoading,
+    active,
+    done,
+    mainRef,
+    addError,
+    handleAdd,
+    handleCheck,
+    handleUncheck,
+    handleReorder,
+    handleDelete,
+    handleClearDone,
+    editingItemId,
+    handleStartEdit,
+    handleSubmitEdit,
+    handleCancelEdit,
+    openSwipeItemId,
+    handleSwipeOpenChange,
+    handleListScroll,
+  } = useShoppingListScreen(listId)
 
   if (itemsLoading) {
     return <LoadingScreen />
-  }
-
-  const { active, done } = sortItems(items)
-
-  const handleAdd = async (text: string) => {
-    if (!user) {
-      return
-    }
-    setScrollAfterAdd(true)
-    setAddError(null)
-    try {
-      await addItem(listId, text, user.uid, active)
-    } catch {
-      setAddError('unknown')
-    }
-  }
-
-  const handleCheck = async (itemId: string) => {
-    if (!user) {
-      return
-    }
-    await checkItem(listId, itemId, user.uid)
-  }
-
-  const handleUncheck = async (itemId: string) => {
-    await uncheckItem(listId, itemId, active)
-  }
-
-  const handleReorder = async (itemId: string, activeOrder: number) => {
-    await reorderItem(listId, itemId, activeOrder)
-  }
-
-  const handleDelete = async (itemId: string) => {
-    await deleteItem(listId, itemId)
-  }
-
-  const handleClearDone = async () => {
-    await clearDoneItems(listId)
-  }
-
-  const handleStartEdit = (itemId: string) => {
-    setEditingItemId(itemId)
-  }
-
-  const handleSubmitEdit = async (itemId: string, text: string) => {
-    setEditingItemId(null)
-    await editItemText(listId, itemId, text)
-  }
-
-  const handleCancelEdit = () => {
-    setEditingItemId(null)
-  }
-
-  const handleSwipeOpenChange = (itemId: string, open: boolean) => {
-    setOpenSwipeItemId(open ? itemId : null)
-  }
-
-  const handleListScroll = () => {
-    if (openSwipeItemId) {
-      setOpenSwipeItemId(null)
-    }
   }
 
   const sectionHeadingStyle = {
