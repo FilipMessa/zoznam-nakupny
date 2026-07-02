@@ -32,17 +32,19 @@ export function DoneItemRow({
     onForegroundClickCapture,
   } = useSwipeActions(swipeActionWidth)
 
-  // See ActiveItemRow for why this is a render-time correction rather than
-  // an effect, and why the reverse direction (below) has to be an effect.
-  if (!isSwipeOpen && swipeOffset !== 0) {
-    closeSwipeAction()
-  }
-
   useEffect(() => {
     if (swipeOffset !== 0) {
       onSwipeOpenChange(true)
     }
   }, [swipeOffset, onSwipeOpenChange])
+
+  // See ActiveItemRow for why this keys off `isSwipeOpen` changing (an
+  // effect), not a synchronous per-render check.
+  useEffect(() => {
+    if (!isSwipeOpen) {
+      closeSwipeAction()
+    }
+  }, [isSwipeOpen, closeSwipeAction])
 
   const handleDelete = () => {
     closeSwipeAction()
@@ -98,14 +100,14 @@ export function DoneItemRow({
         {...swipeHandlers}
         onClickCapture={onForegroundClickCapture}
       >
+        {/* Checkbox.Root renders as a <label>, so only the control (not
+            the item text) lives inside it -- otherwise tapping anywhere on
+            the row's text would also toggle it. */}
         <Checkbox.Root
           checked={true}
           onCheckedChange={() => onUncheck(item.id)}
           display="flex"
           alignItems="center"
-          gap="12px"
-          flex="1 1 auto"
-          minW="0"
           cursor="pointer"
           pl="48px"
         >
@@ -120,21 +122,21 @@ export function DoneItemRow({
             bg="bg.panel"
             _checked={{ bg: 'green.solid', borderColor: 'green.solid' }}
           />
-          <Checkbox.Label asChild>
-            <Text
-              flex="1 1 auto"
-              fontWeight="500"
-              fontSize="16px"
-              color="fg.subtle"
-              textDecoration="line-through"
-              overflow="hidden"
-              textOverflow="ellipsis"
-              whiteSpace="nowrap"
-            >
-              {item.text}
-            </Text>
-          </Checkbox.Label>
         </Checkbox.Root>
+        <Text
+          flex="1 1 auto"
+          minW="0"
+          m="0 0 0 12px"
+          fontWeight="500"
+          fontSize="16px"
+          color="fg.subtle"
+          textDecoration="line-through"
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+        >
+          {item.text}
+        </Text>
         {/* Always rendered (never conditionally mounted) so this icon's
             space is permanently reserved -- see ActiveItemRow for why. */}
         <Box

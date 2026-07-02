@@ -30,10 +30,12 @@ function makeProps(
     onStartEdit: vi.fn(),
     onSubmitEdit: vi.fn(),
     onCancelEdit: vi.fn(),
-    // Most tests don't exercise the cross-row exclusivity, so default to
-    // "allowed to be open" -- see ShoppingListScreen for the real
-    // coordination logic.
-    isSwipeOpen: true,
+    // Matches the real app's initial state (ShoppingListScreen's
+    // openSwipeItemId starts null, so every row's isSwipeOpen starts
+    // false) -- a mocked onSwipeOpenChange won't flip this to true the way
+    // the real parent would, so tests below rely on the row's own gesture
+    // being enough to open and stay open without external confirmation.
+    isSwipeOpen: false,
     onSwipeOpenChange: vi.fn(),
     ...overrides,
   }
@@ -210,8 +212,32 @@ describe('ActiveItemRow', () => {
     expect(revealButton).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('opens on its own gesture before the parent has confirmed it as the exclusive open row', () => {
+    // Regression test: isSwipeOpen starts false (the real app's initial
+    // state -- see makeProps above). A swipe gesture must still open the
+    // row immediately; it must not require the parent to have already set
+    // isSwipeOpen=true, since that only happens *after* this row tells the
+    // parent it opened (a round trip that can't complete before the user's
+    // own gesture finishes).
+    const { container } = render(<ActiveItemRow {...makeProps({ isSwipeOpen: false })} />)
+
+    const content = screen.getByTestId('active-item-content-item-1')
+    content.setPointerCapture = vi.fn()
+
+    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
+    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
+    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+
+    expect(
+      container.querySelector('button[aria-label="Vymazať položku"]'),
+    ).toHaveAttribute('aria-hidden', 'false')
+  })
+
   it('snaps an open swipe closed when it loses exclusive open status', () => {
-    const { container, rerender } = render(<ActiveItemRow {...makeProps()} />)
+    const { container, rerender } = render(
+      <ActiveItemRow {...makeProps({ isSwipeOpen: true })} />,
+    )
 
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
@@ -245,6 +271,31 @@ describe('ActiveItemRow', () => {
   })
 
   describe('inline edit', () => {
+    it('resets an open swipe when it enters edit mode via the desktop Pencil button', () => {
+      const { container, rerender } = render(
+        <ActiveItemRow {...makeProps({ isSwipeOpen: true })} />,
+      )
+
+      const content = screen.getByTestId('active-item-content-item-1')
+      content.setPointerCapture = vi.fn()
+      fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
+      fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
+      fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+      fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+
+      expect(
+        container.querySelector('button[aria-label="Vymazať položku"]'),
+      ).toHaveAttribute('aria-hidden', 'false')
+
+      // Simulate the parent switching this row into edit mode (as it would
+      // after the desktop Pencil button's onClick calls onStartEdit).
+      rerender(<ActiveItemRow {...makeProps({ isSwipeOpen: true, isEditing: true })} />)
+
+      expect(
+        container.querySelector('button[aria-label="Vymazať položku"]'),
+      ).toHaveAttribute('aria-hidden', 'true')
+    })
+
     it('renders a text input pre-filled with the item text when editing', () => {
       render(
         <ActiveItemRow

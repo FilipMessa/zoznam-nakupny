@@ -26,7 +26,9 @@ function makeProps(
     item: makeDoneItem(),
     onUncheck: vi.fn(),
     onDelete: vi.fn(),
-    isSwipeOpen: true,
+    // Matches the real app's initial state -- see ActiveItemRow.test.tsx's
+    // makeProps for why this must be false, not true.
+    isSwipeOpen: false,
     onSwipeOpenChange: vi.fn(),
     ...overrides,
   }
@@ -113,9 +115,45 @@ describe('DoneItemRow', () => {
     expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
   })
 
+  it('opens on its own gesture before the parent has confirmed it as the exclusive open row', () => {
+    // Regression test -- see the equivalent ActiveItemRow.test.tsx case for
+    // the full explanation.
+    const { container } = render(
+      <DoneItemRow
+        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: false })}
+      />,
+    )
+
+    const rowContent = screen.getByTestId('done-item-content-item-9')
+    fireEvent.pointerDown(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.pointerMove(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+    fireEvent.pointerUp(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+
+    expect(
+      container.querySelector('button[aria-label="Vymazať položku"]'),
+    ).toHaveAttribute('aria-hidden', 'false')
+  })
+
   it('snaps an open swipe closed when it loses exclusive open status', () => {
     const { container, rerender } = render(
-      <DoneItemRow {...makeProps({ item: makeDoneItem({ id: 'item-9' }) })} />,
+      <DoneItemRow
+        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: true })}
+      />,
     )
 
     const rowContent = screen.getByTestId('done-item-content-item-9')

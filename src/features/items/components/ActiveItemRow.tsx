@@ -53,25 +53,44 @@ export function ActiveItemRow({
     onForegroundClickCapture,
   } = useSwipeActions(swipeActionWidth)
 
-  // A row that lost exclusive "open" status (another row opened, or a tap
-  // landed outside every row) snaps itself shut. This is the React-endorsed
-  // "adjust state during rendering" pattern, not an effect, since it's
-  // purely deriving local state from a prop.
-  if (!isSwipeOpen && swipeOffset !== 0) {
-    closeSwipeAction()
-  }
-
-  // The reverse direction -- telling the parent this row just became the
-  // open one -- has to be an effect: it's notifying a sibling's state, not
-  // deriving this row's own render output.
+  // Tell the parent this row just became the open one.
   useEffect(() => {
     if (swipeOffset !== 0) {
       onSwipeOpenChange(true)
     }
   }, [swipeOffset, onSwipeOpenChange])
 
+  // A row that lost exclusive "open" status (another row opened, or a tap
+  // landed outside every row) snaps itself shut. This must key off
+  // `isSwipeOpen` actually *changing*, not run on every render: right after
+  // this row's own gesture opens it, `isSwipeOpen` is still false for one
+  // render (the parent only learns about it via the effect above, on the
+  // next tick), so a synchronous "close if swipeOffset !== 0 && !isSwipeOpen"
+  // check on every render would immediately re-close a swipe the instant it
+  // opens.
+  useEffect(() => {
+    if (!isSwipeOpen) {
+      closeSwipeAction()
+    }
+  }, [isSwipeOpen, closeSwipeAction])
+
+  // Entering edit mode (from the swipe's own "Upraviť" button, or the
+  // desktop Pencil icon) always resets the swipe to closed -- the edit
+  // form doesn't apply the swipe transform, so there's nothing for an open
+  // offset to visually mean while editing.
+  useEffect(() => {
+    if (isEditing) {
+      closeSwipeAction()
+    }
+  }, [isEditing, closeSwipeAction])
+
   const inputRef = useRef<HTMLInputElement>(null)
   const cancelledRef = useRef(false)
+
+  // Force the swipe actions hidden while editing, regardless of
+  // swipeOffset -- the edit form doesn't apply the swipe transform, so
+  // there's nothing to keep them in sync with visually.
+  const swipeButtonsHidden = isEditing || swipeOffset === 0
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -150,8 +169,8 @@ export function ActiveItemRow({
         <Button
           type="button"
           aria-label="Upraviť položku"
-          aria-hidden={swipeOffset === 0}
-          tabIndex={swipeOffset === 0 ? -1 : 0}
+          aria-hidden={swipeButtonsHidden}
+          tabIndex={swipeButtonsHidden ? -1 : 0}
           w={`${editActionWidth}px`}
           h="100%"
           borderRadius="0"
@@ -171,8 +190,8 @@ export function ActiveItemRow({
         <Button
           type="button"
           aria-label="Vymazať položku"
-          aria-hidden={swipeOffset === 0}
-          tabIndex={swipeOffset === 0 ? -1 : 0}
+          aria-hidden={swipeButtonsHidden}
+          tabIndex={swipeButtonsHidden ? -1 : 0}
           w={`${deleteActionWidth}px`}
           h="100%"
           borderRadius="0"
@@ -252,14 +271,15 @@ export function ActiveItemRow({
           >
             <GripVertical size={20} />
           </Box>
+          {/* Checkbox.Root renders as a <label>, so only the control (not
+              the item text) lives inside it -- otherwise tapping anywhere
+              on the row's text would also toggle it, on top of already
+              being the drag activator. */}
           <Checkbox.Root
             checked={false}
             onCheckedChange={() => onCheck(item.id)}
             display="flex"
             alignItems="center"
-            gap="12px"
-            flex="1 1 auto"
-            minW="0"
             cursor="pointer"
           >
             <Checkbox.HiddenInput />
@@ -273,20 +293,20 @@ export function ActiveItemRow({
               bg="bg.panel"
               _checked={{ bg: 'green.solid', borderColor: 'green.solid' }}
             />
-            <Checkbox.Label asChild>
-              <Text
-                flex="1 1 auto"
-                fontWeight="600"
-                fontSize="16px"
-                color="fg"
-                overflow="hidden"
-                textOverflow="ellipsis"
-                whiteSpace="nowrap"
-              >
-                {item.text}
-              </Text>
-            </Checkbox.Label>
           </Checkbox.Root>
+          <Text
+            flex="1 1 auto"
+            minW="0"
+            m="0 0 0 12px"
+            fontWeight="600"
+            fontSize="16px"
+            color="fg"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {item.text}
+          </Text>
           {/* Always rendered (never conditionally mounted) so this icon's
               space is permanently reserved -- toggling it in and out of the
               layout would shift the checkbox next to it, which is exactly

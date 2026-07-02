@@ -1,4 +1,10 @@
-import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
+import {
+  useCallback,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react'
 
 const swipeOpenThreshold = 36
 
@@ -28,13 +34,22 @@ export function useSwipeActions(actionsWidth: number) {
     swiping: boolean
   } | null>(null)
 
-  const setSwipeOffset = (value: number) => {
-    const clampedValue = clampSwipeOffset(actionsWidth, value)
-    swipeOffsetRef.current = clampedValue
-    setSwipeOffsetState(clampedValue)
-  }
+  // Stable across renders (only actionsWidth as a dependency, which is
+  // effectively constant per call site) so callers can safely depend on
+  // `closeSwipeAction`'s identity in their own effects.
+  const setSwipeOffset = useCallback(
+    (value: number) => {
+      const clampedValue = clampSwipeOffset(actionsWidth, value)
+      swipeOffsetRef.current = clampedValue
+      setSwipeOffsetState(clampedValue)
+    },
+    [actionsWidth],
+  )
 
-  const closeSwipeAction = () => setSwipeOffset(0)
+  const closeSwipeAction = useCallback(
+    () => setSwipeOffset(0),
+    [setSwipeOffset],
+  )
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType !== 'touch') {
@@ -72,7 +87,11 @@ export function useSwipeActions(actionsWidth: number) {
 
       touchStart.swiping = true
       setIsSwiping(true)
-      event.currentTarget.setPointerCapture?.(event.pointerId)
+      try {
+        event.currentTarget.setPointerCapture?.(event.pointerId)
+      } catch (error) {
+        console.debug('setPointerCapture failed', error)
+      }
     }
 
     event.preventDefault()
