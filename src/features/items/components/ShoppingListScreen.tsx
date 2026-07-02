@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, Flex, Heading } from '@chakra-ui/react'
 import { useAuth } from '../../auth/useAuth'
 import { LoadingScreen } from '../../auth/components/LoadingScreen'
 import { useItems } from '../useItems'
-import { sortItems } from '../itemLogic'
+import { sortItems, latestNewActiveId } from '../itemLogic'
 import {
   addItem,
   checkItem,
@@ -26,11 +26,34 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
   const { user } = useAuth()
   const { items, itemsLoading } = useItems(listId)
 
-  const [addPending, setAddPending] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [openSwipeItemId, setOpenSwipeItemId] = useState<string | null>(null)
+
+  const mainRef = useRef<HTMLElement>(null)
+  const prevActiveIdsRef = useRef<string[]>([])
+  const [scrollAfterAdd, setScrollAfterAdd] = useState(false)
+
+  // After the user adds an item (which always appends to the bottom of the
+  // active section), scroll it into view so they can see it land -- but only
+  // on their own adds, gated by `scrollAfterAdd`, so a realtime add from
+  // another family member never yanks the local scroll position. The flag is
+  // set synchronously at submit time rather than after awaiting the write,
+  // because with offline persistence the write promise doesn't resolve until
+  // reconnect while the local onSnapshot (and this effect) fires immediately.
+  useEffect(() => {
+    const active = sortItems(items).active
+    const newId = latestNewActiveId(prevActiveIdsRef.current, active)
+    prevActiveIdsRef.current = active.map((item) => item.id)
+
+    if (scrollAfterAdd && newId) {
+      mainRef.current
+        ?.querySelector(`[data-swipe-row="${newId}"]`)
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      setScrollAfterAdd(false)
+    }
+  }, [items, scrollAfterAdd])
 
   // Native-app swipe-action pattern: an open swipe (Upraviť/Zmazať reveal)
   // closes on any interaction outside the row it belongs to -- tapping
@@ -66,14 +89,12 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
     if (!user) {
       return
     }
-    setAddPending(true)
+    setScrollAfterAdd(true)
     setAddError(null)
     try {
       await addItem(listId, text, user.uid, active)
     } catch {
       setAddError('unknown')
-    } finally {
-      setAddPending(false)
     }
   }
 
@@ -136,6 +157,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
     <Flex direction="column" flex="1 1 auto" minH="0">
       <Box
         as="main"
+        ref={mainRef}
         flex="1 1 auto"
         minH="0"
         overflowY="auto"
@@ -186,7 +208,6 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
       <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
         <AddItemForm
           onSubmit={(text) => void handleAdd(text)}
-          pending={addPending}
           error={addError}
         />
       </Box>

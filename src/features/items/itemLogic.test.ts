@@ -6,6 +6,7 @@ import {
   restoreItemPatch,
   nextActiveOrder,
   reorderActiveItems,
+  latestNewActiveId,
 } from './itemLogic'
 import type { ShoppingItem } from './types'
 
@@ -199,6 +200,52 @@ describe('nextActiveOrder', () => {
     ]
 
     expect(nextActiveOrder(items)).toBe(0)
+  })
+})
+
+describe('latestNewActiveId', () => {
+  it('returns null when no active id is new', () => {
+    const active = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+    ]
+
+    expect(latestNewActiveId(['a', 'b'], active)).toBeNull()
+  })
+
+  it('returns the single newly-appended id', () => {
+    const active = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+      makeItem({ id: 'c', activeOrder: 3 }),
+    ]
+
+    expect(latestNewActiveId(['a', 'b'], active)).toBe('c')
+  })
+
+  it('returns the last new id when several appeared at once (rapid entry)', () => {
+    const active = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+      makeItem({ id: 'c', activeOrder: 3 }),
+    ]
+
+    expect(latestNewActiveId(['a'], active)).toBe('c')
+  })
+
+  it('treats every item as new on initial load (empty prevIds)', () => {
+    const active = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+    ]
+
+    expect(latestNewActiveId([], active)).toBe('b')
+  })
+
+  it('returns null when the active list only shrank (an item was removed/checked off)', () => {
+    const active = [makeItem({ id: 'a', activeOrder: 1 })]
+
+    expect(latestNewActiveId(['a', 'b'], active)).toBeNull()
   })
 })
 

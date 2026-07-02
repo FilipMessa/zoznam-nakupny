@@ -66,6 +66,17 @@ export function restoreItemPatch<T>(
   }
 }
 
+// The id of the last active item present now but absent from `prevIds`,
+// i.e. the item that was just appended. null if nothing new appeared.
+export function latestNewActiveId(
+  prevIds: string[],
+  active: ShoppingItem[],
+): string | null {
+  const prev = new Set(prevIds)
+  const added = active.filter((item) => !prev.has(item.id))
+  return added.length > 0 ? added[added.length - 1].id : null
+}
+
 export function nextActiveOrder(items: ShoppingItem[]): number {
   const orders = items
     .map((item) => item.activeOrder)
