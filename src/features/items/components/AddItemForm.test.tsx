@@ -3,13 +3,13 @@ import { render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { AddItemForm } from './AddItemForm'
 
-// Mirrors CreateListForm's test conventions (src/features/lists/components/CreateListForm.test.tsx):
-// disabled while pending, calls the submit callback with the trimmed
-// value, clears the input on success, and surfaces an error message.
+// Calls the submit callback with the trimmed value, clears the input
+// immediately on submit, keeps focus in the input after tapping the submit
+// button (rapid multi-item entry), and surfaces an error message.
 describe('AddItemForm', () => {
   it('focuses the input instead of submitting when text is empty', async () => {
     const onSubmit = vi.fn()
-    render(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
+    render(<AddItemForm onSubmit={onSubmit} error={null} />)
 
     const button = screen.getByRole('button', { name: /pridať/i })
     expect(button).toBeEnabled()
@@ -24,7 +24,7 @@ describe('AddItemForm', () => {
   it('calls onSubmit with the trimmed item text', async () => {
     const onSubmit = vi.fn()
     const user = userEvent.setup()
-    render(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
+    render(<AddItemForm onSubmit={onSubmit} error={null} />)
 
     await user.type(
       screen.getByRole('textbox', { name: /položka/i }),
@@ -35,37 +35,32 @@ describe('AddItemForm', () => {
     expect(onSubmit).toHaveBeenCalledWith('mlieko')
   })
 
-  it('clears the input after a successful submit', async () => {
+  it('clears the input immediately after submitting', async () => {
     const onSubmit = vi.fn()
     const user = userEvent.setup()
-    const { rerender } = render(
-      <AddItemForm onSubmit={onSubmit} pending={false} error={null} />,
-    )
+    render(<AddItemForm onSubmit={onSubmit} error={null} />)
 
     const input = screen.getByRole('textbox', { name: /položka/i })
     await user.type(input, 'mlieko')
     await user.click(screen.getByRole('button', { name: /pridať/i }))
 
-    // Simulate the parent flipping pending true->false after a successful
-    // add, the same lifecycle CreateListForm relies on to observe a cleared
-    // controlled input.
-    rerender(<AddItemForm onSubmit={onSubmit} pending={true} error={null} />)
-    rerender(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
-
-    expect(
-      screen.getByRole('textbox', { name: /položka/i }),
-    ).toHaveValue('')
+    expect(input).toHaveValue('')
   })
 
-  it('disables the form while pending', () => {
-    render(<AddItemForm onSubmit={vi.fn()} pending={true} error={null} />)
+  it('keeps the input focused after tapping the submit button', async () => {
+    const onSubmit = vi.fn()
+    const user = userEvent.setup()
+    render(<AddItemForm onSubmit={onSubmit} error={null} />)
 
-    expect(screen.getByRole('button', { name: /pridať/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /položka/i })).toBeDisabled()
+    const input = screen.getByRole('textbox', { name: /položka/i })
+    await user.type(input, 'mlieko')
+    await user.click(screen.getByRole('button', { name: /pridať/i }))
+
+    expect(input).toHaveFocus()
   })
 
   it('shows an error message when adding fails', async () => {
-    render(<AddItemForm onSubmit={vi.fn()} pending={false} error="unknown" />)
+    render(<AddItemForm onSubmit={vi.fn()} error="unknown" />)
 
     await waitFor(() => {
       expect(

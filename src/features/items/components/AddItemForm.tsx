@@ -1,42 +1,32 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Box, IconButton, Input, VisuallyHidden, chakra } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
 
 export interface AddItemFormProps {
   onSubmit: (text: string) => void
-  pending: boolean
   error: string | null
 }
 
-export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
+export function AddItemForm({ onSubmit, error }: AddItemFormProps) {
   const [text, setText] = useState('')
-  const wasPending = useRef(pending)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (wasPending.current && !pending && !error) {
-      setText('')
-    }
-    wasPending.current = pending
-  }, [pending, error])
 
   const trimmedText = text.trim()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (pending) {
-      return
-    }
     if (trimmedText.length === 0) {
       inputRef.current?.focus()
       return
     }
+    setText('')
     onSubmit(trimmedText)
   }
 
   return (
     <chakra.form
       onSubmit={handleSubmit}
+      position="relative"
       display="flex"
       alignItems="center"
       gap="10px"
@@ -51,7 +41,7 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         type="text"
         value={text}
         placeholder="Pridať položku…"
-        disabled={pending}
+        enterKeyHint="send"
         onChange={(event) => setText(event.target.value)}
         flex="1 1 auto"
         minW="0"
@@ -68,7 +58,7 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         type="submit"
         className="icon-btn"
         aria-label="Pridať"
-        disabled={pending}
+        onPointerDown={(event) => event.preventDefault()}
         w="50px"
         h="50px"
         minW="50px"
@@ -78,7 +68,6 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         bg="terracotta.solid"
         boxShadow="accent"
         _hover={{ bg: 'terracotta.emphasized' }}
-        _disabled={{ bg: 'bg.muted', color: 'fg.subtle', boxShadow: 'none' }}
       >
         <Plus size={22} />
       </IconButton>
@@ -86,6 +75,10 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         <Box
           as="p"
           role="alert"
+          position="absolute"
+          bottom="calc(100% + 8px)"
+          left="12px"
+          right="12px"
           padding="10px 14px"
           bg="red.subtle"
           border="1px solid rgba(184, 48, 48, 0.15)"
