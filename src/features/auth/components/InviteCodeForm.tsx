@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
 import { Box, Button, Input, chakra } from '@chakra-ui/react'
+import { useInviteCodeField } from '../useInviteCodeField'
 import type { RedeemError } from '../types'
 
 export interface InviteCodeFormProps {
@@ -9,18 +9,8 @@ export interface InviteCodeFormProps {
 }
 
 export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps) {
-  const [code, setCode] = useState('')
-
-  const trimmedCode = code.trim()
-  const submitDisabled = pending || trimmedCode.length === 0
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (submitDisabled) {
-      return
-    }
-    onSubmit(trimmedCode)
-  }
+  const { code, handleCodeChange, submitDisabled, handleSubmit } =
+    useInviteCodeField({ pending, onSubmit })
 
   return (
     <chakra.form display="flex" flexDirection="column" flex="1 1 auto" onSubmit={handleSubmit}>
@@ -43,7 +33,7 @@ export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps
         placeholder="RODINA-2024"
         autoCapitalize="characters"
         disabled={pending}
-        onChange={(event) => setCode(event.target.value)}
+        onChange={handleCodeChange}
         h="54px"
         fontSize="20px"
         fontWeight="800"
