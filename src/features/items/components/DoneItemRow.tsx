@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
-import { useSwipeActions } from '../useSwipeActions'
+import { useRowSwipeSync } from '../useRowSwipeSync'
 
 // Done items only ever reveal a single "Zmazať" action -- editing a
 // checked-off item's text isn't supported (see ActiveItemRow for the
@@ -30,21 +29,11 @@ export function DoneItemRow({
     closeSwipeAction,
     swipeHandlers,
     onForegroundClickCapture,
-  } = useSwipeActions(swipeActionWidth)
-
-  useEffect(() => {
-    if (swipeOffset !== 0) {
-      onSwipeOpenChange(true)
-    }
-  }, [swipeOffset, onSwipeOpenChange])
-
-  // See ActiveItemRow for why this keys off `isSwipeOpen` changing (an
-  // effect), not a synchronous per-render check.
-  useEffect(() => {
-    if (!isSwipeOpen) {
-      closeSwipeAction()
-    }
-  }, [isSwipeOpen, closeSwipeAction])
+  } = useRowSwipeSync({
+    actionsWidth: swipeActionWidth,
+    isSwipeOpen,
+    onSwipeOpenChange,
+  })
 
   const handleDelete = () => {
     closeSwipeAction()

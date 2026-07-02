@@ -1,10 +1,10 @@
-import { useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react'
 import { Box, Button, Checkbox, IconButton, Input, Text, chakra } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Clock, GripVertical, Pencil, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
-import { useSwipeActions } from '../useSwipeActions'
+import { useRowSwipeSync } from '../useRowSwipeSync'
+import { useItemEditForm } from '../useItemEditForm'
 
 // Two 72px actions revealed side by side (Upraviť + Zmazať), Zmazať flush
 // against the trailing edge as before.
@@ -51,41 +51,20 @@ export function ActiveItemRow({
     closeSwipeAction,
     swipeHandlers,
     onForegroundClickCapture,
-  } = useSwipeActions(swipeActionWidth)
+  } = useRowSwipeSync({
+    actionsWidth: swipeActionWidth,
+    isSwipeOpen,
+    onSwipeOpenChange,
+    // Entering edit mode always closes the swipe -- see useRowSwipeSync.
+    forceClosed: isEditing,
+  })
 
-  // Tell the parent this row just became the open one.
-  useEffect(() => {
-    if (swipeOffset !== 0) {
-      onSwipeOpenChange(true)
-    }
-  }, [swipeOffset, onSwipeOpenChange])
-
-  // A row that lost exclusive "open" status (another row opened, or a tap
-  // landed outside every row) snaps itself shut. This must key off
-  // `isSwipeOpen` actually *changing*, not run on every render: right after
-  // this row's own gesture opens it, `isSwipeOpen` is still false for one
-  // render (the parent only learns about it via the effect above, on the
-  // next tick), so a synchronous "close if swipeOffset !== 0 && !isSwipeOpen"
-  // check on every render would immediately re-close a swipe the instant it
-  // opens.
-  useEffect(() => {
-    if (!isSwipeOpen) {
-      closeSwipeAction()
-    }
-  }, [isSwipeOpen, closeSwipeAction])
-
-  // Entering edit mode (from the swipe's own "Upraviť" button, or the
-  // desktop Pencil icon) always resets the swipe to closed -- the edit
-  // form doesn't apply the swipe transform, so there's nothing for an open
-  // offset to visually mean while editing.
-  useEffect(() => {
-    if (isEditing) {
-      closeSwipeAction()
-    }
-  }, [isEditing, closeSwipeAction])
-
-  const inputRef = useRef<HTMLInputElement>(null)
-  const cancelledRef = useRef(false)
+  const { inputRef, handleEditKeyDown, handleEditBlur, handleEditSubmit } =
+    useItemEditForm({
+      itemId: item.id,
+      onSubmitEdit,
+      onCancelEdit,
+    })
 
   // Force the swipe actions hidden while editing, regardless of
   // swipeOffset -- the edit form doesn't apply the swipe transform, so
@@ -107,36 +86,6 @@ export function ActiveItemRow({
     closeSwipeAction()
     onSwipeOpenChange(false)
     onStartEdit(item.id)
-  }
-
-  const trySubmitEdit = () => {
-    const value = inputRef.current?.value ?? ''
-    const trimmed = value.trim()
-    if (trimmed.length === 0) {
-      onCancelEdit()
-      return
-    }
-    onSubmitEdit(item.id, trimmed)
-  }
-
-  const handleEditKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      cancelledRef.current = true
-      onCancelEdit()
-    }
-  }
-
-  const handleEditBlur = () => {
-    if (cancelledRef.current) {
-      cancelledRef.current = false
-      return
-    }
-    trySubmitEdit()
-  }
-
-  const handleEditSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    trySubmitEdit()
   }
 
   return (
