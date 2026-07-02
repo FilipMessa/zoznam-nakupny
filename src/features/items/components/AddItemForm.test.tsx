@@ -4,22 +4,21 @@ import userEvent from '@testing-library/user-event'
 import { AddItemForm } from './AddItemForm'
 
 // Mirrors CreateListForm's test conventions (src/features/lists/components/CreateListForm.test.tsx):
-// disabled while empty/pending, calls the submit callback with the trimmed
+// disabled while pending, calls the submit callback with the trimmed
 // value, clears the input on success, and surfaces an error message.
 describe('AddItemForm', () => {
-  it('disables submit until item text is entered', async () => {
+  it('focuses the input instead of submitting when text is empty', async () => {
     const onSubmit = vi.fn()
     render(<AddItemForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    expect(screen.getByRole('button', { name: /pridať/i })).toBeDisabled()
+    const button = screen.getByRole('button', { name: /pridať/i })
+    expect(button).toBeEnabled()
 
     const user = userEvent.setup()
-    await user.type(
-      screen.getByRole('textbox', { name: /položka/i }),
-      'mlieko',
-    )
+    await user.click(button)
 
-    expect(screen.getByRole('button', { name: /pridať/i })).toBeEnabled()
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByRole('textbox', { name: /položka/i })).toHaveFocus()
   })
 
   it('calls onSubmit with the trimmed item text', async () => {

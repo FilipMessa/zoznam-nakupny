@@ -11,6 +11,7 @@ export interface AddItemFormProps {
 export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
   const [text, setText] = useState('')
   const wasPending = useRef(pending)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (wasPending.current && !pending && !error) {
@@ -20,11 +21,14 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
   }, [pending, error])
 
   const trimmedText = text.trim()
-  const submitDisabled = pending || trimmedText.length === 0
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (submitDisabled) {
+    if (pending) {
+      return
+    }
+    if (trimmedText.length === 0) {
+      inputRef.current?.focus()
       return
     }
     onSubmit(trimmedText)
@@ -42,6 +46,7 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         <chakra.label htmlFor="add-item-text-input">Položka</chakra.label>
       </VisuallyHidden>
       <Input
+        ref={inputRef}
         id="add-item-text-input"
         type="text"
         value={text}
@@ -63,7 +68,7 @@ export function AddItemForm({ onSubmit, pending, error }: AddItemFormProps) {
         type="submit"
         className="icon-btn"
         aria-label="Pridať"
-        disabled={submitDisabled}
+        disabled={pending}
         w="50px"
         h="50px"
         minW="50px"
