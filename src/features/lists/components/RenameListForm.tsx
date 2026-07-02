@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
+import { useListNameField } from '../useListNameField'
 
 export interface RenameListFormProps {
   initialName: string
@@ -14,18 +14,8 @@ export function RenameListForm({
   pending,
   error,
 }: RenameListFormProps) {
-  const [name, setName] = useState(initialName)
-
-  const trimmedName = name.trim()
-  const submitDisabled = pending || trimmedName.length === 0
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (submitDisabled) {
-      return
-    }
-    onSubmit(trimmedName)
-  }
+  const { name, handleNameChange, submitDisabled, handleSubmit } =
+    useListNameField({ initialName, pending, onSubmit })
 
   return (
     <Box
@@ -71,7 +61,7 @@ export function RenameListForm({
           type="text"
           value={name}
           disabled={pending}
-          onChange={(event) => setName(event.target.value)}
+          onChange={handleNameChange}
           h="50px"
           fontSize="16px"
           fontWeight="600"
