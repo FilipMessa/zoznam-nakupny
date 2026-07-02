@@ -4,7 +4,13 @@ import {
   getAuth,
   signInWithCustomToken,
 } from 'firebase/auth'
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore'
 
 declare global {
   interface Window {
@@ -29,7 +35,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig, 'zoznam-nakupny')
 
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+
+// jsdom (Vitest, `import.meta.env.MODE === 'test'`) has no IndexedDB, so
+// persistent offline cache would throw there. Real browser builds get it so
+// reads/writes keep working offline.
+export const db =
+  import.meta.env.MODE === 'test'
+    ? getFirestore(app)
+    : initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      })
 
 if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, 'localhost', 8080)
