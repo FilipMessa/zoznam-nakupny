@@ -26,14 +26,14 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'b', text: 'vajcia', activeOrder: 2 }),
     ]
 
-    render(<ActiveItemsList items={items} onCheck={vi.fn()} />)
+    render(<ActiveItemsList items={items} onCheck={vi.fn()} onDelete={vi.fn()} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
     expect(screen.getByText('vajcia')).toBeInTheDocument()
   })
 
   it('shows an empty state when there are no active items', () => {
-    render(<ActiveItemsList items={[]} onCheck={vi.fn()} />)
+    render(<ActiveItemsList items={[]} onCheck={vi.fn()} onDelete={vi.fn()} />)
 
     expect(screen.getByText(/žiadne položky na kúpu/i)).toBeInTheDocument()
   })
@@ -43,6 +43,7 @@ describe('ActiveItemsList', () => {
       <ActiveItemsList
         items={[makeActiveItem({ id: 'a', text: 'mlieko' })]}
         onCheck={vi.fn()}
+        onDelete={vi.fn()}
       />,
     )
 
@@ -58,11 +59,30 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'a', text: 'mlieko' }),
       makeActiveItem({ id: 'b', text: 'vajcia' }),
     ]
-    render(<ActiveItemsList items={items} onCheck={onCheck} />)
+    render(<ActiveItemsList items={items} onCheck={onCheck} onDelete={vi.fn()} />)
 
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[1])
 
     expect(onCheck).toHaveBeenCalledWith('b')
+  })
+
+  it('calls onDelete with the id of the item whose delete action is clicked', async () => {
+    const onDelete = vi.fn()
+    const user = userEvent.setup()
+    const items = [
+      makeActiveItem({ id: 'a', text: 'mlieko' }),
+      makeActiveItem({ id: 'b', text: 'vajcia' }),
+    ]
+    const { container } = render(
+      <ActiveItemsList items={items} onCheck={vi.fn()} onDelete={onDelete} />,
+    )
+
+    const deleteButtons = container.querySelectorAll<HTMLButtonElement>(
+      'button.icon-btn',
+    )
+    await user.click(deleteButtons[1])
+
+    expect(onDelete).toHaveBeenCalledWith('b')
   })
 })

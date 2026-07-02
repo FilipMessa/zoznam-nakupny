@@ -74,9 +74,13 @@ describe('DoneItemsList', () => {
       makeDoneItem({ id: 'a', text: 'mlieko' }),
       makeDoneItem({ id: 'b', text: 'vajcia' }),
     ]
-    render(<DoneItemsList items={items} onUncheck={vi.fn()} onDelete={onDelete} />)
+    const { container } = render(
+      <DoneItemsList items={items} onUncheck={vi.fn()} onDelete={onDelete} />,
+    )
 
-    const deleteButtons = screen.getAllByRole('button', { name: /zmazať/i })
+    const deleteButtons = container.querySelectorAll<HTMLButtonElement>(
+      'button.icon-btn',
+    )
     await user.click(deleteButtons[1])
 
     expect(onDelete).toHaveBeenCalledWith('b')

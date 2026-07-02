@@ -93,6 +93,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           <ActiveItemsList
             items={active}
             onCheck={(itemId) => void handleCheck(itemId)}
+            onDelete={(itemId) => void handleDelete(itemId)}
             onReorder={(itemId, activeOrder) =>
               void handleReorder(itemId, activeOrder)
             }

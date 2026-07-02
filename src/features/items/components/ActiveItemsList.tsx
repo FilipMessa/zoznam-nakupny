@@ -19,12 +19,14 @@ import { ActiveItemRow } from './ActiveItemRow'
 export interface ActiveItemsListProps {
   items: ShoppingItem[]
   onCheck: (id: string) => void
+  onDelete: (id: string) => void
   onReorder?: (itemId: string, activeOrder: number) => void
 }
 
 export function ActiveItemsList({
   items,
   onCheck,
+  onDelete,
   onReorder,
 }: ActiveItemsListProps) {
   const sensors = useSensors(
@@ -79,7 +81,12 @@ export function ActiveItemsList({
       >
         <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
           {items.map((item) => (
-            <ActiveItemRow key={item.id} item={item} onCheck={onCheck} />
+            <ActiveItemRow
+              key={item.id}
+              item={item}
+              onCheck={onCheck}
+              onDelete={onDelete}
+            />
           ))}
         </Box>
       </SortableContext>
