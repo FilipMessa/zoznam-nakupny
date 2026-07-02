@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react'
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
 import { X } from 'lucide-react'
+import { useListNameField } from '../useListNameField'
 
 export interface CreateListFormProps {
   onSubmit: (name: string) => void
@@ -15,18 +15,8 @@ export function CreateListForm({
   pending,
   error,
 }: CreateListFormProps) {
-  const [name, setName] = useState('')
-
-  const trimmedName = name.trim()
-  const submitDisabled = pending || trimmedName.length === 0
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (submitDisabled) {
-      return
-    }
-    onSubmit(trimmedName)
-  }
+  const { name, handleNameChange, submitDisabled, handleSubmit } =
+    useListNameField({ pending, onSubmit })
 
   return (
     <Box
@@ -94,7 +84,7 @@ export function CreateListForm({
           value={name}
           placeholder="Napr. Týždenný nákup"
           disabled={pending}
-          onChange={(event) => setName(event.target.value)}
+          onChange={handleNameChange}
           h="50px"
           fontSize="16px"
           fontWeight="600"
