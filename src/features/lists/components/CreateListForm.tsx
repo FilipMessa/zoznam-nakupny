@@ -1,13 +1,20 @@
 import { useState, type FormEvent } from 'react'
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
+import { X } from 'lucide-react'
 
 export interface CreateListFormProps {
   onSubmit: (name: string) => void
+  onCancel: () => void
   pending: boolean
   error: string | null
 }
 
-export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps) {
+export function CreateListForm({
+  onSubmit,
+  onCancel,
+  pending,
+  error,
+}: CreateListFormProps) {
   const [name, setName] = useState('')
 
   const trimmedName = name.trim()
@@ -23,6 +30,9 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
 
   return (
     <Box
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-list-dialog-title"
       pos="absolute"
       inset="0"
       zIndex="60"
@@ -32,9 +42,12 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
       padding="24px"
       bg="rgba(28, 21, 16, 0.45)"
       backdropFilter="blur(2px)"
+      onClick={onCancel}
+      data-testid="create-list-backdrop"
     >
       <chakra.form
         onSubmit={handleSubmit}
+        onClick={(event) => event.stopPropagation()}
         w="full"
         maxW="340px"
         display="flex"
@@ -45,9 +58,24 @@ export function CreateListForm({ onSubmit, pending, error }: CreateListFormProps
         padding="20px"
         boxShadow="md"
       >
-        <Text fontWeight="800" fontSize="17px" color="fg" m="0">
-          Nový zoznam
-        </Text>
+        <Box display="flex" alignItems="center" justifyContent="space-between" gap="12px">
+          <Text id="create-list-dialog-title" fontWeight="800" fontSize="17px" color="fg" m="0">
+            Nový zoznam
+          </Text>
+          <Button
+            type="button"
+            onClick={onCancel}
+            aria-label="Zatvoriť"
+            minW="34px"
+            minH="34px"
+            padding="0"
+            bg="bg.muted"
+            color="fg.muted"
+            borderRadius="10px"
+          >
+            <X size={16} />
+          </Button>
+        </Box>
         <chakra.label
           htmlFor="create-list-name-input"
           display="block"

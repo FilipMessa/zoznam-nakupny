@@ -32,6 +32,11 @@ export function ListsScreen() {
 
   const selectedList = lists.find((list) => list.id === selectedListId) ?? null
 
+  const handleCancelCreate = () => {
+    setShowCreateForm(false)
+    setCreateError(null)
+  }
+
   const handleCreate = async (name: string) => {
     if (!user) {
       return
@@ -84,6 +89,7 @@ export function ListsScreen() {
         {showCreateForm && (
           <CreateListForm
             onSubmit={handleCreate}
+            onCancel={handleCancelCreate}
             pending={createPending}
             error={createError}
           />
@@ -118,6 +124,7 @@ export function ListsScreen() {
       {showCreateForm && (
         <CreateListForm
           onSubmit={handleCreate}
+          onCancel={handleCancelCreate}
           pending={createPending}
           error={createError}
         />

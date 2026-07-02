@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from './test/render'
+import userEvent from '@testing-library/user-event'
 import App from './App'
 import { useAuth } from './features/auth/useAuth'
 import { useMembership } from './features/auth/useMembership'
@@ -89,6 +90,32 @@ describe('App state machine', () => {
       selectList: vi.fn(),
     })
     render(<App />)
+    expect(screen.getByText(/vytvorte.*prvý zoznam/i)).toBeInTheDocument()
+  })
+
+  it('lets a member close the create-list modal from the empty state', async () => {
+    mockedUseAuth.mockReturnValue({
+      user: { uid: 'uid-1' } as never,
+      authLoading: false,
+    })
+    mockedUseMembership.mockReturnValue({
+      status: 'member',
+      markAsMember: vi.fn(),
+    })
+    mockedUseLists.mockReturnValue({ lists: [], listsLoading: false })
+    mockedUseSelectedListId.mockReturnValue({
+      selectedListId: null,
+      selectList: vi.fn(),
+    })
+    const user = userEvent.setup()
+
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /vytvoriť zoznam/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /zatvoriť/i }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByText(/vytvorte.*prvý zoznam/i)).toBeInTheDocument()
   })
 })
