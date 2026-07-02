@@ -54,6 +54,27 @@ describe('ActiveItemRow', () => {
     expect(screen.getByRole('checkbox')).not.toBeChecked()
   })
 
+  it('gives the checkbox an accessible name from the item text', () => {
+    // Regression test: the item text used to be wrapped in Checkbox.Label
+    // (giving the checkbox its accessible name via that association) until
+    // it was pulled out to a plain sibling <Text> so tapping the text
+    // wouldn't also toggle the checkbox -- that also silently dropped the
+    // checkbox's accessible name unless it's set explicitly.
+    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ text: 'mlieko' }) })} />)
+
+    expect(screen.getByRole('checkbox', { name: 'mlieko' })).toBeInTheDocument()
+  })
+
+  it('does not toggle the checkbox when the item text is clicked', async () => {
+    const onCheck = vi.fn()
+    const user = userEvent.setup()
+    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ text: 'mlieko' }), onCheck })} />)
+
+    await user.click(screen.getByText('mlieko'))
+
+    expect(onCheck).not.toHaveBeenCalled()
+  })
+
   it('calls onCheck with the item id when the checkbox is clicked', async () => {
     const onCheck = vi.fn()
     const user = userEvent.setup()
@@ -291,9 +312,16 @@ describe('ActiveItemRow', () => {
       // after the desktop Pencil button's onClick calls onStartEdit).
       rerender(<ActiveItemRow {...makeProps({ isSwipeOpen: true, isEditing: true })} />)
 
-      expect(
-        container.querySelector('button[aria-label="Vymazať položku"]'),
-      ).toHaveAttribute('aria-hidden', 'true')
+      const deleteButton = container.querySelector(
+        'button[aria-label="Vymazať položku"]',
+      )
+      expect(deleteButton).toHaveAttribute('aria-hidden', 'true')
+      // Regression test: aria-hidden alone doesn't hide the buttons
+      // visually -- the edit form is a normal-flow sibling, not something
+      // that overlaps/covers the absolutely-positioned swipe underlay, so
+      // it needs its own visibility:hidden or it visibly peeks out from
+      // behind the edit input.
+      expect(deleteButton?.parentElement).toHaveStyle({ visibility: 'hidden' })
     })
 
     it('renders a text input pre-filled with the item text when editing', () => {

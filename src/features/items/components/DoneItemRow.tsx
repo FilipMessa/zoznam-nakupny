@@ -111,7 +111,7 @@ export function DoneItemRow({
           cursor="pointer"
           pl="48px"
         >
-          <Checkbox.HiddenInput />
+          <Checkbox.HiddenInput aria-label={item.text} />
           <Checkbox.Control
             w="26px"
             h="26px"

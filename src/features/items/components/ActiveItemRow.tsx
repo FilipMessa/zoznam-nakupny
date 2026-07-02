@@ -165,6 +165,7 @@ export function ActiveItemRow({
         w={`${swipeActionWidth}px`}
         h="100%"
         display="flex"
+        visibility={swipeButtonsHidden ? 'hidden' : 'visible'}
       >
         <Button
           type="button"
@@ -216,9 +217,12 @@ export function ActiveItemRow({
           data-testid={`active-item-content-${item.id}`}
           display="flex"
           alignItems="center"
+          w="full"
           minH="56px"
           padding="0 8px 0 16px"
           bg="bg"
+          pos="relative"
+          zIndex="1"
         >
           <Input
             ref={inputRef}
@@ -282,7 +286,7 @@ export function ActiveItemRow({
             alignItems="center"
             cursor="pointer"
           >
-            <Checkbox.HiddenInput />
+            <Checkbox.HiddenInput aria-label={item.text} />
             <Checkbox.Control
               w="26px"
               h="26px"
