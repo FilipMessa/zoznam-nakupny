@@ -1,8 +1,10 @@
-import { test, expect, type Page } from '@playwright/test';
-import { randomBytes } from 'node:crypto';
-import { getApps, initializeApp, deleteApp, type App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { test, expect } from '@playwright/test';
+import { deleteApp, type App } from 'firebase-admin/app';
+import {
+  getAdminApp,
+  seedSignedInMemberWithList,
+  signInAsMember,
+} from './fixtures';
 
 // ---------------------------------------------------------------------------
 // Phase 7 mobile-UI-polish smoke test (mobile-chromium / Pixel 7 project).
@@ -41,75 +43,22 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 //
 //   (plus a `declare global { interface Window { __e2eSignIn?: ... } }`
 //   somewhere picked up by the app's tsconfig). Without this hook, the
-//   `signInAsMember` helper below has no way to authenticate the page and
-//   every test in this file will fail at `page.evaluate(() => window.__e2eSignIn...)`.
+//   `signInAsMember` helper has no way to authenticate the page and every
+//   test in this file will fail at `page.evaluate(() => window.__e2eSignIn...)`.
+//
+// The seeding/sign-in helpers themselves live in ./fixtures.ts, shared with
+// other e2e specs that also need a signed-in member state.
 // ---------------------------------------------------------------------------
-
-declare global {
-  interface Window {
-    __e2eSignIn?: (customToken: string) => Promise<void>;
-  }
-}
-
-const FAMILY_ID = 'default-family';
-const PROJECT_ID = 'zoznam-nakupny-rules-test';
-const FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
-const AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 
 let adminApp: App;
 
 test.beforeAll(() => {
-  process.env.FIRESTORE_EMULATOR_HOST ??= FIRESTORE_EMULATOR_HOST;
-  process.env.FIREBASE_AUTH_EMULATOR_HOST ??= AUTH_EMULATOR_HOST;
-
-  adminApp =
-    getApps().find((a) => a.name === 'mobile-smoke-admin') ??
-    initializeApp({ projectId: PROJECT_ID }, 'mobile-smoke-admin');
+  adminApp = getAdminApp('mobile-smoke-admin');
 });
 
 test.afterAll(async () => {
   await deleteApp(adminApp);
 });
-
-interface SeededFixture {
-  uid: string;
-  listId: string;
-  listName: string;
-  customToken: string;
-}
-
-async function seedSignedInMemberWithList(): Promise<SeededFixture> {
-  const uid = `e2e-${randomBytes(6).toString('hex')}`;
-  const listId = `list-${randomBytes(6).toString('hex')}`;
-  const listName = 'Nákupný zoznam';
-
-  const db = getFirestore(adminApp);
-  await db.doc(`families/${FAMILY_ID}/members/${uid}`).set({ uid });
-  await db.doc(`families/${FAMILY_ID}/lists/${listId}`).set({
-    name: listName,
-    createdAt: FieldValue.serverTimestamp(),
-    createdBy: uid,
-  });
-
-  const customToken = await getAuth(adminApp).createCustomToken(uid);
-
-  return { uid, listId, listName, customToken };
-}
-
-async function signInAsMember(page: Page, customToken: string): Promise<void> {
-  await page.goto('/');
-  await page.waitForFunction(() => typeof window.__e2eSignIn === 'function');
-  await page.evaluate(
-    async (token) => {
-      await window.__e2eSignIn!(token);
-    },
-    customToken,
-  );
-  // Reload so the app's onAuthStateChanged-driven state machine (App.tsx)
-  // re-evaluates from a freshly-authenticated session rather than racing
-  // the in-page sign-in call.
-  await page.reload();
-}
 
 test.describe('mobile shopping list flow (Pixel 7)', () => {
   test('add an item, mark it done, and use the list switcher bottom sheet', async ({
@@ -127,7 +76,7 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
       'mobile-only smoke test',
     );
 
-    const fixture = await seedSignedInMemberWithList();
+    const fixture = await seedSignedInMemberWithList(adminApp);
     await signInAsMember(page, fixture.customToken);
 
     await expect(page.getByText(fixture.listName)).toBeVisible();
