@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../test/render'
+import { fireEvent, render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { DoneItemRow } from './DoneItemRow'
 import type { ShoppingItem } from '../types'
@@ -56,7 +56,17 @@ describe('DoneItemRow', () => {
     expect(onUncheck).toHaveBeenCalledWith('item-7')
   })
 
-  it('calls onDelete with the item id when the delete button is clicked', async () => {
+  it('does not expose a persistent delete button by default', () => {
+    render(
+      <DoneItemRow item={makeDoneItem()} onUncheck={vi.fn()} onDelete={vi.fn()} />,
+    )
+
+    expect(
+      screen.queryByRole('button', { name: /vymazať položku/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('calls onDelete with the item id when the swiped delete action is clicked', async () => {
     const onDelete = vi.fn()
     const user = userEvent.setup()
     render(
@@ -67,22 +77,28 @@ describe('DoneItemRow', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /zmazať/i }))
+    const rowContent = screen.getByTestId('done-item-content-item-9')
+    fireEvent.pointerDown(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.pointerMove(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+    fireEvent.pointerUp(rowContent, {
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: 80,
+      clientY: 24,
+    })
+
+    await user.click(screen.getByRole('button', { name: /vymazať položku/i }))
 
     expect(onDelete).toHaveBeenCalledWith('item-9')
-  })
-
-  // Touch-target polish (Phase 7): icon-only actions must be at least 44px
-  // tappable, enforced via the shared `.icon-btn` class (min-width/min-height
-  // set from --touch-target in CSS). We assert the class hook only, since
-  // jsdom cannot reliably resolve CSS custom properties into computed pixels.
-  it('applies the icon-btn touch-target class to the delete button', () => {
-    render(
-      <DoneItemRow item={makeDoneItem()} onUncheck={vi.fn()} onDelete={vi.fn()} />,
-    )
-
-    expect(screen.getByRole('button', { name: /zmazať/i })).toHaveClass(
-      'icon-btn',
-    )
   })
 })
