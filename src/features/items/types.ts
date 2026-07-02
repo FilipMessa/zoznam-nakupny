@@ -12,4 +12,7 @@ export interface ShoppingItem {
   createdAt: Timestamp
   createdBy: string
   updatedAt: Timestamp
+  /** Client-only: true while this item's latest write hasn't reached the
+   * server yet. Never persisted to Firestore. */
+  pendingSync?: boolean
 }

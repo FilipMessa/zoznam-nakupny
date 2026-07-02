@@ -101,4 +101,28 @@ describe('DoneItemRow', () => {
 
     expect(onDelete).toHaveBeenCalledWith('item-9')
   })
+
+  it('shows a pending-sync icon when the item has not synced yet', () => {
+    render(
+      <DoneItemRow
+        item={makeDoneItem({ pendingSync: true })}
+        onUncheck={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTitle('Čaká na odoslanie')).toBeInTheDocument()
+  })
+
+  it('does not show a pending-sync icon once the item has synced', () => {
+    render(
+      <DoneItemRow
+        item={makeDoneItem({ pendingSync: false })}
+        onUncheck={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
+  })
 })

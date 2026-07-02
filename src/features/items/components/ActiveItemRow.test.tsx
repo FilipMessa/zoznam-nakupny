@@ -152,4 +152,28 @@ describe('ActiveItemRow', () => {
     const revealButton = container.querySelector('button[aria-label="Vymazať položku"]')
     expect(revealButton).toHaveAttribute('aria-hidden', 'true')
   })
+
+  it('shows a pending-sync icon when the item has not synced yet', () => {
+    render(
+      <ActiveItemRow
+        item={makeActiveItem({ pendingSync: true })}
+        onCheck={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTitle('Čaká na odoslanie')).toBeInTheDocument()
+  })
+
+  it('does not show a pending-sync icon once the item has synced', () => {
+    render(
+      <ActiveItemRow
+        item={makeActiveItem({ pendingSync: false })}
+        onCheck={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
+  })
 })

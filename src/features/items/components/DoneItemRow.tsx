@@ -1,5 +1,5 @@
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
-import { Trash2 } from 'lucide-react'
+import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
 import { swipeActionWidth, useSwipeToDelete } from '../useSwipeToDelete'
 
@@ -107,6 +107,19 @@ export function DoneItemRow({ item, onUncheck, onDelete }: DoneItemRowProps) {
             </Text>
           </Checkbox.Label>
         </Checkbox.Root>
+        {item.pendingSync && (
+          <Box
+            as="span"
+            title="Čaká na odoslanie"
+            aria-label="Čaká na odoslanie"
+            color="fg.subtle"
+            flexShrink="0"
+            display="flex"
+            m="0 4px"
+          >
+            <Clock size={15} />
+          </Box>
+        )}
         <IconButton
           type="button"
           className="icon-btn"

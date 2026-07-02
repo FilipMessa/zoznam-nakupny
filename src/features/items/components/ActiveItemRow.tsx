@@ -1,7 +1,7 @@
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Trash2 } from 'lucide-react'
+import { Clock, GripVertical, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
 import { swipeActionWidth, useSwipeToDelete } from '../useSwipeToDelete'
 
@@ -148,6 +148,19 @@ export function ActiveItemRow({ item, onCheck, onDelete }: ActiveItemRowProps) {
             </Text>
           </Checkbox.Label>
         </Checkbox.Root>
+        {item.pendingSync && (
+          <Box
+            as="span"
+            title="Čaká na odoslanie"
+            aria-label="Čaká na odoslanie"
+            color="fg.subtle"
+            flexShrink="0"
+            display="flex"
+            m="0 4px"
+          >
+            <Clock size={15} />
+          </Box>
+        )}
         <IconButton
           type="button"
           className="icon-btn"
