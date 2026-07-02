@@ -1,35 +1,14 @@
-import { useState } from 'react'
 import { Flex, Heading, Text } from '@chakra-ui/react'
 import { Users } from 'lucide-react'
 import { InviteCodeForm } from './InviteCodeForm'
-import { redeemInviteCode } from '../inviteService'
-import { useAuth } from '../useAuth'
-import type { RedeemError } from '../types'
+import { useRedeemInviteCode } from '../useRedeemInviteCode'
 
 export interface InviteCodeScreenProps {
   markAsMember: () => void
 }
 
 export function InviteCodeScreen({ markAsMember }: InviteCodeScreenProps) {
-  const { user } = useAuth()
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<RedeemError | null>(null)
-
-  const handleSubmit = async (code: string) => {
-    if (!user) {
-      return
-    }
-    setPending(true)
-    setError(null)
-    const result = await redeemInviteCode(user.uid, code)
-    setPending(false)
-
-    if (result.ok) {
-      markAsMember()
-    } else {
-      setError(result.error)
-    }
-  }
+  const { pending, error, handleSubmit } = useRedeemInviteCode(markAsMember)
 
   return (
     <Flex direction="column" flex="1 1 auto" minH="100dvh" padding="56px 28px 32px" bg="bg">
