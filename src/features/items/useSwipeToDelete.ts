@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from 'react'
+import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 
 export const swipeActionWidth = 84
 const swipeOpenThreshold = 36
@@ -89,7 +89,7 @@ export function useSwipeToDelete() {
     touchStartRef.current = null
   }
 
-  const handleForegroundClickCapture = (event: PointerEvent<HTMLElement>) => {
+  const handleForegroundClickCapture = (event: MouseEvent<HTMLElement>) => {
     if (swipeOffsetRef.current === 0) {
       return
     }
