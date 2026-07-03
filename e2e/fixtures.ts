@@ -62,6 +62,78 @@ export async function seedSignedInMemberWithList(
   return { uid, listId, listName, customToken };
 }
 
+export interface TwoListsFixture {
+  uid: string;
+  listAId: string;
+  listAName: string;
+  listBId: string;
+  listBName: string;
+  itemId: string;
+  itemText: string;
+  customToken: string;
+}
+
+// Seeds a member with two Lists, one Item in the first -- for e2e specs
+// that need to move an Item between Lists (e.g. the All Lists screen's
+// cross-list drag). Mirrors seedSignedInMemberWithList's admin-bypass
+// seeding pattern.
+export async function seedSignedInMemberWithTwoLists(
+  adminApp: App,
+): Promise<TwoListsFixture> {
+  const uid = `e2e-${randomBytes(6).toString('hex')}`;
+  const listAId = `list-${randomBytes(6).toString('hex')}`;
+  const listBId = `list-${randomBytes(6).toString('hex')}`;
+  // Random suffixes, not fixed names -- FAMILY_ID is a fixed single-tenant
+  // constant (see signInAsMember's comment above), so every list ever
+  // seeded against a given emulator instance is visible to every test.
+  // Fixed names risk an accessible-name collision if this spec (or a
+  // future one reusing these names) ever runs more than once against the
+  // same non-freshly-cleared emulator, e.g. during local iterative
+  // debugging rather than a fresh `emulators:exec` run per test.
+  const listAName = `Potraviny ${randomBytes(3).toString('hex')}`;
+  const listBName = `Drogéria ${randomBytes(3).toString('hex')}`;
+  const itemId = `item-${randomBytes(6).toString('hex')}`;
+  const itemText = `mlieko-${randomBytes(3).toString('hex')}`;
+
+  const db = getFirestore(adminApp);
+  await db.doc(`families/${FAMILY_ID}/members/${uid}`).set({ uid });
+  await db.doc(`families/${FAMILY_ID}/lists/${listAId}`).set({
+    name: listAName,
+    createdAt: FieldValue.serverTimestamp(),
+    createdBy: uid,
+  });
+  await db.doc(`families/${FAMILY_ID}/lists/${listBId}`).set({
+    name: listBName,
+    createdAt: FieldValue.serverTimestamp(),
+    createdBy: uid,
+  });
+  await db
+    .doc(`families/${FAMILY_ID}/lists/${listAId}/items/${itemId}`)
+    .set({
+      text: itemText,
+      status: 'active',
+      activeOrder: 1,
+      completedAt: null,
+      completedBy: null,
+      createdBy: uid,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  const customToken = await getAuth(adminApp).createCustomToken(uid);
+
+  return {
+    uid,
+    listAId,
+    listAName,
+    listBId,
+    listBName,
+    itemId,
+    itemText,
+    customToken,
+  };
+}
+
 export async function signInAsMember(
   page: Page,
   customToken: string,

@@ -2,6 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Always a single worker, not just in CI: several specs (all-lists-drag,
+  // offline-sync) drive real pointer/network timing against one shared dev
+  // server + emulator pair, and running multiple browser workers
+  // concurrently against that same pair introduces CPU contention that
+  // makes those specs flaky (observed directly -- a dnd-kit drag simulation
+  // that passed 3/3 in isolation intermittently failed under 4 parallel
+  // workers). Slower, but deterministic.
+  workers: 1,
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',

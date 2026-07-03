@@ -255,4 +255,36 @@ describe('ListsScreen — all lists screen', () => {
     expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()
     expect(screen.getByTestId('shopping-list-screen')).toBeInTheDocument()
   })
+
+  it('falls back to the empty state (not a stale all-lists screen) once every list is gone', async () => {
+    const { rerender } = render(<ListsScreen />)
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Všetky zoznamy' }))
+    expect(screen.getByTestId('all-lists-screen')).toBeInTheDocument()
+
+    // Every list disappears while the all-lists screen is open (e.g. the
+    // last list was deleted by another Member) -- the underlying
+    // allListsOpen flag must not survive this, or creating a new list from
+    // the resulting empty state would silently re-enter the all-lists
+    // screen instead of landing on the normal single-list flow.
+    mockedUseLists.mockReturnValue({ lists: [], listsLoading: false })
+    mockedUseSelectedListId.mockReturnValue({ selectedListId: null, selectList })
+    rerender(<ListsScreen />)
+
+    expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()
+    expect(screen.getByText('Zatiaľ žiadne zoznamy')).toBeInTheDocument()
+
+    const newList = makeList({ id: 'list-new' })
+    mockedCreateList.mockResolvedValue(newList.id)
+    mockedUseLists.mockReturnValue({ lists: [newList], listsLoading: false })
+    mockedUseSelectedListId.mockReturnValue({
+      selectedListId: newList.id,
+      selectList,
+    })
+    rerender(<ListsScreen />)
+
+    expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()
+    expect(screen.getByTestId('shopping-list-screen')).toBeInTheDocument()
+  })
 })

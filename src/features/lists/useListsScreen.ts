@@ -50,6 +50,9 @@ export function useListsScreen() {
   }
 
   const [allListsOpen, setAllListsOpen] = useState(false)
+  // Tracks whether `lists` was empty as of the last render, so the block
+  // below can detect the empty -> non-empty transition without an effect.
+  const [wasListsEmpty, setWasListsEmpty] = useState(lists.length === 0)
 
   const openAllLists = () => {
     setAllListsOpen(true)
@@ -57,6 +60,23 @@ export function useListsScreen() {
 
   const closeAllLists = () => {
     setAllListsOpen(false)
+  }
+
+  // If every list disappears while the All Lists screen is open (the last
+  // list was deleted, possibly by another Member), ListsScreen falls back
+  // to the empty-lists state -- but without this, allListsOpen would stay
+  // stale-true, so creating a new list from that empty state would
+  // silently re-enter the All Lists screen instead of the normal
+  // single-list flow a first-time-again user expects. Adjusted during
+  // render (React's documented pattern for resetting state when a derived
+  // condition changes) rather than in an effect, which would cost an extra
+  // render pass for no benefit here.
+  const listsAreEmptyNow = lists.length === 0
+  if (listsAreEmptyNow !== wasListsEmpty) {
+    setWasListsEmpty(listsAreEmptyNow)
+    if (listsAreEmptyNow) {
+      setAllListsOpen(false)
+    }
   }
 
   return {

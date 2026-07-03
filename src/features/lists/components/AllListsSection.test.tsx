@@ -73,7 +73,7 @@ describe('AllListsSection', () => {
     })
 
     render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} />,
+      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
     )
 
     expect(screen.getByText('Potraviny · 2')).toBeInTheDocument()
@@ -86,7 +86,7 @@ describe('AllListsSection', () => {
     })
 
     render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} />,
+      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
     )
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
@@ -99,7 +99,7 @@ describe('AllListsSection', () => {
     })
 
     render(
-      <AllListsSection list={makeList()} expanded={false} onToggle={vi.fn()} />,
+      <AllListsSection list={makeList()} expanded={false} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
     )
 
     expect(screen.queryByText('mlieko')).not.toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('AllListsSection', () => {
     mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
 
     render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} />,
+      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
     )
 
     expect(screen.getByText('Žiadne položky na kúpu.')).toBeInTheDocument()
@@ -121,7 +121,7 @@ describe('AllListsSection', () => {
     const user = userEvent.setup()
 
     render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={onToggle} />,
+      <AllListsSection list={makeList()} expanded={true} onToggle={onToggle} onActiveItemsChange={vi.fn()} />,
     )
 
     await user.click(screen.getByRole('button', { name: /potraviny/i }))
@@ -142,6 +142,7 @@ describe('AllListsSection', () => {
         list={makeList({ id: 'list-42' })}
         expanded={true}
         onToggle={vi.fn()}
+        onActiveItemsChange={vi.fn()}
       />,
     )
 
@@ -163,6 +164,7 @@ describe('AllListsSection', () => {
         list={makeList({ id: 'list-42' })}
         expanded={true}
         onToggle={vi.fn()}
+        onActiveItemsChange={vi.fn()}
       />,
     )
 
@@ -185,6 +187,7 @@ describe('AllListsSection', () => {
         list={makeList({ pendingSync: true })}
         expanded={true}
         onToggle={vi.fn()}
+        onActiveItemsChange={vi.fn()}
       />,
     )
 

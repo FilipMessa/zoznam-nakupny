@@ -1,5 +1,7 @@
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 import { ArrowLeft } from 'lucide-react'
+import { useShoppingListDndSensors } from '../../items/dndSensors'
 import { useAllListsScreen } from '../useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
 import type { ShoppingList } from '../types'
@@ -10,7 +12,9 @@ export interface AllListsScreenProps {
 }
 
 export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
-  const { isExpanded, toggleSection } = useAllListsScreen()
+  const { isExpanded, toggleSection, registerActiveItems, handleDragEnd } =
+    useAllListsScreen()
+  const sensors = useShoppingListDndSensors()
 
   return (
     <Flex direction="column" h="100dvh" minH="0" bg="bg">
@@ -48,16 +52,23 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
         </Heading>
       </Flex>
 
-      <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
-        {lists.map((list) => (
-          <AllListsSection
-            key={list.id}
-            list={list}
-            expanded={isExpanded(list.id)}
-            onToggle={() => toggleSection(list.id)}
-          />
-        ))}
-      </Box>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
+          {lists.map((list) => (
+            <AllListsSection
+              key={list.id}
+              list={list}
+              expanded={isExpanded(list.id)}
+              onToggle={() => toggleSection(list.id)}
+              onActiveItemsChange={registerActiveItems}
+            />
+          ))}
+        </Box>
+      </DndContext>
     </Flex>
   )
 }
