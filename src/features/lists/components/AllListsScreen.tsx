@@ -1,9 +1,10 @@
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
-import { DndContext, closestCenter } from '@dnd-kit/core'
+import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
 import { ArrowLeft } from 'lucide-react'
 import { useShoppingListDndSensors } from '../../items/dndSensors'
 import { useAllListsScreen } from '../useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
+import { DraggedItemPreview } from './DraggedItemPreview'
 import type { ShoppingList } from '../types'
 
 export interface AllListsScreenProps {
@@ -12,8 +13,15 @@ export interface AllListsScreenProps {
 }
 
 export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
-  const { isExpanded, toggleSection, registerActiveItems, handleDragEnd } =
-    useAllListsScreen()
+  const {
+    isExpanded,
+    toggleSection,
+    registerActiveItems,
+    draggedItem,
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+  } = useAllListsScreen()
   const sensors = useShoppingListDndSensors()
 
   return (
@@ -55,7 +63,9 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
           {lists.map((list) => (
@@ -68,6 +78,9 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
             />
           ))}
         </Box>
+        <DragOverlay>
+          {draggedItem ? <DraggedItemPreview item={draggedItem} /> : null}
+        </DragOverlay>
       </DndContext>
     </Flex>
   )

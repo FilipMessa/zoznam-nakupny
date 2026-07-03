@@ -27,6 +27,14 @@ export interface ActiveItemRowProps {
   // dragged/hovered row belongs to via active.data.current/over.data.current.
   // Unused by ActiveItemsList's single-list DndContext.
   sortableData?: Record<string, unknown>
+  // Dims this row while it's the one being dragged, instead of relying on
+  // it visually following the pointer via its own useSortable transform.
+  // Opt-in because that transform-follows-pointer behavior only breaks
+  // down once `over` can leave this row's own SortableContext (a cross-list
+  // drag) -- AllListsSection sets this and pairs it with a <DragOverlay>
+  // clone that does the pointer-following instead; ActiveItemsList's
+  // single-list usage never hits that case and is unaffected by default.
+  dimWhileDragging?: boolean
 }
 
 export function ActiveItemRow({
@@ -40,6 +48,7 @@ export function ActiveItemRow({
   isSwipeOpen,
   onSwipeOpenChange,
   sortableData,
+  dimWhileDragging,
 }: ActiveItemRowProps) {
   const {
     attributes,
@@ -105,12 +114,15 @@ export function ActiveItemRow({
       animation="itemIn 0.3s ease"
       data-testid={`active-item-${item.id}`}
       data-swipe-row={item.id}
-      {...(isDragging && {
-        borderRadius: '14px',
-        boxShadow: '0 8px 28px rgba(28, 21, 16, 0.18)',
-        pos: 'relative',
-        zIndex: '20',
-      })}
+      {...(isDragging &&
+        (dimWhileDragging
+          ? { opacity: 0.4, pos: 'relative' }
+          : {
+              borderRadius: '14px',
+              boxShadow: '0 8px 28px rgba(28, 21, 16, 0.18)',
+              pos: 'relative',
+              zIndex: '20',
+            }))}
     >
       <Box
         position="absolute"

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import type { DragEndEvent } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { reorderActiveItems, insertActiveOrder } from '../items/itemLogic'
 import { reorderItem, moveItemToList } from '../items/itemService'
 import { moveConflictMessage } from '../items/moveConflictMessages'
@@ -14,7 +14,17 @@ export interface UseAllListsScreenResult {
   isExpanded: (listId: string) => boolean
   toggleSection: (listId: string) => void
   registerActiveItems: (listId: string, items: ShoppingItem[]) => void
+  // The item currently being dragged, for <DragOverlay> to render a
+  // floating clone of -- needed because a dragged row's own useSortable
+  // transform only reflects its position *within its own SortableContext*
+  // (dnd-kit computes it from that context's own items array), so it stops
+  // following the pointer the moment `over` leaves the row's own list.
+  // Without an overlay, a cross-list drag would visually snap back to its
+  // origin mid-drag even though the resulting write is still correct.
+  draggedItem: ShoppingItem | null
+  handleDragStart: (event: DragStartEvent) => void
   handleDragEnd: (event: DragEndEvent) => void
+  handleDragCancel: () => void
 }
 
 // Resolves a drop target's destination List id, or null if `overId` isn't a
@@ -55,6 +65,7 @@ export function useAllListsScreen(): UseAllListsScreenResult {
   const [collapsedListIds, setCollapsedListIds] = useState<Set<string>>(
     () => new Set(),
   )
+  const [draggedItem, setDraggedItem] = useState<ShoppingItem | null>(null)
 
   // Each AllListsSection reports its own current active items here on every
   // render -- the shared DndContext lives above all the sections, so its
@@ -83,7 +94,22 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     })
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const listId = event.active.data.current?.listId
+    if (typeof listId !== 'string') {
+      return
+    }
+    const items = activeItemsByListId.current.get(listId) ?? []
+    setDraggedItem(items.find((item) => item.id === event.active.id) ?? null)
+  }
+
+  const handleDragCancel = () => {
+    setDraggedItem(null)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setDraggedItem(null)
+
     const { active, over } = event
     if (!over || active.id === over.id) {
       return
@@ -142,6 +168,9 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     isExpanded,
     toggleSection,
     registerActiveItems,
+    draggedItem,
+    handleDragStart,
     handleDragEnd,
+    handleDragCancel,
   }
 }

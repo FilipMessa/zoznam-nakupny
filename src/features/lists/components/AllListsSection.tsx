@@ -150,6 +150,7 @@ export function AllListsSection({
                     key={item.id}
                     item={item}
                     sortableData={{ listId: list.id }}
+                    dimWhileDragging
                     onCheck={(itemId) => void handleCheck(itemId)}
                     onDelete={(itemId) => void handleDelete(itemId)}
                     isEditing={editingItemId === item.id}

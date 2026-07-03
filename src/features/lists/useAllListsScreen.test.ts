@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import type { DragEndEvent } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { renderHook, act } from '@testing-library/react'
 import { useAllListsScreen } from './useAllListsScreen'
 import * as itemService from '../items/itemService'
@@ -53,6 +53,14 @@ function makeDragEndEvent(
   } as unknown as DragEndEvent
 }
 
+// Builds a minimal DragStartEvent -- only the fields useAllListsScreen's
+// onDragStart actually reads (active.id, active.data.current.listId).
+function makeDragStartEvent(activeId: string, activeListId: string): DragStartEvent {
+  return {
+    active: { id: activeId, data: { current: { listId: activeListId } } },
+  } as unknown as DragStartEvent
+}
+
 describe('useAllListsScreen', () => {
   beforeEach(() => {
     mockedReorderItem.mockResolvedValue(undefined)
@@ -80,6 +88,59 @@ describe('useAllListsScreen', () => {
 
       act(() => result.current.toggleSection('list-1'))
       expect(result.current.isExpanded('list-1')).toBe(true)
+    })
+  })
+
+  describe('draggedItem (for DragOverlay)', () => {
+    it('is null before any drag starts', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+
+      expect(result.current.draggedItem).toBeNull()
+    })
+
+    it('is set to the dragged item on drag start', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      const item = makeItem({ id: 'a', text: 'mlieko' })
+      act(() => result.current.registerActiveItems('list-1', [item]))
+
+      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+
+      expect(result.current.draggedItem).toBe(item)
+    })
+
+    it('is cleared on drag end', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      const item = makeItem({ id: 'a', text: 'mlieko' })
+      act(() => result.current.registerActiveItems('list-1', [item]))
+      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      expect(result.current.draggedItem).toBe(item)
+
+      act(() =>
+        result.current.handleDragEnd(makeDragEndEvent('a', 'list-1', null)),
+      )
+
+      expect(result.current.draggedItem).toBeNull()
+    })
+
+    it('is cleared on drag cancel', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      const item = makeItem({ id: 'a', text: 'mlieko' })
+      act(() => result.current.registerActiveItems('list-1', [item]))
+      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      expect(result.current.draggedItem).toBe(item)
+
+      act(() => result.current.handleDragCancel())
+
+      expect(result.current.draggedItem).toBeNull()
+    })
+
+    it('stays null when the dragged item is not found in the registered list', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      act(() => result.current.registerActiveItems('list-1', [makeItem({ id: 'b' })]))
+
+      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+
+      expect(result.current.draggedItem).toBeNull()
     })
   })
 
