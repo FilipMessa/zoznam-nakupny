@@ -19,6 +19,7 @@ import {
   getDocs,
   getFirestore,
   setDoc,
+  Timestamp,
   type Firestore,
 } from 'firebase/firestore'
 import {
@@ -38,6 +39,7 @@ import {
   deleteItem,
   editItemText,
   clearDoneItems,
+  moveItemToList,
 } from '../features/items/itemService'
 import type { ShoppingItem } from '../features/items/types'
 
@@ -179,6 +181,30 @@ function toActiveItem(
     createdAt: data.createdAt as ShoppingItem['createdAt'],
     createdBy: data.createdBy as string,
     updatedAt: data.updatedAt as ShoppingItem['updatedAt'],
+  }
+}
+
+// Builds a ShoppingItem for passing directly into moveItemToList -- the
+// function reads it off the caller's own already-subscribed client state
+// (mirroring what useItems' onSnapshot would hand it), not off the
+// transaction's existence-check reads, so its field values only need to be
+// self-consistent, not byte-identical to whatever's seeded in Firestore.
+function makeShoppingItem(
+  id: string,
+  overrides: Partial<ShoppingItem> = {},
+): ShoppingItem {
+  const now = Timestamp.now()
+  return {
+    id,
+    text: 'mlieko',
+    status: 'active',
+    activeOrder: 1,
+    completedAt: null,
+    completedBy: null,
+    createdBy: 'uid-1',
+    createdAt: now,
+    updatedAt: now,
+    ...overrides,
   }
 }
 
@@ -399,6 +425,78 @@ describe('itemService (emulator)', () => {
 
       const itemSnapshots = await getItemDocsAsAdmin('list-1')
       expect(itemSnapshots.size).toBe(1)
+    })
+  })
+
+  describe('moveItemToList', () => {
+    it('moves the item to the destination list, preserving identity, and returns ok', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedListAsAdmin('list-2', { name: 'Household' })
+      const createdAt = Timestamp.now()
+      await seedItemAsAdmin('list-1', 'item-1', {
+        text: 'mlieko',
+        status: 'active',
+        activeOrder: 1,
+        completedAt: null,
+        completedBy: null,
+        createdBy: uid,
+        createdAt,
+        updatedAt: createdAt,
+      })
+      const item = makeShoppingItem('item-1', { createdBy: uid, createdAt, updatedAt: createdAt })
+
+      const result = await moveItemToList('list-1', 'list-2', item, 1, db)
+
+      expect(result).toEqual({ ok: true })
+      const sourceDocs = await getItemDocsAsAdmin('list-1')
+      expect(sourceDocs.size).toBe(0)
+      const destDoc = await getItemDocAsAdmin('list-2', 'item-1')
+      expect(destDoc.exists()).toBe(true)
+      expect(destDoc.data()?.text).toBe('mlieko')
+      expect(destDoc.data()?.createdBy).toBe(uid)
+      expect(destDoc.data()?.activeOrder).toBe(1)
+      expect(destDoc.data()?.updatedAt).toBeTruthy()
+    })
+
+    it('returns source-missing and writes nothing when the source item no longer exists', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedListAsAdmin('list-2', { name: 'Household' })
+      // item-1 deliberately never seeded into list-1 -- simulates another
+      // member having already moved/deleted it before this move commits.
+      const item = makeShoppingItem('item-1', { createdBy: uid })
+
+      const result = await moveItemToList('list-1', 'list-2', item, 1, db)
+
+      expect(result).toEqual({ ok: false, reason: 'source-missing' })
+      const destDocs = await getItemDocsAsAdmin('list-2')
+      expect(destDocs.size).toBe(0)
+    })
+
+    it('returns dest-list-missing and leaves the source item untouched when the dest list no longer exists', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      // list-2 deliberately never seeded -- simulates it being deleted
+      // (cascade-deleting its items, per ADR 0001) mid-drag.
+      const createdAt = Timestamp.now()
+      await seedItemAsAdmin('list-1', 'item-1', {
+        text: 'mlieko',
+        status: 'active',
+        activeOrder: 1,
+        completedAt: null,
+        completedBy: null,
+        createdBy: uid,
+        createdAt,
+        updatedAt: createdAt,
+      })
+      const item = makeShoppingItem('item-1', { createdBy: uid, createdAt, updatedAt: createdAt })
+
+      const result = await moveItemToList('list-1', 'list-2', item, 1, db)
+
+      expect(result).toEqual({ ok: false, reason: 'dest-list-missing' })
+      const sourceDoc = await getItemDocAsAdmin('list-1', 'item-1')
+      expect(sourceDoc.exists()).toBe(true)
     })
   })
 
