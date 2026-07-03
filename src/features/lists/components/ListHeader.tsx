@@ -1,5 +1,5 @@
 import { Box, Flex, IconButton } from '@chakra-ui/react'
-import { ChevronDown, Clock, LogOut, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Clock, LayoutList, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { signOutUser } from '../../auth/googleAuth'
 import { useOnlineStatus } from '../../../lib/useOnlineStatus'
 
@@ -7,6 +7,7 @@ export interface ListHeaderProps {
   listName: string
   pendingSync?: boolean
   onOpenSwitcher: () => void
+  onOpenAllLists: () => void
   onRenameClick: () => void
   onDeleteClick: () => void
 }
@@ -15,6 +16,7 @@ export function ListHeader({
   listName,
   pendingSync,
   onOpenSwitcher,
+  onOpenAllLists,
   onRenameClick,
   onDeleteClick,
 }: ListHeaderProps) {
@@ -89,6 +91,19 @@ export function ListHeader({
         m="0 4px"
         animation={isOnline ? 'livePulse 2s ease-in-out infinite' : 'none'}
       />
+      <IconButton
+        type="button"
+        className="icon-btn"
+        aria-label="Všetky zoznamy"
+        onClick={onOpenAllLists}
+        variant="ghost"
+        minW="touchTarget"
+        minH="touchTarget"
+        color="fg.muted"
+        _hover={{ bg: 'bg.muted', color: 'fg' }}
+      >
+        <LayoutList size={18} />
+      </IconButton>
       <IconButton
         type="button"
         className="icon-btn"

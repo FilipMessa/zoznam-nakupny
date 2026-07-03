@@ -7,6 +7,7 @@ import { RenameListForm } from './RenameListForm'
 import { DeleteListConfirmDialog } from './DeleteListConfirmDialog'
 import { ListSwitcherOverlay } from './ListSwitcherOverlay'
 import { ListHeader } from './ListHeader'
+import { AllListsScreen } from './AllListsScreen'
 import { ShoppingListScreen } from '../../items/components/ShoppingListScreen'
 
 export function ListsScreen() {
@@ -35,6 +36,9 @@ export function ListsScreen() {
     openSwitcher,
     closeSwitcher,
     handleCreateFromSwitcher,
+    allListsOpen,
+    openAllLists,
+    closeAllLists,
   } = useListsScreen()
 
   if (listsLoading) {
@@ -57,6 +61,10 @@ export function ListsScreen() {
     )
   }
 
+  if (allListsOpen) {
+    return <AllListsScreen lists={lists} onClose={closeAllLists} />
+  }
+
   return (
     <div>
       {selectedList && (
@@ -65,6 +73,7 @@ export function ListsScreen() {
             listName={selectedList.name}
             pendingSync={selectedList.pendingSync}
             onOpenSwitcher={openSwitcher}
+            onOpenAllLists={openAllLists}
             onRenameClick={openRenameForm}
             onDeleteClick={openDeleteConfirm}
           />

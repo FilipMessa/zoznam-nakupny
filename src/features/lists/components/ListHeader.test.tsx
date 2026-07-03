@@ -26,6 +26,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -41,6 +42,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={onOpenSwitcher}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -51,6 +53,24 @@ describe('ListHeader', () => {
     expect(onOpenSwitcher).toHaveBeenCalledTimes(1)
   })
 
+  it('calls onOpenAllLists when the all-lists trigger is clicked', async () => {
+    const onOpenAllLists = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ListHeader
+        listName="Groceries"
+        onOpenSwitcher={vi.fn()}
+        onOpenAllLists={onOpenAllLists}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /všetky zoznamy/i }))
+
+    expect(onOpenAllLists).toHaveBeenCalledTimes(1)
+  })
+
   it('calls onRenameClick when the rename button is clicked', async () => {
     const onRenameClick = vi.fn()
     const user = userEvent.setup()
@@ -58,6 +78,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={onRenameClick}
         onDeleteClick={vi.fn()}
       />,
@@ -75,6 +96,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={onDeleteClick}
       />,
@@ -91,6 +113,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -111,12 +134,16 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
     )
 
     expect(screen.getByRole('button', { name: /prepnúť zoznam/i })).toHaveClass(
+      'icon-btn',
+    )
+    expect(screen.getByRole('button', { name: /všetky zoznamy/i })).toHaveClass(
       'icon-btn',
     )
     expect(screen.getByRole('button', { name: /premenovať/i })).toHaveClass(
@@ -137,6 +164,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -152,6 +180,7 @@ describe('ListHeader', () => {
       <ListHeader
         listName="Groceries"
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -170,6 +199,7 @@ describe('ListHeader', () => {
         listName="Groceries"
         pendingSync={true}
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,
@@ -184,6 +214,7 @@ describe('ListHeader', () => {
         listName="Groceries"
         pendingSync={false}
         onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
       />,

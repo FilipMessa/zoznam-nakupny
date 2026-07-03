@@ -49,6 +49,16 @@ export function useListsScreen() {
     openCreateForm()
   }
 
+  const [allListsOpen, setAllListsOpen] = useState(false)
+
+  const openAllLists = () => {
+    setAllListsOpen(true)
+  }
+
+  const closeAllLists = () => {
+    setAllListsOpen(false)
+  }
+
   return {
     lists,
     listsLoading,
@@ -74,5 +84,8 @@ export function useListsScreen() {
     openSwitcher,
     closeSwitcher,
     handleCreateFromSwitcher,
+    allListsOpen,
+    openAllLists,
+    closeAllLists,
   }
 }

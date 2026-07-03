@@ -25,6 +25,17 @@ vi.mock('../../auth/googleAuth', () => ({ signOutUser: vi.fn() }))
 vi.mock('../../items/components/ShoppingListScreen', () => ({
   ShoppingListScreen: () => <div data-testid="shopping-list-screen" />,
 }))
+// AllListsScreen has its own suite; stub it so this one never touches
+// useItems/Firestore for every list.
+vi.mock('./AllListsScreen', () => ({
+  AllListsScreen: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="all-lists-screen">
+      <button type="button" onClick={onClose}>
+        Späť
+      </button>
+    </div>
+  ),
+}))
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseLists = vi.mocked(useLists)
@@ -224,5 +235,24 @@ describe('ListsScreen — list switcher', () => {
         screen.queryByRole('button', { name: /vytvoriť nový zoznam/i }),
       ).not.toBeInTheDocument(),
     )
+  })
+})
+
+describe('ListsScreen — all lists screen', () => {
+  it('opens the all-lists screen and returns to the single-list flow on back', async () => {
+    render(<ListsScreen />)
+
+    const user = userEvent.setup()
+    expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Všetky zoznamy' }))
+
+    expect(screen.getByTestId('all-lists-screen')).toBeInTheDocument()
+    expect(screen.queryByTestId('shopping-list-screen')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Späť' }))
+
+    expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()
+    expect(screen.getByTestId('shopping-list-screen')).toBeInTheDocument()
   })
 })
