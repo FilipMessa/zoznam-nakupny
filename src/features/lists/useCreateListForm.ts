@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
-import { createList } from './listService'
+import { useOnlineStatus } from '../../lib/useOnlineStatus'
+import { validateListName } from './listCrud'
+import { createList, generateListId } from './listService'
 
 export interface UseCreateListFormParams {
   user: User | null
@@ -23,6 +25,7 @@ export function useCreateListForm({
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createPending, setCreatePending] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const isOnline = useOnlineStatus()
 
   const openCreateForm = () => {
     setShowCreateForm(true)
@@ -39,6 +42,35 @@ export function useCreateListForm({
     }
     setCreatePending(true)
     setCreateError(null)
+
+    if (!isOnline) {
+      // createList's write promise won't resolve until reconnect, even
+      // though the local cache updates immediately (the same Firestore
+      // quirk useAddItemSubmit is structured around for adding items) --
+      // unlike an add, selecting the new list needs its id up front, so
+      // mint one, validate synchronously, and act on it without waiting
+      // for the round trip. The write itself still happens in the
+      // background; there's nothing meaningful left to surface if it
+      // eventually fails once the form is already closed and the offline
+      // banner already communicates the pending-sync state.
+      const result = validateListName(name)
+      if (!result.ok) {
+        setCreateError('unknown')
+        setCreatePending(false)
+        return
+      }
+      const listId = generateListId()
+      selectList(listId)
+      setShowCreateForm(false)
+      setCreatePending(false)
+      void createList(result.name, user.uid, undefined, listId).catch(
+        (error: unknown) => {
+          console.error('Failed to create list', error)
+        },
+      )
+      return
+    }
+
     try {
       const listId = await createList(name, user.uid)
       selectList(listId)
