@@ -1,4 +1,11 @@
-import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
+import {
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type SensorDescriptor,
+  type SensorOptions,
+} from '@dnd-kit/core'
 
 // Shared sensor tuning for every DndContext in the shopping-list feature
 // (single-list reorder in ActiveItemsList, cross-list drag in the "All
@@ -7,7 +14,7 @@ import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 // how it disambiguates a horizontal swipe-to-reveal gesture from a
 // vertical/long-press drag on the same row element -- keep them in sync if
 // either ever changes.
-export function useShoppingListDndSensors() {
+export function useShoppingListDndSensors(): SensorDescriptor<SensorOptions>[] {
   return useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, {
