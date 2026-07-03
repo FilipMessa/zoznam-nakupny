@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { SELECTED_LIST_STORAGE_KEY } from '../src/constants/storage';
 
 // Shared admin-seeding helpers for e2e specs that need a signed-in member
 // state. See e2e/mobile-smoke.spec.ts's original header comment for the
@@ -64,6 +65,7 @@ export async function seedSignedInMemberWithList(
 export async function signInAsMember(
   page: Page,
   customToken: string,
+  listId?: string,
 ): Promise<void> {
   await page.goto('/');
   await page.waitForFunction(() => typeof window.__e2eSignIn === 'function');
@@ -73,6 +75,20 @@ export async function signInAsMember(
     },
     customToken,
   );
+  if (listId) {
+    // FAMILY_ID is a fixed single-tenant constant (see CLAUDE.md), so every
+    // member -- including ones seeded by other tests still holding data in
+    // this same emulator -- sees every list ever created. Without pinning
+    // the selection, the app's fallback ("no persisted selection yet" ->
+    // oldest list) would pick whichever list happens to be first, not the
+    // one this test just seeded. Persisting the selection up front, the way
+    // useSelectedListId itself does after a real selection, makes each test
+    // deterministic regardless of what other tests left behind.
+    await page.evaluate(
+      ([key, id]) => window.localStorage.setItem(key, id),
+      [SELECTED_LIST_STORAGE_KEY, listId] as const,
+    );
+  }
   // Reload so the app's onAuthStateChanged-driven state machine (App.tsx)
   // re-evaluates from a freshly-authenticated session rather than racing
   // the in-page sign-in call.

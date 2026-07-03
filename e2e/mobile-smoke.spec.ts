@@ -77,7 +77,7 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     );
 
     const fixture = await seedSignedInMemberWithList(adminApp);
-    await signInAsMember(page, fixture.customToken);
+    await signInAsMember(page, fixture.customToken, fixture.listId);
 
     await expect(page.getByText(fixture.listName)).toBeVisible();
 
@@ -108,7 +108,12 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     // correct action rather than `.check()`.
     const itemCheckbox = page.getByRole('checkbox').first();
     await expect(itemCheckbox).toBeVisible();
-    await itemCheckbox.click();
+    // The native input is visually hidden behind Checkbox.Control, which
+    // paints on top of it at the same position -- a real tap lands on the
+    // control and is forwarded to the input by the wrapping <label>, so
+    // force the click rather than waiting for the input itself to be
+    // hit-testable.
+    await itemCheckbox.click({ force: true });
 
     await expect(
       page
@@ -128,7 +133,11 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     // --- Close it via the backdrop ------------------------------------------
     const backdrop = page.getByTestId('list-switcher-backdrop');
     await expect(backdrop).toBeVisible();
-    await backdrop.click({ position: { x: 2, y: 2 } });
+    // The backdrop div is purely decorative (dismissal is driven by an
+    // outside-pointerdown listener on the document, not a click on this
+    // element specifically), so it never itself receives pointer events --
+    // force the click past that check.
+    await backdrop.click({ position: { x: 2, y: 2 }, force: true });
     await expect(dialog).toBeHidden();
   });
 });

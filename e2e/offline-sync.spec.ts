@@ -29,7 +29,7 @@ test.describe('offline sync', () => {
     context,
   }) => {
     const fixture = await seedSignedInMemberWithList(adminApp);
-    await signInAsMember(page, fixture.customToken);
+    await signInAsMember(page, fixture.customToken, fixture.listId);
 
     await expect(page.getByText(fixture.listName)).toBeVisible();
     await expect(page.getByTitle('Živé spojenie')).toBeVisible();
@@ -46,7 +46,13 @@ test.describe('offline sync', () => {
     await expect(page.getByTitle('Čaká na odoslanie')).toBeVisible();
 
     const itemCheckbox = page.getByRole('checkbox').first();
-    await itemCheckbox.click();
+    // The native checkbox input is visually hidden behind Checkbox.Control
+    // (the styled box the user actually sees), which paints on top of it at
+    // the same position -- Playwright's actionability check sees the
+    // control "intercepting" the click. A real tap lands on the control and
+    // is forwarded to the input by the wrapping <label>, so force the click
+    // rather than waiting for the input itself to be hit-testable.
+    await itemCheckbox.click({ force: true });
 
     const doneSection = page.getByRole('heading', { name: /hotové/i });
     await expect(
@@ -69,7 +75,7 @@ test.describe('offline sync', () => {
     context,
   }) => {
     const fixture = await seedSignedInMemberWithList(adminApp);
-    await signInAsMember(page, fixture.customToken);
+    await signInAsMember(page, fixture.customToken, fixture.listId);
 
     await expect(page.getByText(fixture.listName)).toBeVisible();
 
