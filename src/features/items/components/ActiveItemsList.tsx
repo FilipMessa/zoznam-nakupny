@@ -1,19 +1,12 @@
 import { Box, Text } from '@chakra-ui/react'
-import {
-  DndContext,
-  closestCenter,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import type { ShoppingItem } from '../types'
 import { reorderActiveItems } from '../itemLogic'
+import { useShoppingListDndSensors } from '../dndSensors'
 import { ActiveItemRow } from './ActiveItemRow'
 
 export interface ActiveItemsListProps {
@@ -41,15 +34,7 @@ export function ActiveItemsList({
   openSwipeItemId,
   onSwipeOpenChange,
 }: ActiveItemsListProps) {
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 180,
-        tolerance: 8,
-      },
-    }),
-  )
+  const sensors = useShoppingListDndSensors()
 
   if (items.length === 0) {
     return (
