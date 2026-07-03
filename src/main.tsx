@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { AuthProvider } from './features/auth/AuthProvider'
 import { Provider } from './components/ui/provider'
+import { Toaster } from './components/ui/toaster'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -10,6 +11,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <App />
       </AuthProvider>
+      <Toaster />
     </Provider>
   </StrictMode>,
 )
