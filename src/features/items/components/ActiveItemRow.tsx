@@ -22,6 +22,11 @@ export interface ActiveItemRowProps {
   onCancelEdit: () => void
   isSwipeOpen: boolean
   onSwipeOpenChange: (open: boolean) => void
+  // Attached to dnd-kit's useSortable `data` -- lets a shared DndContext
+  // spanning multiple lists (the "All Lists" screen) identify which list a
+  // dragged/hovered row belongs to via active.data.current/over.data.current.
+  // Unused by ActiveItemsList's single-list DndContext.
+  sortableData?: Record<string, unknown>
 }
 
 export function ActiveItemRow({
@@ -34,6 +39,7 @@ export function ActiveItemRow({
   onCancelEdit,
   isSwipeOpen,
   onSwipeOpenChange,
+  sortableData,
 }: ActiveItemRowProps) {
   const {
     attributes,
@@ -43,7 +49,7 @@ export function ActiveItemRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id, disabled: isEditing })
+  } = useSortable({ id: item.id, disabled: isEditing, data: sortableData })
 
   const {
     swipeOffset,
