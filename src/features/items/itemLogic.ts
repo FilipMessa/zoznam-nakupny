@@ -89,27 +89,22 @@ export function nextActiveOrder(items: ShoppingItem[]): number {
   return Math.max(...orders) + 1
 }
 
-// Computes the activeOrder a dragged item should take on after a reorder.
-// `fromIndex`/`toIndex` are both positions within `activeItems` as currently
-// sorted (i.e. the array the drag interaction observed) -- `toIndex` refers
-// to the destination position in the array with the moved item removed, per
-// ADR 0002 (fractional-index reordering).
-export function reorderActiveItems(
-  activeItems: ShoppingItem[],
-  fromIndex: number,
-  toIndex: number,
-): number {
-  if (fromIndex === toIndex) {
-    return activeItems[fromIndex].activeOrder as number
+// Computes the activeOrder an item should take when inserted at `toIndex`
+// within `items` (an array that does NOT already contain the item being
+// placed) -- the midpoint between its new neighbors, per ADR 0002
+// (fractional-index reordering). Shared by `reorderActiveItems` (moving an
+// item already in the list) and `insertActiveOrder` (moving an item in from
+// elsewhere, e.g. a different List).
+function computeInsertionOrder(items: ShoppingItem[], toIndex: number): number {
+  if (items.length === 0) {
+    return nextActiveOrder(items)
   }
 
-  const withoutMoved = activeItems.filter((_, index) => index !== fromIndex)
-
-  const prev = withoutMoved[toIndex - 1]
-  const next = withoutMoved[toIndex]
+  const prev = items[toIndex - 1]
+  const next = items[toIndex]
 
   if (!prev) {
-    // Moving to the very top of the list.
+    // Inserting at the very top of the list.
     const nextOrder = next.activeOrder as number
     if (nextOrder === 0) {
       return -1
@@ -121,8 +116,8 @@ export function reorderActiveItems(
   }
 
   if (!next) {
-    // Moving to the very bottom of the list.
-    return nextActiveOrder(withoutMoved)
+    // Inserting at the very bottom of the list.
+    return nextActiveOrder(items)
   }
 
   const prevOrder = prev.activeOrder as number
@@ -139,4 +134,34 @@ export function reorderActiveItems(
   }
 
   return midpoint
+}
+
+// Computes the activeOrder a dragged item should take on after a reorder.
+// `fromIndex`/`toIndex` are both positions within `activeItems` as currently
+// sorted (i.e. the array the drag interaction observed) -- `toIndex` refers
+// to the destination position in the array with the moved item removed, per
+// ADR 0002 (fractional-index reordering).
+export function reorderActiveItems(
+  activeItems: ShoppingItem[],
+  fromIndex: number,
+  toIndex: number,
+): number {
+  if (fromIndex === toIndex) {
+    return activeItems[fromIndex].activeOrder as number
+  }
+
+  const withoutMoved = activeItems.filter((_, index) => index !== fromIndex)
+
+  return computeInsertionOrder(withoutMoved, toIndex)
+}
+
+// Computes the activeOrder an item not currently in `destActiveItems` should
+// take when inserted at `toIndex` -- the cross-list counterpart of
+// `reorderActiveItems`, used when moving an Item into a different List (the
+// moved item isn't present in the destination array to filter out).
+export function insertActiveOrder(
+  destActiveItems: ShoppingItem[],
+  toIndex: number,
+): number {
+  return computeInsertionOrder(destActiveItems, toIndex)
 }

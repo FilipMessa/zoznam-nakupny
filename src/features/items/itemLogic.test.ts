@@ -6,6 +6,7 @@ import {
   restoreItemPatch,
   nextActiveOrder,
   reorderActiveItems,
+  insertActiveOrder,
   latestNewActiveId,
 } from './itemLogic'
 import type { ShoppingItem } from './types'
@@ -394,5 +395,73 @@ describe('reorderActiveItems', () => {
     expect(result).not.toBeNaN()
     expect(Number.isFinite(result)).toBe(true)
     expect(result).toBe(1 + Number.EPSILON)
+  })
+})
+
+describe('insertActiveOrder', () => {
+  it('returns 1 when inserting into an empty destination list', () => {
+    expect(insertActiveOrder([], 0)).toBe(1)
+  })
+
+  it('halves the top item activeOrder when inserting at the very top', () => {
+    const dest = [
+      makeItem({ id: 'a', activeOrder: 2 }),
+      makeItem({ id: 'b', activeOrder: 4 }),
+    ]
+
+    expect(insertActiveOrder(dest, 0)).toBe(1)
+  })
+
+  it('uses -1 when inserting at the top and the current top activeOrder is 0', () => {
+    const dest = [makeItem({ id: 'a', activeOrder: 0 })]
+
+    expect(insertActiveOrder(dest, 0)).toBe(-1)
+  })
+
+  it('computes the midpoint when inserting in the middle', () => {
+    const dest = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 3 }),
+    ]
+
+    expect(insertActiveOrder(dest, 1)).toBe(2)
+  })
+
+  it('produces nextActiveOrder when inserting past the last item (append to bottom)', () => {
+    const dest = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 5 }),
+    ]
+
+    expect(insertActiveOrder(dest, 2)).toBe(nextActiveOrder(dest))
+    expect(insertActiveOrder(dest, 2)).toBe(6)
+  })
+
+  it('falls back to a safe finite value instead of NaN/Infinity when neighbors collide', () => {
+    const dest = [
+      makeItem({ id: 'a', activeOrder: 2 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+    ]
+
+    const result = insertActiveOrder(dest, 1)
+
+    expect(result).not.toBeNaN()
+    expect(Number.isFinite(result)).toBe(true)
+  })
+
+  it('does not mutate or require the inserted item to already be present, unlike reorderActiveItems', () => {
+    // The whole point of insertActiveOrder vs reorderActiveItems: the moved
+    // item is NOT a member of destActiveItems, so no fromIndex/filtering step
+    // exists here -- toIndex is a position in destActiveItems as-is.
+    const dest = [
+      makeItem({ id: 'a', activeOrder: 1 }),
+      makeItem({ id: 'b', activeOrder: 2 }),
+      makeItem({ id: 'c', activeOrder: 3 }),
+    ]
+
+    const result = insertActiveOrder(dest, 3)
+
+    expect(result).toBe(4)
+    expect(dest.map((item) => item.id)).toEqual(['a', 'b', 'c'])
   })
 })
