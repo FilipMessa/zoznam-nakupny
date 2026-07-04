@@ -1,9 +1,11 @@
 import { useCallback, useRef, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import { useAuth } from '../auth/useAuth'
 import { reorderActiveItems, insertActiveOrder } from '../items/itemLogic'
 import { reorderItem, moveItemToList } from '../items/itemService'
 import { moveConflictMessage } from '../items/moveConflictMessages'
 import { notify } from '../../lib/toaster'
+import { useCreateListForm } from './useCreateListForm'
 import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
@@ -14,6 +16,15 @@ export interface UseAllListsScreenResult {
   isExpanded: (listId: string) => boolean
   toggleSection: (listId: string) => void
   registerActiveItems: (listId: string, items: ShoppingItem[]) => void
+  // Add-list sheet -- creating here deliberately does not navigate away
+  // (see docs/feature-all-lists-add-list.md); the new list's section just
+  // appears already expanded since collapsedListIds never named it.
+  showCreateForm: boolean
+  openCreateForm: () => void
+  handleCancelCreate: () => void
+  handleCreate: (name: string) => Promise<void>
+  createPending: boolean
+  createError: string | null
   // The item currently being dragged, for <DragOverlay> to render a
   // floating clone of -- needed because a dragged row's own useSortable
   // transform only reflects its position *within its own SortableContext*
@@ -62,10 +73,20 @@ function resolveDrop(
 // section is a purely opt-in way to reduce clutter, not persisted across
 // screen opens (a fresh Set every time this hook mounts).
 export function useAllListsScreen(): UseAllListsScreenResult {
+  const { user } = useAuth()
   const [collapsedListIds, setCollapsedListIds] = useState<Set<string>>(
     () => new Set(),
   )
   const [draggedItem, setDraggedItem] = useState<ShoppingItem | null>(null)
+
+  const {
+    showCreateForm,
+    openCreateForm,
+    handleCancelCreate,
+    handleCreate,
+    createPending,
+    createError,
+  } = useCreateListForm({ user, onCreated: () => {} })
 
   // Each AllListsSection reports its own current active items here on every
   // render -- the shared DndContext lives above all the sections, so its
@@ -172,5 +193,11 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
+    showCreateForm,
+    openCreateForm,
+    handleCancelCreate,
+    handleCreate,
+    createPending,
+    createError,
   }
 }

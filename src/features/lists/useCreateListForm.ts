@@ -6,7 +6,11 @@ import { createList, generateListId } from './listService'
 
 export interface UseCreateListFormParams {
   user: User | null
-  selectList: (listId: string) => void
+  // Called with the new list's id once it's known -- callers that navigate
+  // to the new list pass their selectList; AllListsScreen's caller passes a
+  // no-op since staying put and letting the new section auto-expand is the
+  // desired behaviour there (see docs/feature-all-lists-add-list.md).
+  onCreated: (listId: string) => void
 }
 
 export interface UseCreateListFormResult {
@@ -20,7 +24,7 @@ export interface UseCreateListFormResult {
 
 export function useCreateListForm({
   user,
-  selectList,
+  onCreated,
 }: UseCreateListFormParams): UseCreateListFormResult {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createPending, setCreatePending] = useState(false)
@@ -60,7 +64,7 @@ export function useCreateListForm({
         return
       }
       const listId = generateListId()
-      selectList(listId)
+      onCreated(listId)
       setShowCreateForm(false)
       setCreatePending(false)
       void createList(result.name, user.uid, undefined, listId).catch(
@@ -73,7 +77,7 @@ export function useCreateListForm({
 
     try {
       const listId = await createList(name, user.uid)
-      selectList(listId)
+      onCreated(listId)
       setShowCreateForm(false)
     } catch {
       setCreateError('unknown')

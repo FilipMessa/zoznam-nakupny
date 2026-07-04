@@ -1,9 +1,10 @@
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { useShoppingListDndSensors } from '../../items/dndSensors'
 import { useAllListsScreen } from '../useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
+import { CreateListForm } from './CreateListForm'
 import { DraggedItemPreview } from './DraggedItemPreview'
 import type { ShoppingList } from '../types'
 
@@ -21,6 +22,12 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
+    showCreateForm,
+    openCreateForm,
+    handleCancelCreate,
+    handleCreate,
+    createPending,
+    createError,
   } = useAllListsScreen()
   const sensors = useShoppingListDndSensors()
 
@@ -55,9 +62,25 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           fontSize="20px"
           color="fg"
           letterSpacing="-0.5px"
+          flex="1 1 auto"
         >
           Všetky zoznamy
         </Heading>
+        <IconButton
+          type="button"
+          className="icon-btn"
+          aria-label="Pridať zoznam"
+          onClick={openCreateForm}
+          variant="ghost"
+          minW="touchTarget"
+          minH="touchTarget"
+          color="terracotta.solid"
+          bg="terracotta.subtle"
+          borderRadius="12px"
+          _hover={{ bg: 'terracotta.subtle' }}
+        >
+          <Plus size={20} />
+        </IconButton>
       </Flex>
 
       <DndContext
@@ -82,6 +105,15 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           {draggedItem ? <DraggedItemPreview item={draggedItem} /> : null}
         </DragOverlay>
       </DndContext>
+
+      {showCreateForm && (
+        <CreateListForm
+          onSubmit={handleCreate}
+          onCancel={handleCancelCreate}
+          pending={createPending}
+          error={createError}
+        />
+      )}
     </Flex>
   )
 }

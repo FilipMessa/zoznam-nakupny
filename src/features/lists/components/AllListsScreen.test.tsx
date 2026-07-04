@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen } from '../../../test/render'
+import { render, screen, waitFor } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsScreen } from './AllListsScreen'
+import { useAuth } from '../../auth/useAuth'
+import * as listService from '../listService'
 import type { ShoppingList } from '../types'
 
 // AllListsSection has its own suite (mounts useAuth/useItems for a real
@@ -13,6 +15,14 @@ vi.mock('./AllListsSection', () => ({
     <div data-testid={`all-lists-section-${list.id}`}>{list.name}</div>
   ),
 }))
+vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../listService', () => ({
+  createList: vi.fn(),
+  generateListId: vi.fn(),
+}))
+
+const mockedUseAuth = vi.mocked(useAuth)
+const mockedCreateList = vi.mocked(listService.createList)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -29,6 +39,13 @@ function makeList(overrides: Partial<ShoppingList> = {}): ShoppingList {
 }
 
 describe('AllListsScreen', () => {
+  beforeEach(() => {
+    mockedUseAuth.mockReturnValue({
+      user: { uid: 'uid-1' } as never,
+      authLoading: false,
+    })
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
   })
@@ -66,5 +83,60 @@ describe('AllListsScreen', () => {
     render(<AllListsScreen lists={[makeList()]} onClose={vi.fn()} />)
 
     expect(screen.getByText('Všetky zoznamy')).toBeInTheDocument()
+  })
+
+  describe('add list', () => {
+    it('opens the create-list form from the header + button', async () => {
+      const user = userEvent.setup()
+      render(<AllListsScreen lists={[makeList()]} onClose={vi.fn()} />)
+
+      expect(screen.queryByText('Nový zoznam')).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Pridať zoznam' }))
+
+      expect(screen.getByText('Nový zoznam')).toBeInTheDocument()
+    })
+
+    it('creates the list, closes the form, and stays on the All Lists screen', async () => {
+      mockedCreateList.mockResolvedValue('list-new')
+      const onClose = vi.fn()
+      const user = userEvent.setup()
+      render(<AllListsScreen lists={[makeList()]} onClose={onClose} />)
+
+      await user.click(screen.getByRole('button', { name: 'Pridať zoznam' }))
+      await user.type(screen.getByLabelText('Názov zoznamu'), 'Víkend')
+      await user.click(screen.getByRole('button', { name: 'Vytvoriť' }))
+
+      expect(mockedCreateList).toHaveBeenCalledWith('Víkend', 'uid-1')
+      await waitFor(() =>
+        expect(screen.queryByText('Nový zoznam')).not.toBeInTheDocument(),
+      )
+      expect(onClose).not.toHaveBeenCalled()
+    })
+
+    it('shows an error and keeps the form open when creating fails', async () => {
+      mockedCreateList.mockRejectedValue(new Error('boom'))
+      const user = userEvent.setup()
+      render(<AllListsScreen lists={[makeList()]} onClose={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: 'Pridať zoznam' }))
+      await user.type(screen.getByLabelText('Názov zoznamu'), 'Víkend')
+      await user.click(screen.getByRole('button', { name: 'Vytvoriť' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Niečo sa pokazilo',
+      )
+      expect(screen.getByText('Nový zoznam')).toBeInTheDocument()
+    })
+
+    it('closes the form without creating when cancelled', async () => {
+      const user = userEvent.setup()
+      render(<AllListsScreen lists={[makeList()]} onClose={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: 'Pridať zoznam' }))
+      await user.click(screen.getByRole('button', { name: 'Zatvoriť' }))
+
+      expect(screen.queryByText('Nový zoznam')).not.toBeInTheDocument()
+      expect(mockedCreateList).not.toHaveBeenCalled()
+    })
   })
 })

@@ -20,7 +20,7 @@ export function useListsScreen() {
     handleCreate,
     createPending,
     createError,
-  } = useCreateListForm({ user, selectList })
+  } = useCreateListForm({ user, onCreated: selectList })
   const {
     showRenameForm,
     openRenameForm,
