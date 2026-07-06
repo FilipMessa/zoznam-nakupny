@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
 import { render, screen } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
-import { AllListsSection } from './AllListsSection'
+import { AllListsSection, type AllListsSectionProps } from './AllListsSection'
 import { useAuth } from '../../auth/useAuth'
 import { useItems } from '../../items/useItems'
 import * as itemService from '../../items/itemService'
@@ -54,6 +54,22 @@ function makeList(overrides: Partial<ShoppingList> = {}): ShoppingList {
   }
 }
 
+function defaultProps(
+  overrides: Partial<AllListsSectionProps> = {},
+): AllListsSectionProps {
+  return {
+    list: makeList(),
+    expanded: true,
+    onToggle: vi.fn(),
+    onActiveItemsChange: vi.fn(),
+    isAddTarget: false,
+    onSelectAddTarget: vi.fn(),
+    mainScrollRef: { current: null },
+    onRegisterScrollRequester: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('AllListsSection', () => {
   beforeEach(() => {
     mockedUseAuth.mockReturnValue({
@@ -72,9 +88,7 @@ describe('AllListsSection', () => {
       itemsLoading: false,
     })
 
-    render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
-    )
+    render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByText('Potraviny · 2')).toBeInTheDocument()
   })
@@ -85,9 +99,7 @@ describe('AllListsSection', () => {
       itemsLoading: false,
     })
 
-    render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
-    )
+    render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
   })
@@ -98,9 +110,7 @@ describe('AllListsSection', () => {
       itemsLoading: false,
     })
 
-    render(
-      <AllListsSection list={makeList()} expanded={false} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
-    )
+    render(<AllListsSection {...defaultProps({ expanded: false })} />)
 
     expect(screen.queryByText('mlieko')).not.toBeInTheDocument()
   })
@@ -108,25 +118,58 @@ describe('AllListsSection', () => {
   it('shows an empty state when the list has no active items', () => {
     mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
 
-    render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={vi.fn()} onActiveItemsChange={vi.fn()} />,
-    )
+    render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByText('Žiadne položky na kúpu.')).toBeInTheDocument()
   })
 
-  it('calls onToggle when the header is clicked', async () => {
+  it('calls onToggle when the chevron button is clicked', async () => {
     const onToggle = vi.fn()
     mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
     const user = userEvent.setup()
 
+    render(<AllListsSection {...defaultProps({ onToggle })} />)
+
+    await user.click(screen.getByRole('button', { name: 'Zbaliť' }))
+
+    expect(onToggle).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onSelectAddTarget (not onToggle) when the list name is clicked', async () => {
+    const onToggle = vi.fn()
+    const onSelectAddTarget = vi.fn()
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+    const user = userEvent.setup()
+
     render(
-      <AllListsSection list={makeList()} expanded={true} onToggle={onToggle} onActiveItemsChange={vi.fn()} />,
+      <AllListsSection {...defaultProps({ onToggle, onSelectAddTarget })} />,
     )
 
     await user.click(screen.getByRole('button', { name: /potraviny/i }))
 
-    expect(onToggle).toHaveBeenCalledTimes(1)
+    expect(onSelectAddTarget).toHaveBeenCalledTimes(1)
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
+  it('marks the header as current when this list is the add target', () => {
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+
+    render(<AllListsSection {...defaultProps({ isAddTarget: true })} />)
+
+    expect(screen.getByRole('button', { name: /potraviny/i })).toHaveAttribute(
+      'aria-current',
+      'true',
+    )
+  })
+
+  it('does not mark the header as current when this list is not the add target', () => {
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+
+    render(<AllListsSection {...defaultProps({ isAddTarget: false })} />)
+
+    expect(
+      screen.getByRole('button', { name: /potraviny/i }),
+    ).not.toHaveAttribute('aria-current')
   })
 
   it('calls checkItem with this section\'s listId when an item is checked', async () => {
@@ -138,12 +181,7 @@ describe('AllListsSection', () => {
     const user = userEvent.setup()
 
     render(
-      <AllListsSection
-        list={makeList({ id: 'list-42' })}
-        expanded={true}
-        onToggle={vi.fn()}
-        onActiveItemsChange={vi.fn()}
-      />,
+      <AllListsSection {...defaultProps({ list: makeList({ id: 'list-42' }) })} />,
     )
 
     await user.click(screen.getByRole('checkbox', { name: 'mlieko' }))
@@ -160,12 +198,7 @@ describe('AllListsSection', () => {
     const user = userEvent.setup()
 
     const { container } = render(
-      <AllListsSection
-        list={makeList({ id: 'list-42' })}
-        expanded={true}
-        onToggle={vi.fn()}
-        onActiveItemsChange={vi.fn()}
-      />,
+      <AllListsSection {...defaultProps({ list: makeList({ id: 'list-42' }) })} />,
     )
 
     // The desktop icon button is `display: none` below the `md` breakpoint,
@@ -184,10 +217,7 @@ describe('AllListsSection', () => {
 
     render(
       <AllListsSection
-        list={makeList({ pendingSync: true })}
-        expanded={true}
-        onToggle={vi.fn()}
-        onActiveItemsChange={vi.fn()}
+        {...defaultProps({ list: makeList({ pendingSync: true }) })}
       />,
     )
 

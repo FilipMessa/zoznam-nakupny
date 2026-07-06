@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { useShoppingListDndSensors } from '../../items/dndSensors'
+import { AddItemForm } from '../../items/components/AddItemForm'
 import { useAllListsScreen } from '../useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
 import { CreateListForm } from './CreateListForm'
@@ -28,8 +30,15 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     handleCreate,
     createPending,
     createError,
+    addTargetListId,
+    isAddTarget,
+    selectAddTarget,
+    registerScrollRequester,
+    addItemError,
+    handleAddItem,
   } = useAllListsScreen()
   const sensors = useShoppingListDndSensors()
+  const mainScrollRef = useRef<HTMLElement>(null)
 
   return (
     <Flex direction="column" h="100dvh" minH="0" bg="bg">
@@ -90,7 +99,7 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <Box as="main" flex="1 1 auto" minH="0" overflowY="auto">
+        <Box as="main" ref={mainScrollRef} flex="1 1 auto" minH="0" overflowY="auto">
           {lists.map((list) => (
             <AllListsSection
               key={list.id}
@@ -98,6 +107,10 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
               expanded={isExpanded(list.id)}
               onToggle={() => toggleSection(list.id)}
               onActiveItemsChange={registerActiveItems}
+              isAddTarget={isAddTarget(list.id)}
+              onSelectAddTarget={() => selectAddTarget(list.id)}
+              mainScrollRef={mainScrollRef}
+              onRegisterScrollRequester={registerScrollRequester}
             />
           ))}
         </Box>
@@ -105,6 +118,15 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           {draggedItem ? <DraggedItemPreview item={draggedItem} /> : null}
         </DragOverlay>
       </DndContext>
+
+      {addTargetListId && (
+        <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
+          <AddItemForm
+            onSubmit={(text) => void handleAddItem(text)}
+            error={addItemError}
+          />
+        </Box>
+      )}
 
       {showCreateForm && (
         <CreateListForm

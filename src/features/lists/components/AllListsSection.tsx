@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Box, Text, chakra } from '@chakra-ui/react'
+import type { RefObject } from 'react'
+import { Box, Flex, IconButton, Text, chakra } from '@chakra-ui/react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ChevronDown, ChevronRight, Clock } from 'lucide-react'
@@ -9,6 +10,7 @@ import { sortItems } from '../../items/itemLogic'
 import { useItemActions } from '../../items/useItemActions'
 import { useItemEditing } from '../../items/useItemEditing'
 import { useSwipeRowRegistry } from '../../items/useSwipeRowRegistry'
+import { useScrollNewItemIntoView } from '../../items/useScrollNewItemIntoView'
 import { ActiveItemRow } from '../../items/components/ActiveItemRow'
 import type { ShoppingItem } from '../../items/types'
 import type { ShoppingList } from '../types'
@@ -30,6 +32,11 @@ export interface AllListsSectionProps {
   // destination order and resolve the dragged item's full record -- data
   // that only exists inside each section's own useItems subscription.
   onActiveItemsChange: (listId: string, items: ShoppingItem[]) => void
+  isAddTarget: boolean
+  onSelectAddTarget: () => void
+  // One shared container for the whole screen, not per section.
+  mainScrollRef: RefObject<HTMLElement | null>
+  onRegisterScrollRequester: (listId: string, requestScroll: () => void) => void
 }
 
 // Self-contained per-list accordion section, mirroring useShoppingListScreen
@@ -44,6 +51,10 @@ export function AllListsSection({
   expanded,
   onToggle,
   onActiveItemsChange,
+  isAddTarget,
+  onSelectAddTarget,
+  mainScrollRef,
+  onRegisterScrollRequester,
 }: AllListsSectionProps) {
   const { user } = useAuth()
   const { items } = useItems(list.id)
@@ -56,6 +67,13 @@ export function AllListsSection({
     // and simpler than hand-rolling a deep-equality check.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list.id, active])
+
+  const { requestScrollAfterAdd } = useScrollNewItemIntoView(active, mainScrollRef)
+
+  useEffect(() => {
+    onRegisterScrollRequester(list.id, requestScrollAfterAdd)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.id, requestScrollAfterAdd])
 
   const { openSwipeItemId, handleSwipeOpenChange, handleListScroll } =
     useSwipeRowRegistry()
@@ -83,49 +101,69 @@ export function AllListsSection({
 
   return (
     <Box as="section" borderTop="1px solid" borderColor="border">
-      <chakra.button
+      <Flex
         ref={setHeaderDroppableRef}
-        type="button"
-        onClick={onToggle}
-        display="flex"
         alignItems="center"
-        gap="8px"
-        w="full"
-        padding="14px 16px"
-        textAlign="left"
-        bg="transparent"
-        border="none"
-        cursor="pointer"
+        gap="4px"
+        padding="6px 16px 6px 10px"
       >
-        <Box as="span" color="fg.subtle" flexShrink="0" display="flex">
-          {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-        </Box>
-        <Text
-          flex="1 1 auto"
-          minW="0"
-          fontWeight="800"
-          fontSize="15px"
-          color="fg"
-          overflow="hidden"
-          textOverflow="ellipsis"
-          whiteSpace="nowrap"
-        >
-          {list.name}
-          {active.length > 0 ? ` · ${active.length}` : ''}
-        </Text>
-        <Box
-          as="span"
-          title={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
-          aria-label={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
-          aria-hidden={list.pendingSync ? undefined : true}
-          visibility={list.pendingSync ? 'visible' : 'hidden'}
+        <IconButton
+          type="button"
+          aria-label={expanded ? 'Zbaliť' : 'Rozbaliť'}
+          onClick={onToggle}
+          variant="ghost"
+          minW="touchTarget"
+          minH="touchTarget"
           color="fg.subtle"
           flexShrink="0"
-          display="flex"
+          _hover={{ bg: 'bg.muted', color: 'fg' }}
         >
-          <Clock size={15} />
-        </Box>
-      </chakra.button>
+          {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+        </IconButton>
+        <chakra.button
+          type="button"
+          onClick={onSelectAddTarget}
+          aria-current={isAddTarget ? 'true' : undefined}
+          display="flex"
+          alignItems="center"
+          gap="8px"
+          flex="1 1 auto"
+          minW="0"
+          padding="8px"
+          textAlign="left"
+          bg={isAddTarget ? 'terracotta.subtle' : 'transparent'}
+          border="1.5px solid"
+          borderColor={isAddTarget ? 'rgba(200, 98, 43, 0.18)' : 'transparent'}
+          borderRadius="12px"
+          cursor="pointer"
+        >
+          <Text
+            flex="1 1 auto"
+            minW="0"
+            fontWeight={isAddTarget ? '900' : '800'}
+            fontSize="15px"
+            color={isAddTarget ? 'terracotta.solid' : 'fg'}
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {list.name}
+            {active.length > 0 ? ` · ${active.length}` : ''}
+          </Text>
+          <Box
+            as="span"
+            title={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+            aria-label={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+            aria-hidden={list.pendingSync ? undefined : true}
+            visibility={list.pendingSync ? 'visible' : 'hidden'}
+            color="fg.subtle"
+            flexShrink="0"
+            display="flex"
+          >
+            <Clock size={15} />
+          </Box>
+        </chakra.button>
+      </Flex>
 
       {expanded && (
         <Box onScroll={handleListScroll}>

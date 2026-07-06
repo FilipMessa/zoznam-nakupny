@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { useAuth } from '../auth/useAuth'
 import { reorderActiveItems, insertActiveOrder } from '../items/itemLogic'
-import { reorderItem, moveItemToList } from '../items/itemService'
+import { addItem, reorderItem, moveItemToList } from '../items/itemService'
 import { moveConflictMessage } from '../items/moveConflictMessages'
 import { notify } from '../../lib/toaster'
 import { useCreateListForm } from './useCreateListForm'
@@ -25,6 +25,14 @@ export interface UseAllListsScreenResult {
   handleCreate: (name: string) => Promise<void>
   createPending: boolean
   createError: string | null
+  // Deliberately separate from collapsedListIds -- collapsing the target
+  // via its chevron must not clear the selection.
+  addTargetListId: string | null
+  isAddTarget: (listId: string) => boolean
+  selectAddTarget: (listId: string) => void
+  registerScrollRequester: (listId: string, requestScroll: () => void) => void
+  addItemError: string | null
+  handleAddItem: (text: string) => Promise<void>
   // The item currently being dragged, for <DragOverlay> to render a
   // floating clone of -- needed because a dragged row's own useSortable
   // transform only reflects its position *within its own SortableContext*
@@ -115,6 +123,51 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     })
   }
 
+  const [addTargetListId, setAddTargetListId] = useState<string | null>(null)
+
+  const isAddTarget = (listId: string) => addTargetListId === listId
+
+  const selectAddTarget = (listId: string) => {
+    setAddTargetListId(listId)
+    if (!isExpanded(listId)) {
+      toggleSection(listId)
+    }
+  }
+
+  // Same ref-registry shape as activeItemsByListId above.
+  const scrollRequestersByListId = useRef<Map<string, () => void>>(new Map())
+
+  const registerScrollRequester = useCallback(
+    (listId: string, requestScroll: () => void) => {
+      scrollRequestersByListId.current.set(listId, requestScroll)
+    },
+    [],
+  )
+
+  const [addItemError, setAddItemError] = useState<string | null>(null)
+
+  // Not built on useAddItemSubmit: that hook takes activeItems as a plain
+  // param, which would read activeItemsByListId.current during render
+  // (refs must only be read in effects/handlers). Reading it here instead
+  // mirrors handleDragStart/handleDragEnd below.
+  const handleAddItem = async (text: string) => {
+    if (!user || !addTargetListId) {
+      return
+    }
+    const listId = addTargetListId
+    scrollRequestersByListId.current.get(listId)?.()
+    if (!isExpanded(listId)) {
+      toggleSection(listId)
+    }
+    setAddItemError(null)
+    try {
+      const activeItems = activeItemsByListId.current.get(listId) ?? []
+      await addItem(listId, text, user.uid, activeItems)
+    } catch {
+      setAddItemError('unknown')
+    }
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const listId = event.active.data.current?.listId
     if (typeof listId !== 'string') {
@@ -199,5 +252,11 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     handleCreate,
     createPending,
     createError,
+    addTargetListId,
+    isAddTarget,
+    selectAddTarget,
+    registerScrollRequester,
+    addItemError,
+    handleAddItem,
   }
 }

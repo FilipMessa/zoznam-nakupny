@@ -3,18 +3,23 @@ import type { Timestamp } from 'firebase/firestore'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { renderHook, act } from '@testing-library/react'
 import { useAllListsScreen } from './useAllListsScreen'
+import { useAuth } from '../auth/useAuth'
 import * as itemService from '../items/itemService'
 import { notify } from '../../lib/toaster'
 import type { ShoppingItem } from '../items/types'
 
+vi.mock('../auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../items/itemService', () => ({
   reorderItem: vi.fn(),
   moveItemToList: vi.fn(),
+  addItem: vi.fn(),
 }))
 vi.mock('../../lib/toaster', () => ({ notify: vi.fn() }))
 
+const mockedUseAuth = vi.mocked(useAuth)
 const mockedReorderItem = vi.mocked(itemService.reorderItem)
 const mockedMoveItemToList = vi.mocked(itemService.moveItemToList)
+const mockedAddItem = vi.mocked(itemService.addItem)
 const mockedNotify = vi.mocked(notify)
 
 function fakeTimestamp(millis: number): Timestamp {
@@ -63,8 +68,13 @@ function makeDragStartEvent(activeId: string, activeListId: string): DragStartEv
 
 describe('useAllListsScreen', () => {
   beforeEach(() => {
+    mockedUseAuth.mockReturnValue({
+      user: { uid: 'uid-1' } as never,
+      authLoading: false,
+    })
     mockedReorderItem.mockResolvedValue(undefined)
     mockedMoveItemToList.mockResolvedValue({ ok: true })
+    mockedAddItem.mockResolvedValue('item-new')
   })
 
   afterEach(() => {
@@ -311,6 +321,102 @@ describe('useAllListsScreen', () => {
       expect(mockedNotify).toHaveBeenCalledWith('Presun sa nepodarilo.', 'error')
       expect(consoleErrorSpy).toHaveBeenCalled()
       consoleErrorSpy.mockRestore()
+    })
+  })
+
+  describe('add item', () => {
+    it('starts with no add target selected', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+
+      expect(result.current.addTargetListId).toBeNull()
+      expect(result.current.isAddTarget('list-1')).toBe(false)
+    })
+
+    it('selectAddTarget sets the target and expands a collapsed section', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      act(() => result.current.toggleSection('list-1'))
+      expect(result.current.isExpanded('list-1')).toBe(false)
+
+      act(() => result.current.selectAddTarget('list-1'))
+
+      expect(result.current.addTargetListId).toBe('list-1')
+      expect(result.current.isAddTarget('list-1')).toBe(true)
+      expect(result.current.isExpanded('list-1')).toBe(true)
+    })
+
+    it('does not collapse an already-expanded section when selected as target', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+
+      act(() => result.current.selectAddTarget('list-1'))
+
+      expect(result.current.isExpanded('list-1')).toBe(true)
+    })
+
+    it('keeps the add target selected after manually collapsing it via its chevron', () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      act(() => result.current.selectAddTarget('list-1'))
+
+      act(() => result.current.toggleSection('list-1'))
+
+      expect(result.current.isExpanded('list-1')).toBe(false)
+      expect(result.current.addTargetListId).toBe('list-1')
+      expect(result.current.isAddTarget('list-1')).toBe(true)
+    })
+
+    it('calls itemService.addItem with the target list and its registered active items', async () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      const items = [makeItem({ id: 'a' })]
+      act(() => {
+        result.current.registerActiveItems('list-1', items)
+        result.current.selectAddTarget('list-1')
+      })
+
+      await act(async () => {
+        await result.current.handleAddItem('chlieb')
+      })
+
+      expect(mockedAddItem).toHaveBeenCalledWith('list-1', 'chlieb', 'uid-1', items)
+    })
+
+    it('does nothing when no add target is selected', async () => {
+      const { result } = renderHook(() => useAllListsScreen())
+
+      await act(async () => {
+        await result.current.handleAddItem('chlieb')
+      })
+
+      expect(mockedAddItem).not.toHaveBeenCalled()
+    })
+
+    it('triggers the registered scroll requester for the target list on add', async () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      const requestScroll = vi.fn()
+      act(() => {
+        result.current.registerActiveItems('list-1', [])
+        result.current.registerScrollRequester('list-1', requestScroll)
+        result.current.selectAddTarget('list-1')
+      })
+
+      await act(async () => {
+        await result.current.handleAddItem('chlieb')
+      })
+
+      expect(requestScroll).toHaveBeenCalledTimes(1)
+    })
+
+    it('re-expands the target on add if it had been manually collapsed since selection', async () => {
+      const { result } = renderHook(() => useAllListsScreen())
+      act(() => {
+        result.current.selectAddTarget('list-1')
+        result.current.toggleSection('list-1')
+      })
+      expect(result.current.isExpanded('list-1')).toBe(false)
+
+      await act(async () => {
+        await result.current.handleAddItem('chlieb')
+      })
+
+      expect(result.current.isExpanded('list-1')).toBe(true)
     })
   })
 })

@@ -16,8 +16,10 @@ export interface UseScrollNewItemIntoViewResult {
 // reconnect while the local onSnapshot (and this effect) fires immediately.
 export function useScrollNewItemIntoView(
   items: ShoppingItem[],
+  containerRef?: RefObject<HTMLElement | null>,
 ): UseScrollNewItemIntoViewResult {
-  const mainRef = useRef<HTMLElement>(null)
+  const ownRef = useRef<HTMLElement>(null)
+  const mainRef = containerRef ?? ownRef
   const prevActiveIdsRef = useRef<string[]>([])
   const [scrollAfterAdd, setScrollAfterAdd] = useState(false)
 
@@ -32,7 +34,7 @@ export function useScrollNewItemIntoView(
         ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
       setScrollAfterAdd(false)
     }
-  }, [items, scrollAfterAdd])
+  }, [items, scrollAfterAdd, mainRef])
 
   const requestScrollAfterAdd = () => {
     setScrollAfterAdd(true)
