@@ -10,8 +10,11 @@ Mobile-first family shopping list app. Google sign-in, join via invite code, rea
 
 ```bash
 npm run dev              # Vite dev server on :5173
+npm run check            # single quality gate: lint + format:check + typecheck + unit tests + build (what CI job 1 runs)
 npm run build             # tsc -b typecheck + Vite production build to dist/
-npm run lint               # eslint .
+npm run typecheck      # tsc -b over app, node/configs/scripts, e2e and the emulator suites (all strict)
+npm run lint               # eslint . --max-warnings 0 (includes curly: all)
+npm run format            # Prettier --write (format:check to verify)
 npm run test               # Vitest unit tests (jsdom, no emulator needed)
 npm run test:watch    # Vitest watch mode
 npm run test:rules       # Firestore security rules tests — wraps itself in firebase emulators:exec, needs JDK 21+
@@ -30,7 +33,9 @@ firebase emulators:exec --only firestore,auth "npm run test:e2e"
 
 `e2e/smoke.spec.ts` is unauthenticated and works without emulators.
 
-There are three separate Vitest configs (`vite.config.ts` for unit, `vitest.rules.config.ts`, `vitest.integration.config.ts`) that mutually exclude each other's test files — a new test file must be added to exactly one `include`/`exclude` list or it silently won't run anywhere.
+There are three separate Vitest configs (`vite.config.ts` for unit, `vitest.rules.config.ts`, `vitest.integration.config.ts`) selected by filename suffix: `**/*.rules.test.ts` and `**/*.integration.test.ts` run only under their emulator configs (the unit config excludes both globs); every other `*.test.ts(x)` is a unit test. A new suite just needs the right suffix. The emulator suites are typechecked via `tsconfig.emulator-tests.json`.
+
+Tooling: Prettier (no semicolons, single quotes, 80 cols; markdown not formatted) and ESLint are enforced by a husky pre-commit hook (lint-staged: `eslint --fix` + `prettier --write`, no tests) and by CI (`.github/workflows/ci.yml`: `npm run check`, plus `test:rules` and `test:integration` with Java 21; e2e is not in CI). Node version is pinned in `.nvmrc` (24).
 
 ## Firestore data model
 
