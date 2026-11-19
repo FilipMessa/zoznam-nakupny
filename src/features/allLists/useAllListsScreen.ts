@@ -18,12 +18,10 @@ import { useCreateListForm } from '@/features/lists/useCreateListForm'
 import {
   mergeDoneItems,
   moveConflictMessage,
-  type DoneItemWithOrigin,
-} from './allListsService'
-import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
-} from '@/features/allLists/components/AllListsSection'
+  type DoneItemWithOrigin,
+} from './allListsService'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 

@@ -70,3 +70,10 @@ const MESSAGES: Record<MoveConflictReason, string> = {
 export function moveConflictMessage(reason: MoveConflictReason): string {
   return MESSAGES[reason]
 }
+
+// Prefixes for the cross-list drop targets (a list's header, and the
+// empty-state body) -- namespaced so they can never collide with a real
+// Firestore item id. AllListsSection registers droppables with these ids and
+// resolveDrop parses them back out of `over.id`.
+export const LIST_HEADER_DROPPABLE_PREFIX = 'list-header-'
+export const LIST_BODY_DROPPABLE_PREFIX = 'list-body-'

@@ -1,27 +1,17 @@
-import { memo, useEffect, useMemo } from 'react'
+import { memo } from 'react'
 import type { RefObject } from 'react'
 import { Box, Flex, IconButton, Text, chakra } from '@chakra-ui/react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ChevronDown, ChevronRight, Clock } from 'lucide-react'
-import { useAuth } from '@/features/auth/useAuth'
-import { useItems } from '@/features/items/useItems'
-import { sortItems } from '@/features/items/itemService'
-import { useItemActions } from '@/features/items/useItemActions'
-import { useItemEditing } from '@/features/items/useItemEditing'
-import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
-import { useScrollNewItemIntoView } from '@/features/items/useScrollNewItemIntoView'
 import { ActiveItemRow } from '@/features/items/components/ActiveItemRow'
-import { listColorFor } from '@/features/allLists/allListsService'
+import { useAllListsSection } from '@/features/allLists/useAllListsSection'
+import {
+  LIST_BODY_DROPPABLE_PREFIX,
+  LIST_HEADER_DROPPABLE_PREFIX,
+} from '@/features/allLists/allListsService'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
-
-// Prefixes for this section's cross-list drop targets (the collapsed
-// header, and the empty-state body) -- namespaced so they can never collide
-// with a real Firestore item id. Shared with useAllListsScreen's onDragEnd,
-// which parses these back out of `over.id`.
-export const LIST_HEADER_DROPPABLE_PREFIX = 'list-header-'
-export const LIST_BODY_DROPPABLE_PREFIX = 'list-body-'
 
 export interface AllListsSectionProps {
   list: ShoppingList
@@ -31,15 +21,8 @@ export interface AllListsSectionProps {
   // per-list closure every render -- required for React.memo below to
   // actually skip unrelated sections.
   onToggle: (listId: string) => void
-  // Reports this section's current active items up to the shared
-  // DndContext's onDragEnd handler (in useAllListsScreen), which needs
-  // synchronous read access to every list's items to compute a drop's
-  // destination order and resolve the dragged item's full record -- data
-  // that only exists inside each section's own useItems subscription.
+  // Report this section's items up to the screen -- see useAllListsSection.
   onActiveItemsChange: (listId: string, items: ShoppingItem[]) => void
-  // Reports this section's done items up for the combined Done section at
-  // the bottom of the screen -- done items are never rendered inside this
-  // section itself.
   onDoneItemsChange: (listId: string, items: ShoppingItem[]) => void
   isAddTarget: boolean
   onSelectAddTarget: (listId: string) => void
@@ -48,13 +31,10 @@ export interface AllListsSectionProps {
   onRegisterScrollRequester: (listId: string, requestScroll: () => void) => void
 }
 
-// Self-contained per-list accordion section, mirroring useShoppingListScreen
-// -- but active items only (done items are out of scope for this screen,
-// see the plan). Each section owns its own useItems subscription: React's
-// rules of hooks rule out fanning these out via a loop in a single parent
-// hook, since the number of lists can change while the screen is open --
-// one useItems call per AllListsSection component instance (keyed by
-// list.id in the parent's map) is the only correct way to do this.
+// Self-contained per-list accordion section: renders props plus the view
+// state from useAllListsSection (which owns this list's useItems
+// subscription) -- active items only, done items are shown in the screen's
+// combined Done section.
 function AllListsSectionImpl({
   list,
   expanded,
@@ -66,51 +46,27 @@ function AllListsSectionImpl({
   mainScrollRef,
   onRegisterScrollRequester,
 }: AllListsSectionProps) {
-  const { user } = useAuth()
-  const { items } = useItems(list.id)
-  const { active, done } = sortItems(items)
-  const listColor = listColorFor(list.id)
-
-  useEffect(() => {
-    onActiveItemsChange(list.id, active)
-    // Runs on every render where `active` changed identity (sortItems
-    // always returns a fresh array) -- cheap at this app's list/item scale,
-    // and simpler than hand-rolling a deep-equality check.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list.id, active])
-
-  useEffect(() => {
-    onDoneItemsChange(list.id, done)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list.id, done])
-
-  const { requestScrollAfterAdd } = useScrollNewItemIntoView(
+  const {
     active,
-    mainScrollRef,
-  )
-
-  useEffect(() => {
-    onRegisterScrollRequester(list.id, requestScrollAfterAdd)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list.id, requestScrollAfterAdd])
-
-  const { openSwipeItemId, handleSwipeOpenChange, handleListScroll } =
-    useSwipeRowRegistry()
-  const { editingItemId, handleStartEdit, handleSubmitEdit, handleCancelEdit } =
-    useItemEditing(list.id)
-  const { handleCheck, handleDelete } = useItemActions({
+    listColor,
+    sortableData,
+    sortableIds,
+    openSwipeItemId,
+    handleSwipeOpenChange,
+    handleListScroll,
+    editingItemId,
+    handleStartEdit,
+    handleSubmitEdit,
+    handleCancelEdit,
+    handleCheck,
+    handleDelete,
+  } = useAllListsSection({
     listId: list.id,
-    user,
-    activeItems: active,
+    onActiveItemsChange,
+    onDoneItemsChange,
+    onRegisterScrollRequester,
+    mainScrollRef,
   })
-
-  // Stabilized so ActiveItemRow.memo isn't defeated by a new object literal
-  // every render (dnd-kit attaches this to the shared DndContext's
-  // active.data.current, read in useAllListsScreen's onDragEnd).
-  const sortableData = useMemo(() => ({ listId: list.id }), [list.id])
-  // Same reasoning for @dnd-kit/sortable's own internal memoization, which
-  // is keyed on this array's identity.
-  const sortableIds = useMemo(() => active.map((item) => item.id), [active])
 
   // Collapsed header is a drop target -- dragging an item onto it appends
   // to the end of this list, whether or not it's currently expanded to show

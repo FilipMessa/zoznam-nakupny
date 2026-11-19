@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { sortItems, latestNewActiveId } from './itemService'
 import type { ShoppingItem } from './types'
 
@@ -36,9 +36,9 @@ export function useScrollNewItemIntoView(
     }
   }, [items, scrollAfterAdd, mainRef])
 
-  const requestScrollAfterAdd = () => {
+  const requestScrollAfterAdd = useCallback(() => {
     setScrollAfterAdd(true)
-  }
+  }, [])
 
   return { mainRef, requestScrollAfterAdd }
 }
