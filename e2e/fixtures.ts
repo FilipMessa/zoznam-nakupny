@@ -4,6 +4,11 @@ import { getApps, initializeApp, type App } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { SELECTED_LIST_STORAGE_KEY } from '../src/constants/storage'
+import {
+  itemDocPath,
+  listDocPath,
+  memberDocPath,
+} from '../src/lib/firestorePaths'
 
 // Shared admin-seeding helpers for e2e specs that need a signed-in member
 // state. See e2e/mobile-smoke.spec.ts's original header comment for the
@@ -20,7 +25,6 @@ declare global {
   }
 }
 
-export const FAMILY_ID = 'default-family'
 export const PROJECT_ID = 'zoznam-nakupny-rules-test'
 export const FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
 export const AUTH_EMULATOR_HOST = '127.0.0.1:9099'
@@ -50,8 +54,8 @@ export async function seedSignedInMemberWithList(
   const listName = 'Nákupný zoznam'
 
   const db = getFirestore(adminApp)
-  await db.doc(`families/${FAMILY_ID}/members/${uid}`).set({ uid })
-  await db.doc(`families/${FAMILY_ID}/lists/${listId}`).set({
+  await db.doc(memberDocPath(uid)).set({ uid })
+  await db.doc(listDocPath(listId)).set({
     name: listName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
@@ -96,18 +100,18 @@ export async function seedSignedInMemberWithTwoLists(
   const itemText = `mlieko-${randomBytes(3).toString('hex')}`
 
   const db = getFirestore(adminApp)
-  await db.doc(`families/${FAMILY_ID}/members/${uid}`).set({ uid })
-  await db.doc(`families/${FAMILY_ID}/lists/${listAId}`).set({
+  await db.doc(memberDocPath(uid)).set({ uid })
+  await db.doc(listDocPath(listAId)).set({
     name: listAName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
   })
-  await db.doc(`families/${FAMILY_ID}/lists/${listBId}`).set({
+  await db.doc(listDocPath(listBId)).set({
     name: listBName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
   })
-  await db.doc(`families/${FAMILY_ID}/lists/${listAId}/items/${itemId}`).set({
+  await db.doc(itemDocPath(listAId, itemId)).set({
     text: itemText,
     status: 'active',
     activeOrder: 1,

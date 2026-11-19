@@ -66,7 +66,7 @@ test.describe('All Lists screen — cross-list drag', () => {
     // would fail every attempt identically).
     let moved = false
     for (let attempt = 0; attempt < 3 && !moved; attempt += 1) {
-      // FAMILY_ID is a fixed single-tenant constant (see fixtures.ts), so
+      // FAMILY_ID is a fixed single-tenant constant (see src/constants/family.ts), so
       // every List ever seeded against this emulator -- across every e2e
       // spec and every prior run, and in a real long-lived family's data
       // too -- renders as its own accordion section here. Past a
