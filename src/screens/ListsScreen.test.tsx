@@ -29,7 +29,7 @@ vi.mock('@/features/items/components/ShoppingListScreen', () => ({
 }))
 // AllListsScreen has its own suite; stub it so this one never touches
 // useItems/Firestore for every list.
-vi.mock('./AllListsScreen', () => ({
+vi.mock('@/features/allLists/components/AllListsScreen', () => ({
   AllListsScreen: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="all-lists-screen">
       <button type="button" onClick={onClose}>

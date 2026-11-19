@@ -12,7 +12,7 @@ import { useItemEditing } from '@/features/items/useItemEditing'
 import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
 import { useScrollNewItemIntoView } from '@/features/items/useScrollNewItemIntoView'
 import { ActiveItemRow } from '@/features/items/components/ActiveItemRow'
-import { listColorFor } from '@/features/lists/allListsService'
+import { listColorFor } from '@/features/allLists/allListsService'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 

@@ -6,7 +6,7 @@ import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
 import {
   listColorFor,
   type DoneItemWithOrigin,
-} from '@/features/lists/allListsService'
+} from '@/features/allLists/allListsService'
 
 export interface AllListsDoneSectionProps {
   items: DoneItemWithOrigin[]

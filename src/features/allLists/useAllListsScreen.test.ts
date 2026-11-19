@@ -7,7 +7,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import * as itemService from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
 import type { ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from './types'
+import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/itemApi', () => ({

@@ -7,7 +7,7 @@ import {
   moveConflictMessage,
 } from './allListsService'
 import type { ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from './types'
+import type { ShoppingList } from '@/features/lists/types'
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

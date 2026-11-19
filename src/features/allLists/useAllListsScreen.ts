@@ -14,7 +14,7 @@ import {
   clearDoneItems,
 } from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
-import { useCreateListForm } from './useCreateListForm'
+import { useCreateListForm } from '@/features/lists/useCreateListForm'
 import {
   mergeDoneItems,
   moveConflictMessage,
@@ -23,9 +23,9 @@ import {
 import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
-} from '@/features/lists/components/AllListsSection'
+} from '@/features/allLists/components/AllListsSection'
 import type { ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from './types'
+import type { ShoppingList } from '@/features/lists/types'
 
 export interface UseAllListsScreenResult {
   isExpanded: (listId: string) => boolean

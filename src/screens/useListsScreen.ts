@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/useAuth'
-import { useLists } from './useLists'
-import { useSelectedListId } from './useSelectedListId'
-import { useCreateListForm } from './useCreateListForm'
-import { useRenameListForm } from './useRenameListForm'
-import { useDeleteListFlow } from './useDeleteListFlow'
+import { useLists } from '@/features/lists/useLists'
+import { useSelectedListId } from '@/features/lists/useSelectedListId'
+import { useCreateListForm } from '@/features/lists/useCreateListForm'
+import { useRenameListForm } from '@/features/lists/useRenameListForm'
+import { useDeleteListFlow } from '@/features/lists/useDeleteListFlow'
 
 export function useListsScreen() {
   const { user } = useAuth()

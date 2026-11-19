@@ -1,5 +1,5 @@
 import type { MoveItemResult, ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from './types'
+import type { ShoppingList } from '@/features/lists/types'
 
 export interface DoneItemWithOrigin {
   item: ShoppingItem
