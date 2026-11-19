@@ -10,7 +10,8 @@ Mobile-first family shopping list app. Google sign-in, join via invite code, rea
 
 ```bash
 npm run dev              # Vite dev server on :5173
-npm run check            # single quality gate: lint + format:check + typecheck + unit tests + build (what CI job 1 runs)
+npm run check            # single quality gate: lint + lint:cycles + format:check + unit tests + build (build runs tsc -b, so it also typechecks; what CI job 1 runs)
+npm run lint:cycles      # madge --circular over src (resolves the @/ alias via tsconfig.app.json)
 npm run build             # tsc -b typecheck + Vite production build to dist/
 npm run typecheck      # tsc -b over app, node/configs/scripts, e2e and the emulator suites (all strict)
 npm run lint               # eslint . --max-warnings 0 (includes curly: all)

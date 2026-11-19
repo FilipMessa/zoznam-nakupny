@@ -71,6 +71,7 @@ Logika, ktoru pouziva jedna obrazovka, ide do `<obrazovka>Service.ts` vedla nej 
 - Alias `@/` ukazuje na `src/` (`tsconfig.app.json`, `tsconfig.emulator-tests.json`, `vite.config.ts`, `vitest.*.config.ts`). Importy mimo aktualneho priecinka pisem ako `@/features/items/itemService`, nie `../../items/itemService`.
 - Importy v tom istom priecinku zostavaju `./x`.
 - Ziadne `index.ts` barrely - importuje sa priamo z konkretneho suboru.
+- Cyklicke importy zachytava `npm run lint:cycles` (madge, sucast `npm run check`).
 
 ## Commity
 
