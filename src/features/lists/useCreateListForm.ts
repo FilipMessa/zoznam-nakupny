@@ -67,11 +67,9 @@ export function useCreateListForm({
       onCreated(listId)
       setShowCreateForm(false)
       setCreatePending(false)
-      void createList(result.name, user.uid, undefined, listId).catch(
-        (error: unknown) => {
-          console.error('Failed to create list', error)
-        },
-      )
+      void createList(result.name, user.uid, listId).catch((error: unknown) => {
+        console.error('Failed to create list', error)
+      })
       return
     }
 

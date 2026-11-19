@@ -158,7 +158,7 @@ describe('listApi (emulator)', () => {
     it('creates a list doc with the given name and createdBy uid', async () => {
       const uid = await signInAsMember()
 
-      const listId = await createList('Groceries', uid, db)
+      const listId = await createList('Groceries', uid, undefined, db)
 
       const listDoc = await getListDocAsAdmin(listId)
       expect(listDoc.exists()).toBe(true)

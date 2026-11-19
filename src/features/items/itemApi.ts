@@ -16,25 +16,20 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { createSnapshotMapper } from '@/lib/snapshotMapper'
 import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
 import {
   completeItemPatch,
   restoreItemPatch,
   nextActiveOrder,
+  validateItemText,
 } from './itemService'
 import type { MoveItemResult, ShoppingItem } from './types'
 
 // Realtime subscription to a List's Items, oldest first. Calls `onNext` on
 // every snapshot (including metadata-only ones, hence
-// `includeMetadataChanges`) with the full item array, each item stamped with
-// a client-only `pendingSync` flag (never persisted to Firestore).
-//
-// Reused across snapshots so a document unchanged since the last snapshot
-// keeps the same object reference -- otherwise every doc gets a brand new
-// object on every snapshot (even ones `docChanges()` says didn't change),
-// which defeats React.memo on item rows down the tree: they'd see a "new"
-// item prop and re-render regardless of whether anything in it actually
-// changed. A snapshot without changes re-emits the previous array as is.
+// `includeMetadataChanges`) with the full item array -- see
+// createSnapshotMapper for the pendingSync stamp and reference stability.
 export function subscribeItems(
   listId: string,
   onNext: (items: ShoppingItem[]) => void,
@@ -44,30 +39,13 @@ export function subscribeItems(
     collection(firestore, itemsCollectionPath(listId)),
     orderBy('createdAt', 'asc'),
   )
-
-  const itemsById = new Map<string, ShoppingItem>()
-  let items: ShoppingItem[] = []
+  const mapSnapshot = createSnapshotMapper<ShoppingItem>()
 
   return onSnapshot(
     itemsQuery,
     { includeMetadataChanges: true },
     (snapshot) => {
-      const changes = snapshot.docChanges()
-      if (changes.length > 0) {
-        for (const change of changes) {
-          if (change.type === 'removed') {
-            itemsById.delete(change.doc.id)
-          } else {
-            itemsById.set(change.doc.id, {
-              id: change.doc.id,
-              ...(change.doc.data() as Omit<ShoppingItem, 'id'>),
-              pendingSync: change.doc.metadata.hasPendingWrites,
-            })
-          }
-        }
-        items = snapshot.docs.map((docSnap) => itemsById.get(docSnap.id)!)
-      }
-      onNext(items)
+      onNext(mapSnapshot(snapshot))
     },
   )
 }
@@ -79,14 +57,14 @@ export async function addItem(
   activeItems: ShoppingItem[],
   firestore: Firestore = db,
 ): Promise<string> {
-  const trimmed = text.trim()
-  if (trimmed.length === 0) {
+  const result = validateItemText(text)
+  if (!result.ok) {
     throw new Error('invalid-item-text')
   }
 
   const itemRef = doc(collection(firestore, itemsCollectionPath(listId)))
   await setDoc(itemRef, {
-    text: trimmed,
+    text: result.text,
     status: 'active',
     activeOrder: nextActiveOrder(activeItems),
     completedAt: null,
@@ -106,12 +84,7 @@ export async function checkItem(
   firestore: Firestore = db,
 ): Promise<void> {
   const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
-  const patch = completeItemPatch(
-    {} as ShoppingItem,
-    completedBy,
-    serverTimestamp(),
-  )
-  await updateDoc(itemRef, patch as unknown as Record<string, unknown>)
+  await updateDoc(itemRef, completeItemPatch(completedBy, serverTimestamp()))
 }
 
 export async function uncheckItem(
@@ -121,12 +94,10 @@ export async function uncheckItem(
   firestore: Firestore = db,
 ): Promise<void> {
   const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
-  const patch = restoreItemPatch(
-    {} as ShoppingItem,
-    nextActiveOrder(activeItems),
-    serverTimestamp(),
+  await updateDoc(
+    itemRef,
+    restoreItemPatch(nextActiveOrder(activeItems), serverTimestamp()),
   )
-  await updateDoc(itemRef, patch as unknown as Record<string, unknown>)
 }
 
 export async function editItemText(
@@ -135,14 +106,14 @@ export async function editItemText(
   text: string,
   firestore: Firestore = db,
 ): Promise<void> {
-  const trimmed = text.trim()
-  if (trimmed.length === 0) {
+  const result = validateItemText(text)
+  if (!result.ok) {
     throw new Error('invalid-item-text')
   }
 
   const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
   await updateDoc(itemRef, {
-    text: trimmed,
+    text: result.text,
     updatedAt: serverTimestamp(),
   })
 }

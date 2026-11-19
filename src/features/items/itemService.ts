@@ -5,6 +5,16 @@ export interface SortedItems {
   done: ShoppingItem[]
 }
 
+export type ValidateItemTextResult = { ok: true; text: string } | { ok: false }
+
+export function validateItemText(text: string): ValidateItemTextResult {
+  const trimmed = text.trim()
+  if (trimmed.length === 0) {
+    return { ok: false }
+  }
+  return { ok: true, text: trimmed }
+}
+
 export function sortItems(items: ShoppingItem[]): SortedItems {
   const active = items
     .filter((item) => item.status === 'active')
@@ -20,7 +30,9 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
   return { active, done }
 }
 
-export interface CompleteItemPatch<T> {
+// Declared as type aliases (not interfaces) so they are assignable to
+// Firestore's UpdateData index-signature type without casts.
+export type CompleteItemPatch<T> = {
   status: 'done'
   completedAt: T
   completedBy: string
@@ -32,7 +44,6 @@ export interface CompleteItemPatch<T> {
 // sentinel values (strings/objects) without pulling in the Firestore
 // runtime -- this function never inspects `completedAt`, only forwards it.
 export function completeItemPatch<T>(
-  _item: ShoppingItem,
   completedBy: string,
   completedAt: T,
 ): CompleteItemPatch<T> {
@@ -44,7 +55,7 @@ export function completeItemPatch<T>(
   }
 }
 
-export interface RestoreItemPatch<T> {
+export type RestoreItemPatch<T> = {
   status: 'active'
   activeOrder: number
   completedAt: null
@@ -53,7 +64,6 @@ export interface RestoreItemPatch<T> {
 }
 
 export function restoreItemPatch<T>(
-  _item: ShoppingItem,
   activeOrder: number,
   updatedAt: T,
 ): RestoreItemPatch<T> {

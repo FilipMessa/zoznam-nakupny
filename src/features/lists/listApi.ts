@@ -13,6 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { createSnapshotMapper } from '@/lib/snapshotMapper'
 import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
 import { validateListName } from './listService'
 import type { ShoppingList } from './types'
@@ -31,11 +32,11 @@ function chunk<T>(items: T[], size: number): T[][] {
 }
 
 // Realtime subscription to the Family's Lists, oldest first. Same contract
-// as itemApi.subscribeItems: `onNext` fires on every snapshot with the full
-// array, each List stamped with a client-only `pendingSync` flag, unchanged
-// Lists keep a stable object reference (so React.memo on AllListsSection
-// isn't defeated whenever some *other* list changes), and a snapshot without
-// changes re-emits the previous array as is.
+// as itemApi.subscribeItems (see createSnapshotMapper): `onNext` fires on
+// every snapshot with the full array, each List stamped with a client-only
+// `pendingSync` flag, and unchanged Lists keep a stable object reference (so
+// React.memo on AllListsSection isn't defeated whenever some *other* list
+// changes).
 export function subscribeLists(
   onNext: (lists: ShoppingList[]) => void,
   firestore: Firestore = db,
@@ -44,30 +45,13 @@ export function subscribeLists(
     collection(firestore, listsCollectionPath()),
     orderBy('createdAt', 'asc'),
   )
-
-  const listsById = new Map<string, ShoppingList>()
-  let lists: ShoppingList[] = []
+  const mapSnapshot = createSnapshotMapper<ShoppingList>()
 
   return onSnapshot(
     listsQuery,
     { includeMetadataChanges: true },
     (snapshot) => {
-      const changes = snapshot.docChanges()
-      if (changes.length > 0) {
-        for (const change of changes) {
-          if (change.type === 'removed') {
-            listsById.delete(change.doc.id)
-          } else {
-            listsById.set(change.doc.id, {
-              id: change.doc.id,
-              ...(change.doc.data() as Omit<ShoppingList, 'id'>),
-              pendingSync: change.doc.metadata.hasPendingWrites,
-            })
-          }
-        }
-        lists = snapshot.docs.map((docSnap) => listsById.get(docSnap.id)!)
-      }
-      onNext(lists)
+      onNext(mapSnapshot(snapshot))
     },
   )
 }
@@ -83,8 +67,8 @@ export function generateListId(firestore: Firestore = db): string {
 export async function createList(
   name: string,
   createdBy: string,
-  firestore: Firestore = db,
   listId?: string,
+  firestore: Firestore = db,
 ): Promise<string> {
   const result = validateListName(name)
   if (!result.ok) {

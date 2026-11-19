@@ -4,6 +4,7 @@ import {
   sortItems,
   completeItemPatch,
   restoreItemPatch,
+  validateItemText,
   nextActiveOrder,
   reorderActiveItems,
   insertActiveOrder,
@@ -100,9 +101,7 @@ describe('sortItems', () => {
 
 describe('completeItemPatch', () => {
   it('creates a done patch from an active item', () => {
-    const item = makeItem({ status: 'active', activeOrder: 5 })
-
-    const patch = completeItemPatch(item, 'uid-completer', 'INJECTED_TIMESTAMP')
+    const patch = completeItemPatch('uid-completer', 'INJECTED_TIMESTAMP')
 
     expect(patch).toEqual({
       status: 'done',
@@ -113,10 +112,9 @@ describe('completeItemPatch', () => {
   })
 
   it('sets completedAt from the injected value, not a value it computes itself', () => {
-    const item = makeItem({ status: 'active', activeOrder: 1 })
     const injected = { sentinel: 'clock-value' }
 
-    const patch = completeItemPatch(item, 'uid-completer', injected)
+    const patch = completeItemPatch('uid-completer', injected)
 
     expect(patch.completedAt).toBe(injected)
     expect(patch.updatedAt).toBe(injected)
@@ -125,14 +123,7 @@ describe('completeItemPatch', () => {
 
 describe('restoreItemPatch', () => {
   it('creates an active patch that appends the item to the end of active order', () => {
-    const item = makeItem({
-      status: 'done',
-      activeOrder: null,
-      completedAt: fakeTimestamp(100),
-      completedBy: 'uid-completer',
-    })
-
-    const patch = restoreItemPatch(item, 4, 'INJECTED_TIMESTAMP')
+    const patch = restoreItemPatch(4, 'INJECTED_TIMESTAMP')
 
     expect(patch).toEqual({
       status: 'active',
@@ -144,14 +135,7 @@ describe('restoreItemPatch', () => {
   })
 
   it('clears completedAt and completedBy regardless of their previous values', () => {
-    const item = makeItem({
-      status: 'done',
-      activeOrder: null,
-      completedAt: fakeTimestamp(999),
-      completedBy: 'uid-completer',
-    })
-
-    const patch = restoreItemPatch(item, 1, 'INJECTED_TIMESTAMP')
+    const patch = restoreItemPatch(1, 'INJECTED_TIMESTAMP')
 
     expect(patch.completedAt).toBeNull()
     expect(patch.completedBy).toBeNull()
@@ -467,5 +451,16 @@ describe('insertActiveOrder', () => {
 
     expect(result).toBe(4)
     expect(dest.map((item) => item.id)).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('validateItemText', () => {
+  it('returns the trimmed text', () => {
+    expect(validateItemText('  mlieko  ')).toEqual({ ok: true, text: 'mlieko' })
+  })
+
+  it('rejects empty and whitespace-only text', () => {
+    expect(validateItemText('')).toEqual({ ok: false })
+    expect(validateItemText('   ')).toEqual({ ok: false })
   })
 })
