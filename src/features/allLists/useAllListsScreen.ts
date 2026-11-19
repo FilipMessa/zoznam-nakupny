@@ -57,6 +57,7 @@ export function useAllListsScreen(
   lists: ShoppingList[],
 ): UseAllListsScreenResult {
   const { user } = useAuth()
+  const uid = user?.uid ?? null
   const { isExpanded, toggleSection, expandIfCollapsed } =
     useCollapsedSections()
   const registry = useItemRegistry(lists)
@@ -77,11 +78,11 @@ export function useAllListsScreen(
     handleCreate,
     createPending,
     createError,
-  } = useCreateListForm({ user, onCreated: () => {} })
+  } = useCreateListForm({ uid, onCreated: () => {} })
 
   const drag = useAllListsDrag({ getActiveItems, getActiveItemsByListId })
   const addTarget = useAddTarget({
-    user,
+    uid,
     getActiveItems,
     requestScroll,
     expandIfCollapsed,

@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import type { User } from 'firebase/auth'
 import { useOnlineStatus } from '@/lib/useOnlineStatus'
 import { validateListName } from './listService'
 import { createList, generateListId } from './listApi'
 
 export interface UseCreateListFormParams {
-  user: User | null
+  uid: string | null
   // Called with the new list's id once it's known -- callers that navigate
   // to the new list pass their selectList; AllListsScreen's caller passes a
   // no-op since staying put and letting the new section auto-expand is the
@@ -23,7 +22,7 @@ export interface UseCreateListFormResult {
 }
 
 export function useCreateListForm({
-  user,
+  uid,
   onCreated,
 }: UseCreateListFormParams): UseCreateListFormResult {
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -41,7 +40,7 @@ export function useCreateListForm({
   }
 
   const handleCreate = async (name: string) => {
-    if (!user) {
+    if (!uid) {
       return
     }
     setCreatePending(true)
@@ -67,14 +66,14 @@ export function useCreateListForm({
       onCreated(listId)
       setShowCreateForm(false)
       setCreatePending(false)
-      void createList(result.name, user.uid, listId).catch((error: unknown) => {
+      void createList(result.name, uid, listId).catch((error: unknown) => {
         console.error('Failed to create list', error)
       })
       return
     }
 
     try {
-      const listId = await createList(name, user.uid)
+      const listId = await createList(name, uid)
       onCreated(listId)
       setShowCreateForm(false)
     } catch {

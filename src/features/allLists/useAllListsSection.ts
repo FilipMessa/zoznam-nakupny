@@ -69,7 +69,7 @@ export function useAllListsSection({
     useItemEditing(listId)
   const { handleCheck, handleDelete } = useItemActions({
     listId,
-    user,
+    uid: user?.uid ?? null,
     activeItems: active,
   })
 

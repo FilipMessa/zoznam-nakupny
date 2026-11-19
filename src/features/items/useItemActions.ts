@@ -1,5 +1,4 @@
 import { useCallback } from 'react'
-import type { User } from 'firebase/auth'
 import {
   checkItem,
   uncheckItem,
@@ -11,7 +10,7 @@ import type { ShoppingItem } from './types'
 
 export interface UseItemActionsParams {
   listId: string
-  user: User | null
+  uid: string | null
   activeItems: ShoppingItem[]
 }
 
@@ -25,17 +24,17 @@ export interface UseItemActionsResult {
 
 export function useItemActions({
   listId,
-  user,
+  uid,
   activeItems,
 }: UseItemActionsParams): UseItemActionsResult {
   const handleCheck = useCallback(
     async (itemId: string) => {
-      if (!user) {
+      if (!uid) {
         return
       }
-      await checkItem(listId, itemId, user.uid)
+      await checkItem(listId, itemId, uid)
     },
-    [listId, user],
+    [listId, uid],
   )
 
   const handleUncheck = useCallback(

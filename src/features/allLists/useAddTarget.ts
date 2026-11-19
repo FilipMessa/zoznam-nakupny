@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import type { User } from 'firebase/auth'
 import { addItem } from '@/features/items/itemApi'
 import type { ItemRegistry } from './useItemRegistry'
 
@@ -7,12 +6,12 @@ import type { ItemRegistry } from './useItemRegistry'
 // from the collapsed-sections state -- collapsing the target via its chevron
 // must not clear the selection.
 export function useAddTarget({
-  user,
+  uid,
   getActiveItems,
   requestScroll,
   expandIfCollapsed,
 }: {
-  user: User | null
+  uid: string | null
   getActiveItems: ItemRegistry['getActiveItems']
   requestScroll: ItemRegistry['requestScroll']
   expandIfCollapsed: (listId: string) => void
@@ -39,7 +38,7 @@ export function useAddTarget({
   // drag handlers.
   const handleAddItem = useCallback(
     async (text: string) => {
-      if (!user || !addTargetListId) {
+      if (!uid || !addTargetListId) {
         return
       }
       const listId = addTargetListId
@@ -47,12 +46,12 @@ export function useAddTarget({
       expandIfCollapsed(listId)
       setAddItemError(null)
       try {
-        await addItem(listId, text, user.uid, getActiveItems(listId))
+        await addItem(listId, text, uid, getActiveItems(listId))
       } catch {
         setAddItemError('unknown')
       }
     },
-    [user, addTargetListId, expandIfCollapsed, requestScroll, getActiveItems],
+    [uid, addTargetListId, expandIfCollapsed, requestScroll, getActiveItems],
   )
 
   return {

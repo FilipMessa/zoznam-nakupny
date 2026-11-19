@@ -9,6 +9,7 @@ import { useItemActions } from './useItemActions'
 
 export function useShoppingListScreen(listId: string) {
   const { user } = useAuth()
+  const uid = user?.uid ?? null
   const { items, itemsLoading } = useItems(listId)
 
   const { active, done } = sortItems(items)
@@ -20,7 +21,7 @@ export function useShoppingListScreen(listId: string) {
     useItemEditing(listId)
   const { addError, handleAdd } = useAddItemSubmit({
     listId,
-    user,
+    uid,
     activeItems: active,
     onAddStart: requestScrollAfterAdd,
   })
@@ -30,7 +31,7 @@ export function useShoppingListScreen(listId: string) {
     handleReorder,
     handleDelete,
     handleClearDone,
-  } = useItemActions({ listId, user, activeItems: active })
+  } = useItemActions({ listId, uid, activeItems: active })
 
   return {
     itemsLoading,

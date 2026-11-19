@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import type { User } from 'firebase/auth'
 import { addItem } from './itemApi'
 import type { ShoppingItem } from './types'
 
 export interface UseAddItemSubmitParams {
   listId: string
-  user: User | null
+  uid: string | null
   activeItems: ShoppingItem[]
   onAddStart: () => void
 }
@@ -17,20 +16,20 @@ export interface UseAddItemSubmitResult {
 
 export function useAddItemSubmit({
   listId,
-  user,
+  uid,
   activeItems,
   onAddStart,
 }: UseAddItemSubmitParams): UseAddItemSubmitResult {
   const [addError, setAddError] = useState<string | null>(null)
 
   const handleAdd = async (text: string) => {
-    if (!user) {
+    if (!uid) {
       return
     }
     onAddStart()
     setAddError(null)
     try {
-      await addItem(listId, text, user.uid, activeItems)
+      await addItem(listId, text, uid, activeItems)
     } catch {
       setAddError('unknown')
     }
