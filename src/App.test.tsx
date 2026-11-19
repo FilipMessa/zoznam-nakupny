@@ -1,22 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from './test/render'
+import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { useAuth } from './features/auth/useAuth'
-import { useMembership } from './features/auth/useMembership'
-import { useLists } from './features/lists/useLists'
-import { useSelectedListId } from './features/lists/useSelectedListId'
+import { useAuth } from '@/features/auth/useAuth'
+import { useMembership } from '@/features/auth/useMembership'
+import { useLists } from '@/features/lists/useLists'
+import { useSelectedListId } from '@/features/lists/useSelectedListId'
 
-vi.mock('./features/auth/useAuth', () => ({
+vi.mock('@/features/auth/useAuth', () => ({
   useAuth: vi.fn(),
 }))
-vi.mock('./features/auth/useMembership', () => ({
+vi.mock('@/features/auth/useMembership', () => ({
   useMembership: vi.fn(),
 }))
-vi.mock('./features/lists/useLists', () => ({
+vi.mock('@/features/lists/useLists', () => ({
   useLists: vi.fn(),
 }))
-vi.mock('./features/lists/useSelectedListId', () => ({
+vi.mock('@/features/lists/useSelectedListId', () => ({
   useSelectedListId: vi.fn(),
 }))
 

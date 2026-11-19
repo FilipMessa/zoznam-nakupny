@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '../../../test/render'
+import { render, screen, fireEvent } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { ActiveItemRow, type ActiveItemRowProps } from './ActiveItemRow'
-import type { ShoppingItem } from '../types'
+import type { ShoppingItem } from '@/features/items/types'
 
 function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   return {

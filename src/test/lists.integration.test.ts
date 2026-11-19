@@ -33,12 +33,12 @@ import {
   it,
   expect,
 } from 'vitest'
-import { FAMILY_ID } from '../constants/family'
+import { FAMILY_ID } from '@/constants/family'
 import {
   createList,
   renameList,
   deleteList,
-} from '../features/lists/listService'
+} from '@/features/lists/listService'
 
 // Exercises listService's createList/renameList/deleteList against the real
 // Auth + Firestore emulators using a genuine signed-in member client (not an

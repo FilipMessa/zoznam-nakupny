@@ -1,28 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen, waitFor } from '../../../test/render'
+import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { ListsScreen } from './ListsScreen'
-import { useAuth } from '../../auth/useAuth'
-import { useLists } from '../useLists'
-import { useSelectedListId } from '../useSelectedListId'
-import * as listService from '../listService'
-import type { ShoppingList } from '../types'
+import { useAuth } from '@/features/auth/useAuth'
+import { useLists } from '@/features/lists/useLists'
+import { useSelectedListId } from '@/features/lists/useSelectedListId'
+import * as listService from '@/features/lists/listService'
+import type { ShoppingList } from '@/features/lists/types'
 
-vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../useLists', () => ({ useLists: vi.fn() }))
-vi.mock('../useSelectedListId', () => ({ useSelectedListId: vi.fn() }))
-vi.mock('../listService', () => ({
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('@/features/lists/useLists', () => ({ useLists: vi.fn() }))
+vi.mock('@/features/lists/useSelectedListId', () => ({
+  useSelectedListId: vi.fn(),
+}))
+vi.mock('@/features/lists/listService', () => ({
   createList: vi.fn(),
   renameList: vi.fn(),
   deleteList: vi.fn(),
 }))
 // ListHeader calls signOutUser directly; keep googleAuth (and its Firebase
 // initialization) out of this suite.
-vi.mock('../../auth/googleAuth', () => ({ signOutUser: vi.fn() }))
+vi.mock('@/features/auth/googleAuth', () => ({ signOutUser: vi.fn() }))
 // The selected list's items screen has its own suite; stub it so this one
 // never touches useItems/Firestore.
-vi.mock('../../items/components/ShoppingListScreen', () => ({
+vi.mock('@/features/items/components/ShoppingListScreen', () => ({
   ShoppingListScreen: () => <div data-testid="shopping-list-screen" />,
 }))
 // AllListsScreen has its own suite; stub it so this one never touches

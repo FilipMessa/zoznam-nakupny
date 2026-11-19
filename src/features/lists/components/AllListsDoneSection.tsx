@@ -1,10 +1,10 @@
 import { memo } from 'react'
 import { Box, Flex, Heading, Text } from '@chakra-ui/react'
-import { ClearDoneButton } from '../../items/components/ClearDoneButton'
-import { DoneItemRow } from '../../items/components/DoneItemRow'
-import { useSwipeRowRegistry } from '../../items/useSwipeRowRegistry'
-import { listColorFor } from '../listColor'
-import type { DoneItemWithOrigin } from '../allListsDoneItems'
+import { ClearDoneButton } from '@/features/items/components/ClearDoneButton'
+import { DoneItemRow } from '@/features/items/components/DoneItemRow'
+import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
+import { listColorFor } from '@/features/lists/listColor'
+import type { DoneItemWithOrigin } from '@/features/lists/allListsDoneItems'
 
 export interface AllListsDoneSectionProps {
   items: DoneItemWithOrigin[]

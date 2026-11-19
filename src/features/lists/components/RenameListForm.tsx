@@ -1,5 +1,5 @@
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
-import { useListNameField } from '../useListNameField'
+import { useListNameField } from '@/features/lists/useListNameField'
 
 export interface RenameListFormProps {
   initialName: string

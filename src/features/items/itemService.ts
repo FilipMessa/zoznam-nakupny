@@ -12,8 +12,8 @@ import {
   writeBatch,
   type Firestore,
 } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
-import { FAMILY_ID } from '../../constants/family'
+import { db } from '@/lib/firebase'
+import { FAMILY_ID } from '@/constants/family'
 import {
   completeItemPatch,
   restoreItemPatch,

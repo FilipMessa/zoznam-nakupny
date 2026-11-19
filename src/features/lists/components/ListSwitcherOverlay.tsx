@@ -1,6 +1,6 @@
 import { Box, Button, Drawer } from '@chakra-ui/react'
 import { Plus, X } from 'lucide-react'
-import type { ShoppingList } from '../types'
+import type { ShoppingList } from '@/features/lists/types'
 import { ListSwitcherItem } from './ListSwitcherItem'
 
 export interface ListSwitcherOverlayProps {

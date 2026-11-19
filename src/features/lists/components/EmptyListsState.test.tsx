@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../test/render'
+import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { EmptyListsState } from './EmptyListsState'
 

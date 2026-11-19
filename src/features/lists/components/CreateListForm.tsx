@@ -1,6 +1,6 @@
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
 import { X } from 'lucide-react'
-import { useListNameField } from '../useListNameField'
+import { useListNameField } from '@/features/lists/useListNameField'
 
 export interface CreateListFormProps {
   onSubmit: (name: string) => void

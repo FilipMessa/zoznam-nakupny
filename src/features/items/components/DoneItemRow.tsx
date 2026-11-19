@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
-import type { ShoppingItem } from '../types'
-import { useRowSwipeSync } from '../useRowSwipeSync'
+import type { ShoppingItem } from '@/features/items/types'
+import { useRowSwipeSync } from '@/features/items/useRowSwipeSync'
 
 // Done items only ever reveal a single "Zmazať" action -- editing a
 // checked-off item's text isn't supported (see ActiveItemRow for the

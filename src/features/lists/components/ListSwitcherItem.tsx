@@ -1,6 +1,6 @@
 import { Box, Button } from '@chakra-ui/react'
 import { Clock } from 'lucide-react'
-import type { ShoppingList } from '../types'
+import type { ShoppingList } from '@/features/lists/types'
 
 export interface ListSwitcherItemProps {
   list: ShoppingList

@@ -1,5 +1,5 @@
 import { Box, Button, Flex, Heading, Text } from '@chakra-ui/react'
-import { useGoogleSignIn } from '../useGoogleSignIn'
+import { useGoogleSignIn } from '@/features/auth/useGoogleSignIn'
 
 export function SignInScreen() {
   const { retryMessage, handleSignIn } = useGoogleSignIn()

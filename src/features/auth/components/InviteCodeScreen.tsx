@@ -1,7 +1,7 @@
 import { Flex, Heading, Text } from '@chakra-ui/react'
 import { Users } from 'lucide-react'
 import { InviteCodeForm } from './InviteCodeForm'
-import { useRedeemInviteCode } from '../useRedeemInviteCode'
+import { useRedeemInviteCode } from '@/features/auth/useRedeemInviteCode'
 
 export interface InviteCodeScreenProps {
   markAsMember: () => void

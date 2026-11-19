@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '../../../test/render'
+import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { InviteCodeScreen } from './InviteCodeScreen'
-import { redeemInviteCode } from '../inviteService'
-import { useAuth } from '../useAuth'
+import { redeemInviteCode } from '@/features/auth/inviteService'
+import { useAuth } from '@/features/auth/useAuth'
 
-vi.mock('../inviteService', () => ({
+vi.mock('@/features/auth/inviteService', () => ({
   redeemInviteCode: vi.fn(),
 }))
-vi.mock('../useAuth', () => ({
+vi.mock('@/features/auth/useAuth', () => ({
   useAuth: vi.fn(),
 }))
 

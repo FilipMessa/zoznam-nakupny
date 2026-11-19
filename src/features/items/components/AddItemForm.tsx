@@ -6,7 +6,7 @@ import {
   chakra,
 } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
-import { useAddItemForm } from '../useAddItemForm'
+import { useAddItemForm } from '@/features/items/useAddItemForm'
 
 export interface AddItemFormProps {
   onSubmit: (text: string) => void

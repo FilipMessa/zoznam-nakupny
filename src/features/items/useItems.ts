@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
-import { FAMILY_ID } from '../../constants/family'
+import { db } from '@/lib/firebase'
+import { FAMILY_ID } from '@/constants/family'
 import type { ShoppingItem } from './types'
 
 export interface UseItemsResult {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../auth/useAuth'
+import { useAuth } from '@/features/auth/useAuth'
 import { useLists } from './useLists'
 import { useSelectedListId } from './useSelectedListId'
 import { useCreateListForm } from './useCreateListForm'

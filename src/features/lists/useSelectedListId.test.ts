@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useSelectedListId } from './useSelectedListId'
-import { SELECTED_LIST_STORAGE_KEY } from '../../constants/storage'
+import { SELECTED_LIST_STORAGE_KEY } from '@/constants/storage'
 import type { ShoppingList } from './types'
 
 function makeList(id: string, createdAtMillis: number): ShoppingList {

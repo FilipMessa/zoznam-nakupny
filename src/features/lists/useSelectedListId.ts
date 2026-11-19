@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { SELECTED_LIST_STORAGE_KEY } from '../../constants/storage'
+import { SELECTED_LIST_STORAGE_KEY } from '@/constants/storage'
 import type { ShoppingList } from './types'
 
 export interface UseSelectedListIdResult {

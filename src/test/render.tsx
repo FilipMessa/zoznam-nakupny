@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { render as rtlRender, type RenderOptions } from '@testing-library/react'
-import { Provider } from '../components/ui/provider'
+import { Provider } from '@/components/ui/provider'
 
 export {
   screen,

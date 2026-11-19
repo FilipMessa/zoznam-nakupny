@@ -5,8 +5,8 @@ import {
   setDoc,
   type Firestore,
 } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
-import { FAMILY_ID } from '../../constants/family'
+import { db } from '@/lib/firebase'
+import { FAMILY_ID } from '@/constants/family'
 import type { InviteDoc, RedeemResult } from './types'
 
 export async function redeemInviteCode(

@@ -7,8 +7,8 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react'
-import { signOutUser } from '../../auth/googleAuth'
-import { useOnlineStatus } from '../../../lib/useOnlineStatus'
+import { signOutUser } from '@/features/auth/googleAuth'
+import { useOnlineStatus } from '@/lib/useOnlineStatus'
 
 export interface ListHeaderProps {
   listName: string

@@ -8,8 +8,8 @@ import {
   writeBatch,
   type Firestore,
 } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
-import { FAMILY_ID } from '../../constants/family'
+import { db } from '@/lib/firebase'
+import { FAMILY_ID } from '@/constants/family'
 import { validateListName } from './listCrud'
 
 // Firestore batched writes are capped at 500 operations; chunk to a safe

@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react'
-import { LoadingScreen } from '../../auth/components/LoadingScreen'
-import { useListsScreen } from '../useListsScreen'
+import { LoadingScreen } from '@/features/auth/components/LoadingScreen'
+import { useListsScreen } from '@/features/lists/useListsScreen'
 import { EmptyListsState } from './EmptyListsState'
 import { CreateListForm } from './CreateListForm'
 import { RenameListForm } from './RenameListForm'
@@ -8,7 +8,7 @@ import { DeleteListConfirmDialog } from './DeleteListConfirmDialog'
 import { ListSwitcherOverlay } from './ListSwitcherOverlay'
 import { ListHeader } from './ListHeader'
 import { AllListsScreen } from './AllListsScreen'
-import { ShoppingListScreen } from '../../items/components/ShoppingListScreen'
+import { ShoppingListScreen } from '@/features/items/components/ShoppingListScreen'
 
 export function ListsScreen() {
   const {

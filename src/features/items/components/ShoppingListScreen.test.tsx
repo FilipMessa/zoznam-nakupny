@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen } from '../../../test/render'
+import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { ShoppingListScreen } from './ShoppingListScreen'
-import { useAuth } from '../../auth/useAuth'
-import { useItems } from '../useItems'
-import * as itemService from '../itemService'
-import type { ShoppingItem } from '../types'
+import { useAuth } from '@/features/auth/useAuth'
+import { useItems } from '@/features/items/useItems'
+import * as itemService from '@/features/items/itemService'
+import type { ShoppingItem } from '@/features/items/types'
 
-vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../useItems', () => ({ useItems: vi.fn() }))
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
 // The screen imports the whole itemService; mock every function it calls so no
 // test touches real Firestore. Only addItem matters here.
-vi.mock('../itemService', () => ({
+vi.mock('@/features/items/itemService', () => ({
   addItem: vi.fn(),
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),

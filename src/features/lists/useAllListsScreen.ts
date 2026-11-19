@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
-import { useAuth } from '../auth/useAuth'
-import { reorderActiveItems, insertActiveOrder } from '../items/itemLogic'
+import { useAuth } from '@/features/auth/useAuth'
+import {
+  reorderActiveItems,
+  insertActiveOrder,
+} from '@/features/items/itemLogic'
 import {
   addItem,
   reorderItem,
@@ -9,16 +12,16 @@ import {
   uncheckItem,
   deleteItem,
   clearDoneItems,
-} from '../items/itemService'
-import { moveConflictMessage } from '../items/moveConflictMessages'
-import { notify } from '../../lib/toaster'
+} from '@/features/items/itemService'
+import { moveConflictMessage } from '@/features/items/moveConflictMessages'
+import { notify } from '@/lib/toaster'
 import { useCreateListForm } from './useCreateListForm'
 import { mergeDoneItems, type DoneItemWithOrigin } from './allListsDoneItems'
 import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
-} from './components/AllListsSection'
-import type { ShoppingItem } from '../items/types'
+} from '@/features/lists/components/AllListsSection'
+import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
 export interface UseAllListsScreenResult {

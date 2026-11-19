@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
-import { useOnlineStatus } from '../../lib/useOnlineStatus'
+import { useOnlineStatus } from '@/lib/useOnlineStatus'
 import { validateListName } from './listCrud'
 import { createList, generateListId } from './listService'
 

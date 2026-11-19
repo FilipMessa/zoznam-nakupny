@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../test/render'
+import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { ListSwitcherOverlay } from './ListSwitcherOverlay'
 import { ListContentPlaceholder } from './ListContentPlaceholder'
-import type { ShoppingList } from '../types'
+import type { ShoppingList } from '@/features/lists/types'
 
 const lists: ShoppingList[] = [
   {

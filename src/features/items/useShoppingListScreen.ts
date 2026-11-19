@@ -1,4 +1,4 @@
-import { useAuth } from '../auth/useAuth'
+import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from './useItems'
 import { sortItems } from './itemLogic'
 import { useScrollNewItemIntoView } from './useScrollNewItemIntoView'

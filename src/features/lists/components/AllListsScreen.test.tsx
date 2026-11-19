@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen, waitFor } from '../../../test/render'
+import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsScreen } from './AllListsScreen'
-import { useAuth } from '../../auth/useAuth'
-import * as listService from '../listService'
-import type { ShoppingList } from '../types'
+import { useAuth } from '@/features/auth/useAuth'
+import * as listService from '@/features/lists/listService'
+import type { ShoppingList } from '@/features/lists/types'
 
 // AllListsSection has its own suite (mounts useAuth/useItems for a real
 // list); stub it here so this suite only exercises the screen shell
@@ -20,8 +20,8 @@ vi.mock('./AllListsSection', () => ({
 vi.mock('./AllListsDoneSection', () => ({
   AllListsDoneSection: () => <div data-testid="all-lists-done-section" />,
 }))
-vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../listService', () => ({
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('@/features/lists/listService', () => ({
   createList: vi.fn(),
   generateListId: vi.fn(),
 }))

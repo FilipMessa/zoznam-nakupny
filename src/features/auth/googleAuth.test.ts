@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { auth } from '../../lib/firebase'
+import { auth } from '@/lib/firebase'
 import {
   completeRedirectSignIn,
   signInWithGoogle,
@@ -23,7 +23,7 @@ const firebaseAuthMocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('../../lib/firebase', () => ({
+vi.mock('@/lib/firebase', () => ({
   auth: { name: 'test-auth' },
 }))
 

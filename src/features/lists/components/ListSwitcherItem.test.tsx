@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../test/render'
+import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { ListSwitcherItem } from './ListSwitcherItem'
-import type { ShoppingList } from '../types'
+import type { ShoppingList } from '@/features/lists/types'
 
 function makeList(overrides: Partial<ShoppingList> = {}): ShoppingList {
   return {

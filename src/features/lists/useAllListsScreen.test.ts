@@ -3,14 +3,14 @@ import type { Timestamp } from 'firebase/firestore'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { renderHook, act } from '@testing-library/react'
 import { useAllListsScreen } from './useAllListsScreen'
-import { useAuth } from '../auth/useAuth'
-import * as itemService from '../items/itemService'
-import { notify } from '../../lib/toaster'
-import type { ShoppingItem } from '../items/types'
+import { useAuth } from '@/features/auth/useAuth'
+import * as itemService from '@/features/items/itemService'
+import { notify } from '@/lib/toaster'
+import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
-vi.mock('../auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../items/itemService', () => ({
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('@/features/items/itemService', () => ({
   reorderItem: vi.fn(),
   moveItemToList: vi.fn(),
   addItem: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock('../items/itemService', () => ({
   deleteItem: vi.fn(),
   clearDoneItems: vi.fn(),
 }))
-vi.mock('../../lib/toaster', () => ({ notify: vi.fn() }))
+vi.mock('@/lib/toaster', () => ({ notify: vi.fn() }))
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedReorderItem = vi.mocked(itemService.reorderItem)

@@ -11,9 +11,9 @@ import {
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Clock, GripVertical, Pencil, Trash2 } from 'lucide-react'
-import type { ShoppingItem } from '../types'
-import { useRowSwipeSync } from '../useRowSwipeSync'
-import { useItemEditForm } from '../useItemEditForm'
+import type { ShoppingItem } from '@/features/items/types'
+import { useRowSwipeSync } from '@/features/items/useRowSwipeSync'
+import { useItemEditForm } from '@/features/items/useItemEditForm'
 
 // Two 72px actions revealed side by side (Upraviť + Zmazať), Zmazať flush
 // against the trailing edge as before.

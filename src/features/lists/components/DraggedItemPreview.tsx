@@ -1,6 +1,6 @@
 import { Box, Text } from '@chakra-ui/react'
 import { GripVertical } from 'lucide-react'
-import type { ShoppingItem } from '../../items/types'
+import type { ShoppingItem } from '@/features/items/types'
 
 export interface DraggedItemPreviewProps {
   item: ShoppingItem

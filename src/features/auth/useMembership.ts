@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
-import { FAMILY_ID } from '../../constants/family'
+import { db } from '@/lib/firebase'
+import { FAMILY_ID } from '@/constants/family'
 import type { MembershipStatus } from './types'
 
 export interface UseMembershipResult {

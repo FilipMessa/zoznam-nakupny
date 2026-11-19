@@ -6,7 +6,7 @@ import {
   ToastCloseTrigger,
   Portal,
 } from '@chakra-ui/react'
-import { toaster } from '../../lib/toaster'
+import { toaster } from '@/lib/toaster'
 
 export function Toaster() {
   return (

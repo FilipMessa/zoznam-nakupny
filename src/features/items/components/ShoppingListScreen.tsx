@@ -1,6 +1,6 @@
 import { Box, Flex, Heading } from '@chakra-ui/react'
-import { LoadingScreen } from '../../auth/components/LoadingScreen'
-import { useShoppingListScreen } from '../useShoppingListScreen'
+import { LoadingScreen } from '@/features/auth/components/LoadingScreen'
+import { useShoppingListScreen } from '@/features/items/useShoppingListScreen'
 import { AddItemForm } from './AddItemForm'
 import { ActiveItemsList } from './ActiveItemsList'
 import { DoneItemsList } from './DoneItemsList'

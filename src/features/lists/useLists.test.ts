@@ -8,8 +8,8 @@ import { useLists } from './useLists'
 // items.integration.test.ts's "remote change visibility" comment). It tests
 // the object-reference-reuse logic added on top, so React.memo on
 // AllListsSection isn't defeated whenever some *other* list changes.
-vi.mock('../../lib/firebase', () => ({ db: {} }))
-vi.mock('../../constants/family', () => ({ FAMILY_ID: 'family-1' }))
+vi.mock('@/lib/firebase', () => ({ db: {} }))
+vi.mock('@/constants/family', () => ({ FAMILY_ID: 'family-1' }))
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   query: vi.fn(),

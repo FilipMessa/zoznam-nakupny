@@ -1,5 +1,5 @@
 import { Box, Text } from '@chakra-ui/react'
-import type { ShoppingItem } from '../types'
+import type { ShoppingItem } from '@/features/items/types'
 import { DoneItemRow } from './DoneItemRow'
 
 export interface DoneItemsListProps {

@@ -1,4 +1,4 @@
-import type { ShoppingItem } from '../items/types'
+import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
 export interface DoneItemWithOrigin {

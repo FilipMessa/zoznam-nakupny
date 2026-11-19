@@ -34,7 +34,7 @@ import {
   it,
   expect,
 } from 'vitest'
-import { FAMILY_ID } from '../constants/family'
+import { FAMILY_ID } from '@/constants/family'
 import {
   addItem,
   checkItem,
@@ -43,8 +43,8 @@ import {
   editItemText,
   clearDoneItems,
   moveItemToList,
-} from '../features/items/itemService'
-import type { ShoppingItem } from '../features/items/types'
+} from '@/features/items/itemService'
+import type { ShoppingItem } from '@/features/items/types'
 
 // Exercises itemService's addItem/checkItem/uncheckItem/deleteItem/clearDoneItems
 // against the real Auth + Firestore emulators using a genuine signed-in

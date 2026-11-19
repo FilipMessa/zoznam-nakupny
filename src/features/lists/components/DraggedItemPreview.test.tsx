@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen } from '../../../test/render'
+import { render, screen } from '@/test/render'
 import { DraggedItemPreview } from './DraggedItemPreview'
-import type { ShoppingItem } from '../../items/types'
+import type { ShoppingItem } from '@/features/items/types'
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

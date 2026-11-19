@@ -10,8 +10,8 @@ import { useItems } from './useItems'
 // of onSnapshot: reusing a document's object reference across snapshots
 // when docChanges() says it didn't change, so React.memo further down the
 // tree (AllListsSection/ActiveItemRow) can actually skip unrelated rows.
-vi.mock('../../lib/firebase', () => ({ db: {} }))
-vi.mock('../../constants/family', () => ({ FAMILY_ID: 'family-1' }))
+vi.mock('@/lib/firebase', () => ({ db: {} }))
+vi.mock('@/constants/family', () => ({ FAMILY_ID: 'family-1' }))
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   query: vi.fn(),

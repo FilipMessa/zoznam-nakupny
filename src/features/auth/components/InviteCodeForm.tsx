@@ -1,6 +1,6 @@
 import { Box, Button, Input, chakra } from '@chakra-ui/react'
-import { useInviteCodeField } from '../useInviteCodeField'
-import type { RedeemError } from '../types'
+import { useInviteCodeField } from '@/features/auth/useInviteCodeField'
+import type { RedeemError } from '@/features/auth/types'
 
 export interface InviteCodeFormProps {
   onSubmit: (code: string) => void

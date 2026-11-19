@@ -2,14 +2,14 @@ import { useRef } from 'react'
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
 import { ArrowLeft, Plus } from 'lucide-react'
-import { useShoppingListDndSensors } from '../../items/dndSensors'
-import { AddItemForm } from '../../items/components/AddItemForm'
-import { useAllListsScreen } from '../useAllListsScreen'
+import { useShoppingListDndSensors } from '@/features/items/dndSensors'
+import { AddItemForm } from '@/features/items/components/AddItemForm'
+import { useAllListsScreen } from '@/features/lists/useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
 import { AllListsDoneSection } from './AllListsDoneSection'
 import { CreateListForm } from './CreateListForm'
 import { DraggedItemPreview } from './DraggedItemPreview'
-import type { ShoppingList } from '../types'
+import type { ShoppingList } from '@/features/lists/types'
 
 export interface AllListsScreenProps {
   lists: ShoppingList[]

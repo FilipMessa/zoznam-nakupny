@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
 import { mergeDoneItems } from './allListsDoneItems'
-import type { ShoppingItem } from '../items/types'
+import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
 function fakeTimestamp(millis: number): Timestamp {

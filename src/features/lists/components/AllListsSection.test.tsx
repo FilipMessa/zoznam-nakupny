@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen, fireEvent } from '../../../test/render'
+import { render, screen, fireEvent } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsSection, type AllListsSectionProps } from './AllListsSection'
-import { useAuth } from '../../auth/useAuth'
-import { useItems } from '../../items/useItems'
-import * as itemService from '../../items/itemService'
-import type { ShoppingItem } from '../../items/types'
-import type { ShoppingList } from '../types'
+import { useAuth } from '@/features/auth/useAuth'
+import { useItems } from '@/features/items/useItems'
+import * as itemService from '@/features/items/itemService'
+import type { ShoppingItem } from '@/features/items/types'
+import type { ShoppingList } from '@/features/lists/types'
 
-vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../../items/useItems', () => ({ useItems: vi.fn() }))
-vi.mock('../../items/itemService', () => ({
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
+vi.mock('@/features/items/itemService', () => ({
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),
   deleteItem: vi.fn(),

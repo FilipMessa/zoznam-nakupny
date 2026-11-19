@@ -7,7 +7,7 @@ import {
 } from '@firebase/rules-unit-testing'
 import { setDoc, doc, getDoc, getDocs, collection } from 'firebase/firestore'
 import { beforeAll, afterAll, beforeEach, describe, it } from 'vitest'
-import { FAMILY_ID } from '../constants/family'
+import { FAMILY_ID } from '@/constants/family'
 
 const OTHER_UID = 'other-user'
 const MEMBER_UID = 'member-user'
