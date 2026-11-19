@@ -129,4 +129,31 @@ describe('subscribeItems', () => {
 
     expect(latest()).toBe(firstItems)
   })
+
+  // Regression pin: the old useItems ignored a snapshot with no docChanges,
+  // so switching from a non-empty list to an empty one (ShoppingListScreen
+  // has no key) never cleared the previous list's items from state.
+  // subscribeItems always emits, so a new list's first empty snapshot
+  // delivers [] and replaces whatever the screen was showing.
+  it('emits [] for a first snapshot that has no documents and no changes', () => {
+    const onNext = vi.fn()
+    subscribeItems('list-1', onNext)
+
+    capturedCallback(fakeSnapshot([], []))
+
+    expect(onNext).toHaveBeenCalledTimes(1)
+    expect(onNext).toHaveBeenCalledWith([])
+  })
+
+  it('re-emits the same array reference for a no-change (metadata-only) snapshot', () => {
+    const onNext = vi.fn<(items: ShoppingItem[]) => void>()
+    subscribeItems('list-1', onNext)
+    const docA = fakeDoc('a', { text: 'mlieko', status: 'active' })
+
+    capturedCallback(fakeSnapshot([docA], [{ type: 'added', doc: docA }]))
+    capturedCallback(fakeSnapshot([docA], []))
+
+    expect(onNext).toHaveBeenCalledTimes(2)
+    expect(onNext.mock.calls[1][0]).toBe(onNext.mock.calls[0][0])
+  })
 })
