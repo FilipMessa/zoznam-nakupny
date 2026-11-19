@@ -105,7 +105,13 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <Box as="main" ref={mainScrollRef} flex="1 1 auto" minH="0" overflowY="auto">
+        <Box
+          as="main"
+          ref={mainScrollRef}
+          flex="1 1 auto"
+          minH="0"
+          overflowY="auto"
+        >
           {lists.map((list) => (
             <AllListsSection
               key={list.id}
@@ -133,7 +139,13 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
       </DndContext>
 
       {addTargetListId && (
-        <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
+        <Box
+          flex="0 0 auto"
+          bg="bg"
+          borderTop="1px solid"
+          borderColor="border"
+          pb="env(safe-area-inset-bottom)"
+        >
           <AddItemForm onSubmit={handleAddItem} error={addItemError} />
         </Box>
       )}

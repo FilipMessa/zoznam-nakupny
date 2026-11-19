@@ -11,7 +11,13 @@ export function InviteCodeScreen({ markAsMember }: InviteCodeScreenProps) {
   const { pending, error, handleSubmit } = useRedeemInviteCode(markAsMember)
 
   return (
-    <Flex direction="column" flex="1 1 auto" minH="100dvh" padding="56px 28px 32px" bg="bg">
+    <Flex
+      direction="column"
+      flex="1 1 auto"
+      minH="100dvh"
+      padding="56px 28px 32px"
+      bg="bg"
+    >
       <Flex
         aria-hidden="true"
         align="center"
@@ -25,7 +31,15 @@ export function InviteCodeScreen({ markAsMember }: InviteCodeScreenProps) {
       >
         <Users size={22} />
       </Flex>
-      <Heading as="h1" fontSize="28px" fontWeight="900" color="fg" letterSpacing="-0.6px" lineHeight="1.15" m="0 0 10px">
+      <Heading
+        as="h1"
+        fontSize="28px"
+        fontWeight="900"
+        color="fg"
+        letterSpacing="-0.6px"
+        lineHeight="1.15"
+        m="0 0 10px"
+      >
         Pripojte sa k rodine
       </Heading>
       <Text fontSize="15px" color="fg.muted" lineHeight="1.6" m="0 0 32px">

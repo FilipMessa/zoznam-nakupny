@@ -75,7 +75,11 @@ describe('sortItems', () => {
   })
 
   it('returns active and done items in separate lists, active items first', () => {
-    const active = makeItem({ id: 'active-1', status: 'active', activeOrder: 1 })
+    const active = makeItem({
+      id: 'active-1',
+      status: 'active',
+      activeOrder: 1,
+    })
     const done = makeItem({
       id: 'done-1',
       status: 'done',

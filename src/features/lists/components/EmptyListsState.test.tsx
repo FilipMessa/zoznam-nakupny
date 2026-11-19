@@ -15,9 +15,7 @@ describe('EmptyListsState', () => {
     const user = userEvent.setup()
     render(<EmptyListsState onCreateClick={onCreateClick} />)
 
-    await user.click(
-      screen.getByRole('button', { name: /vytvoriť zoznam/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /vytvoriť zoznam/i }))
 
     expect(onCreateClick).toHaveBeenCalledTimes(1)
   })

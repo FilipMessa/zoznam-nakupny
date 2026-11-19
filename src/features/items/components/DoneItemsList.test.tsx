@@ -58,9 +58,7 @@ describe('DoneItemsList', () => {
       />,
     )
 
-    expect(
-      screen.queryByText(/zatiaľ nič hotové/i),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/zatiaľ nič hotové/i)).not.toBeInTheDocument()
   })
 
   it('calls onUncheck with the id of the item whose checkbox is clicked', async () => {
@@ -85,7 +83,9 @@ describe('DoneItemsList', () => {
       makeDoneItem({ id: 'a', text: 'mlieko' }),
       makeDoneItem({ id: 'b', text: 'vajcia' }),
     ]
-    const { container } = render(<DoneItemsList {...makeProps({ items, onDelete })} />)
+    const { container } = render(
+      <DoneItemsList {...makeProps({ items, onDelete })} />,
+    )
 
     // The desktop icon button is `display: none` below the `md` breakpoint,
     // which jsdom's default (zero-width) viewport matches, so it's excluded

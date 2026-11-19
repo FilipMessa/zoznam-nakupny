@@ -31,7 +31,11 @@ import {
   expect,
 } from 'vitest'
 import { FAMILY_ID } from '../constants/family'
-import { createList, renameList, deleteList } from '../features/lists/listService'
+import {
+  createList,
+  renameList,
+  deleteList,
+} from '../features/lists/listService'
 
 // Exercises listService's createList/renameList/deleteList against the real
 // Auth + Firestore emulators using a genuine signed-in member client (not an
@@ -97,7 +101,10 @@ async function seedListAsAdmin(
   data: { name: string },
 ): Promise<void> {
   await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), `families/${FAMILY_ID}/lists`, listId), data)
+    await setDoc(
+      doc(context.firestore(), `families/${FAMILY_ID}/lists`, listId),
+      data,
+    )
   })
 }
 

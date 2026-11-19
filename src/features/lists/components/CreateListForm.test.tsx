@@ -61,7 +61,9 @@ describe('CreateListForm', () => {
     )
 
     expect(screen.getByRole('button', { name: /vytvoriť/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /názov zoznamu/i })).toBeDisabled()
+    expect(
+      screen.getByRole('textbox', { name: /názov zoznamu/i }),
+    ).toBeDisabled()
   })
 
   it('renders an error message when creation fails', async () => {

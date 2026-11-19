@@ -80,7 +80,10 @@ describe('ShoppingListScreen — scroll new item into view', () => {
 
     // The realtime snapshot now delivers the appended item.
     mockedUseItems.mockReturnValue({
-      items: [...initial, makeItem({ id: 'c', text: 'chlieb', activeOrder: 3 })],
+      items: [
+        ...initial,
+        makeItem({ id: 'c', text: 'chlieb', activeOrder: 3 }),
+      ],
       itemsLoading: false,
     })
     rerender(<ShoppingListScreen listId="list-1" />)
@@ -99,7 +102,10 @@ describe('ShoppingListScreen — scroll new item into view', () => {
     // A remote family member's add arrives — items grow, but the local user
     // never submitted, so the scroll flag is off and the view stays put.
     mockedUseItems.mockReturnValue({
-      items: [...initial, makeItem({ id: 'z', text: 'remote', activeOrder: 2 })],
+      items: [
+        ...initial,
+        makeItem({ id: 'z', text: 'remote', activeOrder: 2 }),
+      ],
       itemsLoading: false,
     })
     rerender(<ShoppingListScreen listId="list-1" />)

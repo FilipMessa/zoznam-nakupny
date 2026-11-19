@@ -1,10 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { deleteApp, type App } from 'firebase-admin/app';
+import { test, expect } from '@playwright/test'
+import { deleteApp, type App } from 'firebase-admin/app'
 import {
   getAdminApp,
   seedSignedInMemberWithList,
   signInAsMember,
-} from './fixtures';
+} from './fixtures'
 
 // ---------------------------------------------------------------------------
 // Phase 7 mobile-UI-polish smoke test (mobile-chromium / Pixel 7 project).
@@ -50,15 +50,15 @@ import {
 // other e2e specs that also need a signed-in member state.
 // ---------------------------------------------------------------------------
 
-let adminApp: App;
+let adminApp: App
 
 test.beforeAll(() => {
-  adminApp = getAdminApp('mobile-smoke-admin');
-});
+  adminApp = getAdminApp('mobile-smoke-admin')
+})
 
 test.afterAll(async () => {
-  await deleteApp(adminApp);
-});
+  await deleteApp(adminApp)
+})
 
 test.describe('mobile shopping list flow (Pixel 7)', () => {
   test('add an item, mark it done, and use the list switcher bottom sheet', async ({
@@ -74,29 +74,29 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     test.skip(
       testInfo.project.name !== 'mobile-chromium',
       'mobile-only smoke test',
-    );
+    )
 
-    const fixture = await seedSignedInMemberWithList(adminApp);
-    await signInAsMember(page, fixture.customToken, fixture.listId);
+    const fixture = await seedSignedInMemberWithList(adminApp)
+    await signInAsMember(page, fixture.customToken, fixture.listId)
 
-    await expect(page.getByText(fixture.listName)).toBeVisible();
+    await expect(page.getByText(fixture.listName)).toBeVisible()
 
     // --- Add an item via the sticky bottom add-bar -------------------------
-    const addInput = page.getByRole('textbox').first();
-    await expect(addInput).toBeVisible();
-    await addInput.click();
-    await addInput.fill('mlieko');
-    const addButton = page.getByRole('button', { name: /pridať/i });
-    await expect(addButton).toBeVisible();
-    await addButton.click();
+    const addInput = page.getByRole('textbox').first()
+    await expect(addInput).toBeVisible()
+    await addInput.click()
+    await addInput.fill('mlieko')
+    const addButton = page.getByRole('button', { name: /pridať/i })
+    await expect(addButton).toBeVisible()
+    await addButton.click()
 
-    await expect(page.getByText('mlieko')).toBeVisible();
+    await expect(page.getByText('mlieko')).toBeVisible()
 
     // --- Check it off and confirm it moves to "Hotové" ----------------------
-    const activeSection = page.getByRole('heading', { name: /na kúpu/i });
-    await expect(activeSection).toBeVisible();
-    const doneSection = page.getByRole('heading', { name: /hotové/i });
-    await expect(doneSection).toBeVisible();
+    const activeSection = page.getByRole('heading', { name: /na kúpu/i })
+    await expect(activeSection).toBeVisible()
+    const doneSection = page.getByRole('heading', { name: /hotové/i })
+    await expect(doneSection).toBeVisible()
 
     // The app's active-item checkbox is a controlled input that's always
     // unchecked while the item is active (an item only appears in "Na kúpu"
@@ -106,38 +106,38 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     // which never happens here by design, so a plain `.click()` (verified
     // below by the item showing up under the "Hotové" section) is the
     // correct action rather than `.check()`.
-    const itemCheckbox = page.getByRole('checkbox').first();
-    await expect(itemCheckbox).toBeVisible();
+    const itemCheckbox = page.getByRole('checkbox').first()
+    await expect(itemCheckbox).toBeVisible()
     // The native input is visually hidden behind Checkbox.Control, which
     // paints on top of it at the same position -- a real tap lands on the
     // control and is forwarded to the input by the wrapping <label>, so
     // force the click rather than waiting for the input itself to be
     // hit-testable.
-    await itemCheckbox.click({ force: true });
+    await itemCheckbox.click({ force: true })
 
     await expect(
-      page
-        .locator('section', { has: doneSection })
-        .getByText('mlieko'),
-    ).toBeVisible();
+      page.locator('section', { has: doneSection }).getByText('mlieko'),
+    ).toBeVisible()
 
     // --- Open the list switcher and confirm it renders as a bottom sheet ---
-    const switcherTrigger = page.getByRole('button', { name: /prepnúť zoznam/i });
-    await expect(switcherTrigger).toBeVisible();
-    await switcherTrigger.click();
+    const switcherTrigger = page.getByRole('button', {
+      name: /prepnúť zoznam/i,
+    })
+    await expect(switcherTrigger).toBeVisible()
+    await switcherTrigger.click()
 
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toHaveAttribute('aria-modal', 'true')
 
     // --- Close it via the backdrop ------------------------------------------
-    const backdrop = page.getByTestId('list-switcher-backdrop');
-    await expect(backdrop).toBeVisible();
+    const backdrop = page.getByTestId('list-switcher-backdrop')
+    await expect(backdrop).toBeVisible()
     // The backdrop div is purely decorative (dismissal is driven by an
     // outside-pointerdown listener on the document, not a click on this
     // element specifically), so it never itself receives pointer events --
     // force the click past that check.
-    await backdrop.click({ position: { x: 2, y: 2 }, force: true });
-    await expect(dialog).toBeHidden();
-  });
-});
+    await backdrop.click({ position: { x: 2, y: 2 }, force: true })
+    await expect(dialog).toBeHidden()
+  })
+})

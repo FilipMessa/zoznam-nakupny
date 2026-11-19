@@ -68,9 +68,9 @@ describe('googleAuth', () => {
       firebaseAuthMocks.provider,
     )
     expect(firebaseAuthMocks.signInWithRedirect).not.toHaveBeenCalled()
-    expect(
-      firebaseAuthMocks.provider.setCustomParameters,
-    ).toHaveBeenCalledWith({ prompt: 'select_account' })
+    expect(firebaseAuthMocks.provider.setCustomParameters).toHaveBeenCalledWith(
+      { prompt: 'select_account' },
+    )
   })
 
   it('uses a redirect sign-in flow on mobile browsers', async () => {

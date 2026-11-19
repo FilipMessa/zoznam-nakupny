@@ -30,10 +30,23 @@ export function EmptyListsState({ onCreateClick }: EmptyListsStateProps) {
       >
         <ShoppingBag size={46} strokeWidth={1.5} />
       </Flex>
-      <Heading as="h2" fontSize="24px" fontWeight="900" color="fg" letterSpacing="-0.4px" m="0 0 12px">
+      <Heading
+        as="h2"
+        fontSize="24px"
+        fontWeight="900"
+        color="fg"
+        letterSpacing="-0.4px"
+        m="0 0 12px"
+      >
         Zatiaľ žiadne zoznamy
       </Heading>
-      <Text fontSize="16px" color="fg.muted" lineHeight="1.6" m="0 0 44px" maxW="260px">
+      <Text
+        fontSize="16px"
+        color="fg.muted"
+        lineHeight="1.6"
+        m="0 0 44px"
+        maxW="260px"
+      >
         Vytvorte si svoj prvý zoznam a začnite nakupovať.
       </Text>
       <Button

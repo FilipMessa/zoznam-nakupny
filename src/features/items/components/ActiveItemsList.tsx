@@ -1,9 +1,6 @@
 import { Box, Text } from '@chakra-ui/react'
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { ShoppingItem } from '../types'
 import { reorderActiveItems } from '../itemLogic'
 import { useShoppingListDndSensors } from '../dndSensors'
@@ -38,7 +35,12 @@ export function ActiveItemsList({
 
   if (items.length === 0) {
     return (
-      <Text padding="10px 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
+      <Text
+        padding="10px 16px 20px"
+        fontSize="14px"
+        color="fg.subtle"
+        fontWeight="500"
+      >
         Žiadne položky na kúpu. Skvelá práca!
       </Text>
     )

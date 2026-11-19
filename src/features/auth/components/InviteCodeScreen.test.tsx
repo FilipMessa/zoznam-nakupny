@@ -32,7 +32,10 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
+    await user.type(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+      'ABC123',
+    )
     await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     await waitFor(() => {
@@ -46,7 +49,10 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'BADCODE')
+    await user.type(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+      'BADCODE',
+    )
     await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     await waitFor(() => {
@@ -66,7 +72,10 @@ describe('InviteCodeScreen', () => {
     const user = userEvent.setup()
     render(<InviteCodeScreen markAsMember={markAsMember} />)
 
-    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
+    await user.type(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+      'ABC123',
+    )
     await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()

@@ -63,9 +63,7 @@ describe('firestore.rules', () => {
 
     it('cannot read or write lists', async () => {
       const db = testEnv.unauthenticatedContext().firestore()
-      await assertFails(
-        getDoc(doc(db, `families/${FAMILY_ID}/lists`, LIST_ID)),
-      )
+      await assertFails(getDoc(doc(db, `families/${FAMILY_ID}/lists`, LIST_ID)))
       await assertFails(
         setDoc(doc(db, `families/${FAMILY_ID}/lists`, 'new-list'), {
           name: 'Nope',
@@ -97,9 +95,7 @@ describe('firestore.rules', () => {
   describe('signed-in user with no membership doc', () => {
     it('cannot read or write lists or items', async () => {
       const db = testEnv.authenticatedContext(NON_MEMBER_UID).firestore()
-      await assertFails(
-        getDoc(doc(db, `families/${FAMILY_ID}/lists`, LIST_ID)),
-      )
+      await assertFails(getDoc(doc(db, `families/${FAMILY_ID}/lists`, LIST_ID)))
       await assertFails(
         setDoc(doc(db, `families/${FAMILY_ID}/lists`, 'new-list'), {
           name: 'Nope',
@@ -127,10 +123,9 @@ describe('firestore.rules', () => {
     it('can create its own members doc but not one for another uid', async () => {
       const db = testEnv.authenticatedContext(NON_MEMBER_UID).firestore()
       await assertSucceeds(
-        setDoc(
-          doc(db, `families/${FAMILY_ID}/members`, NON_MEMBER_UID),
-          { uid: NON_MEMBER_UID },
-        ),
+        setDoc(doc(db, `families/${FAMILY_ID}/members`, NON_MEMBER_UID), {
+          uid: NON_MEMBER_UID,
+        }),
       )
       await assertFails(
         setDoc(doc(db, `families/${FAMILY_ID}/members`, OTHER_UID), {

@@ -48,8 +48,19 @@ export function CreateListForm({
         padding="20px"
         boxShadow="md"
       >
-        <Box display="flex" alignItems="center" justifyContent="space-between" gap="12px">
-          <Text id="create-list-dialog-title" fontWeight="800" fontSize="17px" color="fg" m="0">
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          gap="12px"
+        >
+          <Text
+            id="create-list-dialog-title"
+            fontWeight="800"
+            fontSize="17px"
+            color="fg"
+            m="0"
+          >
             Nový zoznam
           </Text>
           <Button

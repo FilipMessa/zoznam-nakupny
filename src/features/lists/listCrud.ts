@@ -1,6 +1,4 @@
-export type ValidateListNameResult =
-  | { ok: true; name: string }
-  | { ok: false }
+export type ValidateListNameResult = { ok: true; name: string } | { ok: false }
 
 export function validateListName(name: string): ValidateListNameResult {
   const trimmed = name.trim()

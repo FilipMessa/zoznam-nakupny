@@ -41,10 +41,23 @@ export function SignInScreen() {
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
       </Flex>
-      <Heading as="h1" fontSize="30px" fontWeight="900" color="fg" letterSpacing="-0.8px" m="0 0 8px">
+      <Heading
+        as="h1"
+        fontSize="30px"
+        fontWeight="900"
+        color="fg"
+        letterSpacing="-0.8px"
+        m="0 0 8px"
+      >
         Zoznam nákupný
       </Heading>
-      <Text fontSize="16px" color="fg.muted" lineHeight="1.5" m="0 0 56px" maxW="240px">
+      <Text
+        fontSize="16px"
+        color="fg.muted"
+        lineHeight="1.5"
+        m="0 0 56px"
+        maxW="240px"
+      >
         Spoločný nákupný zoznam pre celú rodinu.
       </Text>
       <Button

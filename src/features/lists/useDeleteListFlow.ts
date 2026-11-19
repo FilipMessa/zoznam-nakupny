@@ -30,5 +30,10 @@ export function useDeleteListFlow(
     await deleteList(selectedList.id)
   }
 
-  return { showDeleteConfirm, openDeleteConfirm, closeDeleteConfirm, handleDelete }
+  return {
+    showDeleteConfirm,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    handleDelete,
+  }
 }

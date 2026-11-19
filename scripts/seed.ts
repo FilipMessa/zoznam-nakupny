@@ -16,10 +16,9 @@ const db = getFirestore()
 async function seed() {
   const inviteCode = randomBytes(16).toString('hex')
 
-  await db.doc(`families/${FAMILY_ID}`).set(
-    { createdAt: FieldValue.serverTimestamp() },
-    { merge: true },
-  )
+  await db
+    .doc(`families/${FAMILY_ID}`)
+    .set({ createdAt: FieldValue.serverTimestamp() }, { merge: true })
 
   await db.doc(`invites/${inviteCode}`).set({
     familyId: FAMILY_ID,

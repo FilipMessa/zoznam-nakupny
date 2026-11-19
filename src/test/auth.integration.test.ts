@@ -20,7 +20,15 @@ import {
   setDoc,
   type Firestore,
 } from 'firebase/firestore'
-import { beforeAll, afterAll, beforeEach, afterEach, describe, it, expect } from 'vitest'
+import {
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+} from 'vitest'
 import { FAMILY_ID } from '../constants/family'
 import { redeemInviteCode } from '../features/auth/inviteService'
 

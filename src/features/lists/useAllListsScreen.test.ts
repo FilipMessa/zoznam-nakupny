@@ -79,14 +79,20 @@ function makeDragEndEvent(
   return {
     active: { id: activeId, data: { current: { listId: activeListId } } },
     over: overId
-      ? { id: overId, data: { current: overListId ? { listId: overListId } : {} } }
+      ? {
+          id: overId,
+          data: { current: overListId ? { listId: overListId } : {} },
+        }
       : null,
   } as unknown as DragEndEvent
 }
 
 // Builds a minimal DragStartEvent -- only the fields useAllListsScreen's
 // onDragStart actually reads (active.id, active.data.current.listId).
-function makeDragStartEvent(activeId: string, activeListId: string): DragStartEvent {
+function makeDragStartEvent(
+  activeId: string,
+  activeListId: string,
+): DragStartEvent {
   return {
     active: { id: activeId, data: { current: { listId: activeListId } } },
   } as unknown as DragStartEvent
@@ -142,7 +148,9 @@ describe('useAllListsScreen', () => {
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
 
-      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      act(() =>
+        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+      )
 
       expect(result.current.draggedItem).toBe(item)
     })
@@ -151,7 +159,9 @@ describe('useAllListsScreen', () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
-      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      act(() =>
+        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+      )
       expect(result.current.draggedItem).toBe(item)
 
       act(() =>
@@ -165,7 +175,9 @@ describe('useAllListsScreen', () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
-      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      act(() =>
+        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+      )
       expect(result.current.draggedItem).toBe(item)
 
       act(() => result.current.handleDragCancel())
@@ -175,9 +187,13 @@ describe('useAllListsScreen', () => {
 
     it('stays null when the dragged item is not found in the registered list', () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
-      act(() => result.current.registerActiveItems('list-1', [makeItem({ id: 'b' })]))
+      act(() =>
+        result.current.registerActiveItems('list-1', [makeItem({ id: 'b' })]),
+      )
 
-      act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
+      act(() =>
+        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+      )
 
       expect(result.current.draggedItem).toBeNull()
     })
@@ -311,7 +327,10 @@ describe('useAllListsScreen', () => {
     })
 
     it('shows a toast when moveItemToList reports an expected conflict', async () => {
-      mockedMoveItemToList.mockResolvedValue({ ok: false, reason: 'source-missing' })
+      mockedMoveItemToList.mockResolvedValue({
+        ok: false,
+        reason: 'source-missing',
+      })
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })])
@@ -332,7 +351,9 @@ describe('useAllListsScreen', () => {
     })
 
     it('shows a generic toast and logs when moveItemToList rejects', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
       mockedMoveItemToList.mockRejectedValue(new Error('boom'))
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
@@ -347,7 +368,10 @@ describe('useAllListsScreen', () => {
         await Promise.resolve()
       })
 
-      expect(mockedNotify).toHaveBeenCalledWith('Presun sa nepodarilo.', 'error')
+      expect(mockedNotify).toHaveBeenCalledWith(
+        'Presun sa nepodarilo.',
+        'error',
+      )
       expect(consoleErrorSpy).toHaveBeenCalled()
       consoleErrorSpy.mockRestore()
     })
@@ -404,7 +428,12 @@ describe('useAllListsScreen', () => {
         await result.current.handleAddItem('chlieb')
       })
 
-      expect(mockedAddItem).toHaveBeenCalledWith('list-1', 'chlieb', 'uid-1', items)
+      expect(mockedAddItem).toHaveBeenCalledWith(
+        'list-1',
+        'chlieb',
+        'uid-1',
+        items,
+      )
     })
 
     it('does nothing when no add target is selected', async () => {
@@ -458,8 +487,16 @@ describe('useAllListsScreen', () => {
 
     it('merges registered done items from multiple lists sorted newest-first', () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
-      const older = makeItem({ id: 'a', status: 'done', completedAt: fakeTimestamp(100) })
-      const newer = makeItem({ id: 'b', status: 'done', completedAt: fakeTimestamp(200) })
+      const older = makeItem({
+        id: 'a',
+        status: 'done',
+        completedAt: fakeTimestamp(100),
+      })
+      const newer = makeItem({
+        id: 'b',
+        status: 'done',
+        completedAt: fakeTimestamp(200),
+      })
 
       act(() => {
         result.current.registerDoneItems('list-1', [older])
@@ -481,7 +518,11 @@ describe('useAllListsScreen', () => {
         await result.current.handleUncheckDone('list-1', 'done-1')
       })
 
-      expect(mockedUncheckItem).toHaveBeenCalledWith('list-1', 'done-1', activeItems)
+      expect(mockedUncheckItem).toHaveBeenCalledWith(
+        'list-1',
+        'done-1',
+        activeItems,
+      )
     })
 
     it('handleUncheckDone re-expands the origin list if it is collapsed and triggers its scroll requester', async () => {
@@ -525,7 +566,9 @@ describe('useAllListsScreen', () => {
     })
 
     it('shows a toast and logs when clearing done items fails for some lists', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
       mockedClearDoneItems
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('boom'))

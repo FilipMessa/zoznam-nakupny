@@ -8,12 +8,21 @@ export interface InviteCodeFormProps {
   error: RedeemError | null
 }
 
-export function InviteCodeForm({ onSubmit, pending, error }: InviteCodeFormProps) {
+export function InviteCodeForm({
+  onSubmit,
+  pending,
+  error,
+}: InviteCodeFormProps) {
   const { code, handleCodeChange, submitDisabled, handleSubmit } =
     useInviteCodeField({ pending, onSubmit })
 
   return (
-    <chakra.form display="flex" flexDirection="column" flex="1 1 auto" onSubmit={handleSubmit}>
+    <chakra.form
+      display="flex"
+      flexDirection="column"
+      flex="1 1 auto"
+      onSubmit={handleSubmit}
+    >
       <chakra.label
         htmlFor="invite-code-input"
         display="block"

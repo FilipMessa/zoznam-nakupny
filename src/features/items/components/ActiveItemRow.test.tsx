@@ -43,7 +43,11 @@ function makeProps(
 
 describe('ActiveItemRow', () => {
   it('renders the item text', () => {
-    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ text: 'mlieko' }) })} />)
+    render(
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ text: 'mlieko' }) })}
+      />,
+    )
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
   })
@@ -60,7 +64,11 @@ describe('ActiveItemRow', () => {
     // it was pulled out to a plain sibling <Text> so tapping the text
     // wouldn't also toggle the checkbox -- that also silently dropped the
     // checkbox's accessible name unless it's set explicitly.
-    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ text: 'mlieko' }) })} />)
+    render(
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ text: 'mlieko' }) })}
+      />,
+    )
 
     expect(screen.getByRole('checkbox', { name: 'mlieko' })).toBeInTheDocument()
   })
@@ -68,7 +76,11 @@ describe('ActiveItemRow', () => {
   it('does not toggle the checkbox when the item text is clicked', async () => {
     const onCheck = vi.fn()
     const user = userEvent.setup()
-    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ text: 'mlieko' }), onCheck })} />)
+    render(
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ text: 'mlieko' }), onCheck })}
+      />,
+    )
 
     await user.click(screen.getByText('mlieko'))
 
@@ -103,7 +115,9 @@ describe('ActiveItemRow', () => {
     // they're excluded from the accessibility tree -- query by attribute
     // instead of role, same as the existing swipe-reveal button tests do.
     await user.click(
-      container.querySelector<HTMLButtonElement>('button[aria-label="Zmazať"]')!,
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label="Zmazať"]',
+      )!,
     )
 
     expect(onDelete).toHaveBeenCalledWith('item-9')
@@ -119,7 +133,9 @@ describe('ActiveItemRow', () => {
     )
 
     await user.click(
-      container.querySelector<HTMLButtonElement>('button[aria-label="Upraviť"]')!,
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label="Upraviť"]',
+      )!,
     )
 
     expect(onStartEdit).toHaveBeenCalledWith('item-9')
@@ -128,9 +144,10 @@ describe('ActiveItemRow', () => {
   it('makes the whole item row the sortable drag activator', () => {
     render(<ActiveItemRow {...makeProps()} />)
 
-    expect(
-      screen.getByTestId('active-item-content-item-1'),
-    ).toHaveAttribute('aria-roledescription', 'sortable')
+    expect(screen.getByTestId('active-item-content-item-1')).toHaveAttribute(
+      'aria-roledescription',
+      'sortable',
+    )
     expect(
       screen.queryByRole('button', { name: /presunúť/i }),
     ).not.toBeInTheDocument()
@@ -142,10 +159,26 @@ describe('ActiveItemRow', () => {
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
 
     expect(
       container.querySelector('button[aria-label="Vymazať položku"]'),
@@ -159,16 +192,34 @@ describe('ActiveItemRow', () => {
     const onDelete = vi.fn()
     const user = userEvent.setup()
     const { container } = render(
-      <ActiveItemRow {...makeProps({ item: makeActiveItem({ id: 'item-1' }), onDelete })} />,
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ id: 'item-1' }), onDelete })}
+      />,
     )
 
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
 
     const revealButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Vymazať položku"]',
@@ -182,16 +233,34 @@ describe('ActiveItemRow', () => {
     const onStartEdit = vi.fn()
     const user = userEvent.setup()
     const { container } = render(
-      <ActiveItemRow {...makeProps({ item: makeActiveItem({ id: 'item-1' }), onStartEdit })} />,
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ id: 'item-1' }), onStartEdit })}
+      />,
     )
 
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
 
     const revealButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Upraviť položku"]',
@@ -203,33 +272,69 @@ describe('ActiveItemRow', () => {
 
   it('does not reveal actions on a vertical touch drag (reorder gesture)', () => {
     const { container } = render(
-      <ActiveItemRow {...makeProps({ item: makeActiveItem({ id: 'item-1' }) })} />,
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ id: 'item-1' }) })}
+      />,
     )
 
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 202, clientY: 150 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 203, clientY: 200 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 203, clientY: 200 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 202,
+      clientY: 150,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 203,
+      clientY: 200,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 203,
+      clientY: 200,
+    })
 
-    const revealButton = container.querySelector('button[aria-label="Vymazať položku"]')
+    const revealButton = container.querySelector(
+      'button[aria-label="Vymazať položku"]',
+    )
     expect(revealButton).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('does not swipe for mouse pointer input, leaving mouse drag activation untouched', () => {
     const { container } = render(
-      <ActiveItemRow {...makeProps({ item: makeActiveItem({ id: 'item-1' }) })} />,
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ id: 'item-1' }) })}
+      />,
     )
 
     const content = screen.getByTestId('active-item-content-item-1')
 
-    fireEvent.pointerDown(content, { pointerType: 'mouse', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'mouse', clientX: 100, clientY: 100 })
-    fireEvent.pointerUp(content, { pointerType: 'mouse', clientX: 100, clientY: 100 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'mouse',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'mouse',
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'mouse',
+      clientX: 100,
+      clientY: 100,
+    })
 
-    const revealButton = container.querySelector('button[aria-label="Vymazať položku"]')
+    const revealButton = container.querySelector(
+      'button[aria-label="Vymazať položku"]',
+    )
     expect(revealButton).toHaveAttribute('aria-hidden', 'true')
   })
 
@@ -240,15 +345,33 @@ describe('ActiveItemRow', () => {
     // isSwipeOpen=true, since that only happens *after* this row tells the
     // parent it opened (a round trip that can't complete before the user's
     // own gesture finishes).
-    const { container } = render(<ActiveItemRow {...makeProps({ isSwipeOpen: false })} />)
+    const { container } = render(
+      <ActiveItemRow {...makeProps({ isSwipeOpen: false })} />,
+    )
 
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
 
     expect(
       container.querySelector('button[aria-label="Vymazať položku"]'),
@@ -263,10 +386,26 @@ describe('ActiveItemRow', () => {
     const content = screen.getByTestId('active-item-content-item-1')
     content.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-    fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-    fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
 
     expect(
       container.querySelector('button[aria-label="Vymazať položku"]'),
@@ -280,13 +419,21 @@ describe('ActiveItemRow', () => {
   })
 
   it('shows a pending-sync icon when the item has not synced yet', () => {
-    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ pendingSync: true }) })} />)
+    render(
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ pendingSync: true }) })}
+      />,
+    )
 
     expect(screen.getByTitle('Čaká na odoslanie')).toBeInTheDocument()
   })
 
   it('does not show a pending-sync icon once the item has synced', () => {
-    render(<ActiveItemRow {...makeProps({ item: makeActiveItem({ pendingSync: false }) })} />)
+    render(
+      <ActiveItemRow
+        {...makeProps({ item: makeActiveItem({ pendingSync: false }) })}
+      />,
+    )
 
     expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
   })
@@ -299,10 +446,26 @@ describe('ActiveItemRow', () => {
 
       const content = screen.getByTestId('active-item-content-item-1')
       content.setPointerCapture = vi.fn()
-      fireEvent.pointerDown(content, { pointerType: 'touch', clientX: 200, clientY: 100 })
-      fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 150, clientY: 102 })
-      fireEvent.pointerMove(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
-      fireEvent.pointerUp(content, { pointerType: 'touch', clientX: 50, clientY: 103 })
+      fireEvent.pointerDown(content, {
+        pointerType: 'touch',
+        clientX: 200,
+        clientY: 100,
+      })
+      fireEvent.pointerMove(content, {
+        pointerType: 'touch',
+        clientX: 150,
+        clientY: 102,
+      })
+      fireEvent.pointerMove(content, {
+        pointerType: 'touch',
+        clientX: 50,
+        clientY: 103,
+      })
+      fireEvent.pointerUp(content, {
+        pointerType: 'touch',
+        clientX: 50,
+        clientY: 103,
+      })
 
       expect(
         container.querySelector('button[aria-label="Vymazať položku"]'),
@@ -310,7 +473,11 @@ describe('ActiveItemRow', () => {
 
       // Simulate the parent switching this row into edit mode (as it would
       // after the desktop Pencil button's onClick calls onStartEdit).
-      rerender(<ActiveItemRow {...makeProps({ isSwipeOpen: true, isEditing: true })} />)
+      rerender(
+        <ActiveItemRow
+          {...makeProps({ isSwipeOpen: true, isEditing: true })}
+        />,
+      )
 
       const deleteButton = container.querySelector(
         'button[aria-label="Vymazať položku"]',
@@ -327,7 +494,10 @@ describe('ActiveItemRow', () => {
     it('renders a text input pre-filled with the item text when editing', () => {
       render(
         <ActiveItemRow
-          {...makeProps({ item: makeActiveItem({ text: 'mlieko' }), isEditing: true })}
+          {...makeProps({
+            item: makeActiveItem({ text: 'mlieko' }),
+            isEditing: true,
+          })}
         />,
       )
 

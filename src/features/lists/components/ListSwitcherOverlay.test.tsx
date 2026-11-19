@@ -7,7 +7,12 @@ import { ListContentPlaceholder } from './ListContentPlaceholder'
 import type { ShoppingList } from '../types'
 
 const lists: ShoppingList[] = [
-  { id: 'list-a', name: 'Groceries', createdAt: null as never, createdBy: 'u1' },
+  {
+    id: 'list-a',
+    name: 'Groceries',
+    createdAt: null as never,
+    createdBy: 'u1',
+  },
   { id: 'list-b', name: 'Hardware', createdAt: null as never, createdBy: 'u1' },
 ]
 
@@ -183,7 +188,9 @@ describe('ListSwitcherOverlay', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /vytvoriť nový zoznam/i }))
+    await user.click(
+      screen.getByRole('button', { name: /vytvoriť nový zoznam/i }),
+    )
 
     expect(onCreate).toHaveBeenCalledTimes(1)
   })

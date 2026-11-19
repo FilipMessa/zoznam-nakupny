@@ -19,7 +19,12 @@ export function DoneItemsList({
 }: DoneItemsListProps) {
   if (items.length === 0) {
     return (
-      <Text padding="10px 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
+      <Text
+        padding="10px 16px 20px"
+        fontSize="14px"
+        color="fg.subtle"
+        fontWeight="500"
+      >
         Zatiaľ nič hotové.
       </Text>
     )

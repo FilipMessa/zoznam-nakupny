@@ -196,7 +196,7 @@ describe('AllListsSection', () => {
     ).not.toHaveAttribute('aria-current')
   })
 
-  it('calls checkItem with this section\'s listId when an item is checked', async () => {
+  it("calls checkItem with this section's listId when an item is checked", async () => {
     mockedUseItems.mockReturnValue({
       items: [makeItem({ id: 'a', text: 'mlieko' })],
       itemsLoading: false,
@@ -205,7 +205,9 @@ describe('AllListsSection', () => {
     const user = userEvent.setup()
 
     render(
-      <AllListsSection {...defaultProps({ list: makeList({ id: 'list-42' }) })} />,
+      <AllListsSection
+        {...defaultProps({ list: makeList({ id: 'list-42' }) })}
+      />,
     )
 
     await user.click(screen.getByRole('checkbox', { name: 'mlieko' }))
@@ -213,7 +215,7 @@ describe('AllListsSection', () => {
     expect(mockedCheckItem).toHaveBeenCalledWith('list-42', 'a', 'uid-1')
   })
 
-  it('calls deleteItem with this section\'s listId when an item is deleted', async () => {
+  it("calls deleteItem with this section's listId when an item is deleted", async () => {
     mockedUseItems.mockReturnValue({
       items: [makeItem({ id: 'a', text: 'mlieko' })],
       itemsLoading: false,
@@ -222,7 +224,9 @@ describe('AllListsSection', () => {
     const user = userEvent.setup()
 
     const { container } = render(
-      <AllListsSection {...defaultProps({ list: makeList({ id: 'list-42' }) })} />,
+      <AllListsSection
+        {...defaultProps({ list: makeList({ id: 'list-42' }) })}
+      />,
     )
 
     // The desktop icon button is `display: none` below the `md` breakpoint,
@@ -230,7 +234,9 @@ describe('AllListsSection', () => {
     // accessibility tree -- query by attribute instead of role, same as
     // ActiveItemRow.test.tsx does for this same button.
     await user.click(
-      container.querySelector<HTMLButtonElement>('button[aria-label="Zmazať"]')!,
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label="Zmazať"]',
+      )!,
     )
 
     expect(mockedDeleteItem).toHaveBeenCalledWith('list-42', 'a')

@@ -73,10 +73,16 @@ function resolveDrop(
   const overIdStr = String(overId)
 
   if (overIdStr.startsWith(LIST_HEADER_DROPPABLE_PREFIX)) {
-    return { destListId: overIdStr.slice(LIST_HEADER_DROPPABLE_PREFIX.length), toIndex: undefined }
+    return {
+      destListId: overIdStr.slice(LIST_HEADER_DROPPABLE_PREFIX.length),
+      toIndex: undefined,
+    }
   }
   if (overIdStr.startsWith(LIST_BODY_DROPPABLE_PREFIX)) {
-    return { destListId: overIdStr.slice(LIST_BODY_DROPPABLE_PREFIX.length), toIndex: undefined }
+    return {
+      destListId: overIdStr.slice(LIST_BODY_DROPPABLE_PREFIX.length),
+      toIndex: undefined,
+    }
   }
 
   // Otherwise `over` is an item row -- its sortableData carries the list it
@@ -95,7 +101,9 @@ function resolveDrop(
 // cross-list drag is even possible would work against that. Collapsing a
 // section is a purely opt-in way to reduce clutter, not persisted across
 // screen opens (a fresh Set every time this hook mounts).
-export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResult {
+export function useAllListsScreen(
+  lists: ShoppingList[],
+): UseAllListsScreenResult {
   const { user } = useAuth()
   const [collapsedListIds, setCollapsedListIds] = useState<Set<string>>(
     () => new Set(),
@@ -120,9 +128,12 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
   // re-render of this hook's owner.
   const activeItemsByListId = useRef<Map<string, ShoppingItem[]>>(new Map())
 
-  const registerActiveItems = useCallback((listId: string, items: ShoppingItem[]) => {
-    activeItemsByListId.current.set(listId, items)
-  }, [])
+  const registerActiveItems = useCallback(
+    (listId: string, items: ShoppingItem[]) => {
+      activeItemsByListId.current.set(listId, items)
+    },
+    [],
+  )
 
   const isExpanded = useCallback(
     (listId: string) => !collapsedListIds.has(listId),
@@ -214,9 +225,12 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
     Map<string, ShoppingItem[]>
   >(new Map())
 
-  const registerDoneItems = useCallback((listId: string, items: ShoppingItem[]) => {
-    setDoneItemsByListId((prev) => new Map(prev).set(listId, items))
-  }, [])
+  const registerDoneItems = useCallback(
+    (listId: string, items: ShoppingItem[]) => {
+      setDoneItemsByListId((prev) => new Map(prev).set(listId, items))
+    },
+    [],
+  )
 
   // Memoized so AllListsDoneSection (React.memo) only re-renders when the
   // merge's actual inputs change, not on every unrelated render of this hook.
@@ -235,9 +249,12 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
     [expandIfCollapsed],
   )
 
-  const handleDeleteDone = useCallback(async (listId: string, itemId: string) => {
-    await deleteItem(listId, itemId)
-  }, [])
+  const handleDeleteDone = useCallback(
+    async (listId: string, itemId: string) => {
+      await deleteItem(listId, itemId)
+    },
+    [],
+  )
 
   const handleClearAllDone = useCallback(async () => {
     const results = await Promise.allSettled(
@@ -245,10 +262,7 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
     )
     const hasFailure = results.some((result) => result.status === 'rejected')
     if (hasFailure) {
-      console.error(
-        'Failed to clear done items for one or more lists',
-        results,
-      )
+      console.error('Failed to clear done items for one or more lists', results)
       notify('Vyčistenie sa nepodarilo pre niektoré zoznamy.', 'error')
     }
   }, [lists])
@@ -287,7 +301,11 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
       return
     }
 
-    const drop = resolveDrop(over.id, activeItemsByListId.current, over.data.current)
+    const drop = resolveDrop(
+      over.id,
+      activeItemsByListId.current,
+      over.data.current,
+    )
     if (!drop) {
       return
     }
@@ -299,11 +317,17 @@ export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResul
       if (fromIndex === resolvedToIndex) {
         return
       }
-      const newOrder = reorderActiveItems(sourceItems, fromIndex, resolvedToIndex)
-      reorderItem(sourceListId, String(active.id), newOrder).catch((error: unknown) => {
-        console.error('Failed to reorder item', error)
-        notify('Preusporiadanie sa nepodarilo.', 'error')
-      })
+      const newOrder = reorderActiveItems(
+        sourceItems,
+        fromIndex,
+        resolvedToIndex,
+      )
+      reorderItem(sourceListId, String(active.id), newOrder).catch(
+        (error: unknown) => {
+          console.error('Failed to reorder item', error)
+          notify('Preusporiadanie sa nepodarilo.', 'error')
+        },
+      )
       return
     }
 

@@ -97,7 +97,13 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         </Box>
       </Box>
 
-      <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
+      <Box
+        flex="0 0 auto"
+        bg="bg"
+        borderTop="1px solid"
+        borderColor="border"
+        pb="env(safe-area-inset-bottom)"
+      >
         <AddItemForm
           onSubmit={(text) => void handleAdd(text)}
           error={addError}

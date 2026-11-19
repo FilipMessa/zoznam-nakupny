@@ -49,9 +49,7 @@ export function ListSwitcherItem({
         <Box
           as="span"
           title={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
-          aria-label={
-            list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined
-          }
+          aria-label={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
           aria-hidden={list.pendingSync ? undefined : true}
           visibility={list.pendingSync ? 'visible' : 'hidden'}
           color="fg.subtle"

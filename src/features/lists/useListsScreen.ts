@@ -28,8 +28,12 @@ export function useListsScreen() {
     renamePending,
     renameError,
   } = useRenameListForm(selectedList)
-  const { showDeleteConfirm, openDeleteConfirm, closeDeleteConfirm, handleDelete } =
-    useDeleteListFlow(selectedList)
+  const {
+    showDeleteConfirm,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    handleDelete,
+  } = useDeleteListFlow(selectedList)
 
   // The switcher overlay's open state lives here (not in a single-intent
   // hook) because its create action coordinates with the create form:

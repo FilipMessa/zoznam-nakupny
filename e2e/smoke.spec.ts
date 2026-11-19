@@ -1,14 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 
 test('home page loads without console errors', async ({ page }) => {
-  const errors: string[] = [];
+  const errors: string[] = []
   page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(msg.text());
-  });
-  page.on('pageerror', (err) => errors.push(err.message));
+    if (msg.type() === 'error') errors.push(msg.text())
+  })
+  page.on('pageerror', (err) => errors.push(err.message))
 
-  await page.goto('/');
+  await page.goto('/')
 
-  await expect(page.getByRole('heading')).toBeVisible();
-  expect(errors).toEqual([]);
-});
+  await expect(page.getByRole('heading')).toBeVisible()
+  expect(errors).toEqual([])
+})

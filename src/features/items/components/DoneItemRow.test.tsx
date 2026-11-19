@@ -36,7 +36,11 @@ function makeProps(
 
 describe('DoneItemRow', () => {
   it('renders the item text', () => {
-    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ text: 'mlieko' }) })} />)
+    render(
+      <DoneItemRow
+        {...makeProps({ item: makeDoneItem({ text: 'mlieko' }) })}
+      />,
+    )
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
   })
@@ -116,13 +120,21 @@ describe('DoneItemRow', () => {
   })
 
   it('shows a pending-sync icon when the item has not synced yet', () => {
-    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ pendingSync: true }) })} />)
+    render(
+      <DoneItemRow
+        {...makeProps({ item: makeDoneItem({ pendingSync: true }) })}
+      />,
+    )
 
     expect(screen.getByTitle('Čaká na odoslanie')).toBeInTheDocument()
   })
 
   it('does not show a pending-sync icon once the item has synced', () => {
-    render(<DoneItemRow {...makeProps({ item: makeDoneItem({ pendingSync: false }) })} />)
+    render(
+      <DoneItemRow
+        {...makeProps({ item: makeDoneItem({ pendingSync: false }) })}
+      />,
+    )
 
     expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
   })
@@ -132,7 +144,10 @@ describe('DoneItemRow', () => {
     // the full explanation.
     const { container } = render(
       <DoneItemRow
-        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: false })}
+        {...makeProps({
+          item: makeDoneItem({ id: 'item-9' }),
+          isSwipeOpen: false,
+        })}
       />,
     )
 
@@ -164,7 +179,10 @@ describe('DoneItemRow', () => {
   it('snaps an open swipe closed when it loses exclusive open status', () => {
     const { container, rerender } = render(
       <DoneItemRow
-        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: true })}
+        {...makeProps({
+          item: makeDoneItem({ id: 'item-9' }),
+          isSwipeOpen: true,
+        })}
       />,
     )
 
@@ -194,7 +212,10 @@ describe('DoneItemRow', () => {
 
     rerender(
       <DoneItemRow
-        {...makeProps({ item: makeDoneItem({ id: 'item-9' }), isSwipeOpen: false })}
+        {...makeProps({
+          item: makeDoneItem({ id: 'item-9' }),
+          isSwipeOpen: false,
+        })}
       />,
     )
 

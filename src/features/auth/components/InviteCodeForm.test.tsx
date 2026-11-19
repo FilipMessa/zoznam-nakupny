@@ -11,7 +11,10 @@ describe('InviteCodeForm', () => {
     expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()
 
     const user = userEvent.setup()
-    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), 'ABC123')
+    await user.type(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+      'ABC123',
+    )
 
     expect(screen.getByRole('button', { name: /pripojiť/i })).toBeEnabled()
   })
@@ -21,7 +24,10 @@ describe('InviteCodeForm', () => {
     const user = userEvent.setup()
     render(<InviteCodeForm onSubmit={onSubmit} pending={false} error={null} />)
 
-    await user.type(screen.getByRole('textbox', { name: /pozývací kód/i }), '  ABC123  ')
+    await user.type(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+      '  ABC123  ',
+    )
     await user.click(screen.getByRole('button', { name: /pripojiť/i }))
 
     expect(onSubmit).toHaveBeenCalledWith('ABC123')
@@ -31,12 +37,18 @@ describe('InviteCodeForm', () => {
     render(<InviteCodeForm onSubmit={vi.fn()} pending={true} error={null} />)
 
     expect(screen.getByRole('button', { name: /pripojiť/i })).toBeDisabled()
-    expect(screen.getByRole('textbox', { name: /pozývací kód/i })).toBeDisabled()
+    expect(
+      screen.getByRole('textbox', { name: /pozývací kód/i }),
+    ).toBeDisabled()
   })
 
   it('renders an error message for an invalid code', async () => {
     render(
-      <InviteCodeForm onSubmit={vi.fn()} pending={false} error="invalid-code" />,
+      <InviteCodeForm
+        onSubmit={vi.fn()}
+        pending={false}
+        error="invalid-code"
+      />,
     )
 
     await waitFor(() => {
@@ -45,8 +57,12 @@ describe('InviteCodeForm', () => {
   })
 
   it('renders a generic error message for unknown errors', () => {
-    render(<InviteCodeForm onSubmit={vi.fn()} pending={false} error="unknown" />)
+    render(
+      <InviteCodeForm onSubmit={vi.fn()} pending={false} error="unknown" />,
+    )
 
-    expect(screen.getByText(/niečo sa pokazilo|skúste to znova/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/niečo sa pokazilo|skúste to znova/i),
+    ).toBeInTheDocument()
   })
 })

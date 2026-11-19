@@ -89,7 +89,9 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'a', text: 'mlieko' }),
       makeActiveItem({ id: 'b', text: 'vajcia' }),
     ]
-    const { container } = render(<ActiveItemsList {...makeProps({ items, onDelete })} />)
+    const { container } = render(
+      <ActiveItemsList {...makeProps({ items, onDelete })} />,
+    )
 
     // The desktop icon buttons are `display: none` below the `md`
     // breakpoint, which jsdom's default (zero-width) viewport matches, so
@@ -109,7 +111,9 @@ describe('ActiveItemsList', () => {
       makeActiveItem({ id: 'a', text: 'mlieko' }),
       makeActiveItem({ id: 'b', text: 'vajcia' }),
     ]
-    const { container } = render(<ActiveItemsList {...makeProps({ items, onStartEdit })} />)
+    const { container } = render(
+      <ActiveItemsList {...makeProps({ items, onStartEdit })} />,
+    )
 
     const editButtons = container.querySelectorAll<HTMLButtonElement>(
       'button[aria-label="Upraviť"]',

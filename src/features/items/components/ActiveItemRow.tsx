@@ -1,5 +1,13 @@
 import { memo } from 'react'
-import { Box, Button, Checkbox, IconButton, Input, Text, chakra } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Checkbox,
+  IconButton,
+  Input,
+  Text,
+  chakra,
+} from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Clock, GripVertical, Pencil, Trash2 } from 'lucide-react'

@@ -103,7 +103,14 @@ export function ListSwitcherOverlay({
               <X size={16} />
             </Button>
           </Box>
-          <Box as="ul" overflowY="auto" flex="1 1 auto" padding="8px 0" listStyle="none" m="0">
+          <Box
+            as="ul"
+            overflowY="auto"
+            flex="1 1 auto"
+            padding="8px 0"
+            listStyle="none"
+            m="0"
+          >
             {lists.map((list) => (
               <ListSwitcherItem
                 key={list.id}

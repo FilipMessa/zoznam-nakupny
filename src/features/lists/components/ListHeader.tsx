@@ -1,5 +1,12 @@
 import { Box, Flex, IconButton } from '@chakra-ui/react'
-import { ChevronDown, Clock, LayoutList, LogOut, Pencil, Trash2 } from 'lucide-react'
+import {
+  ChevronDown,
+  Clock,
+  LayoutList,
+  LogOut,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import { signOutUser } from '../../auth/googleAuth'
 import { useOnlineStatus } from '../../../lib/useOnlineStatus'
 

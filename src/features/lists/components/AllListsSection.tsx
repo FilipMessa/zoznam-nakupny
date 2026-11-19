@@ -84,7 +84,10 @@ function AllListsSectionImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list.id, done])
 
-  const { requestScrollAfterAdd } = useScrollNewItemIntoView(active, mainScrollRef)
+  const { requestScrollAfterAdd } = useScrollNewItemIntoView(
+    active,
+    mainScrollRef,
+  )
 
   useEffect(() => {
     onRegisterScrollRequester(list.id, requestScrollAfterAdd)
@@ -187,7 +190,9 @@ function AllListsSectionImpl({
           <Box
             as="span"
             title={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
-            aria-label={list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined}
+            aria-label={
+              list.pendingSync ? 'Zoznam čaká na odoslanie' : undefined
+            }
             aria-hidden={list.pendingSync ? undefined : true}
             visibility={list.pendingSync ? 'visible' : 'hidden'}
             color="fg.subtle"
@@ -212,8 +217,17 @@ function AllListsSectionImpl({
               Žiadne položky na kúpu.
             </Text>
           ) : (
-            <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-              <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
+            <SortableContext
+              items={sortableIds}
+              strategy={verticalListSortingStrategy}
+            >
+              <Box
+                as="ul"
+                listStyle="none"
+                m="0"
+                p="0"
+                css={{ userSelect: 'none' }}
+              >
                 {active.map((item) => (
                   <ActiveItemRow
                     key={item.id}
@@ -227,7 +241,9 @@ function AllListsSectionImpl({
                     onSubmitEdit={handleSubmitEdit}
                     onCancelEdit={handleCancelEdit}
                     isSwipeOpen={openSwipeItemId === item.id}
-                    onSwipeOpenChange={(open) => handleSwipeOpenChange(item.id, open)}
+                    onSwipeOpenChange={(open) =>
+                      handleSwipeOpenChange(item.id, open)
+                    }
                   />
                 ))}
               </Box>

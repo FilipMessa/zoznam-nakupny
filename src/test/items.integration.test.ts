@@ -109,7 +109,10 @@ async function seedListAsAdmin(
   data: { name: string },
 ): Promise<void> {
   await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), `families/${FAMILY_ID}/lists`, listId), data)
+    await setDoc(
+      doc(context.firestore(), `families/${FAMILY_ID}/lists`, listId),
+      data,
+    )
   })
 }
 
@@ -167,10 +170,7 @@ async function getItemDocsAsAdmin(listId: string) {
 // active items (the same shape useItems() would hand them from its
 // onSnapshot listener) so they can compute completeItemPatch/restoreItemPatch
 // locally before writing. These convert admin-seeded raw docs into that shape.
-function toActiveItem(
-  id: string,
-  data: Record<string, unknown>,
-): ShoppingItem {
+function toActiveItem(id: string, data: Record<string, unknown>): ShoppingItem {
   return {
     id,
     text: data.text as string,
@@ -239,7 +239,9 @@ describe('itemService (emulator)', () => {
         completedBy: null,
         createdBy: uid,
       })
-      const existingActive = [toActiveItem('item-1', { text: 'chlieb', activeOrder: 1 })]
+      const existingActive = [
+        toActiveItem('item-1', { text: 'chlieb', activeOrder: 1 }),
+      ]
 
       await addItem('list-1', 'vajcia', uid, existingActive, db)
 
@@ -291,7 +293,9 @@ describe('itemService (emulator)', () => {
         completedBy: uid,
         createdBy: uid,
       })
-      const existingActive = [toActiveItem('item-1', { text: 'chlieb', activeOrder: 3 })]
+      const existingActive = [
+        toActiveItem('item-1', { text: 'chlieb', activeOrder: 3 }),
+      ]
 
       await uncheckItem('list-1', 'item-2', existingActive, db)
 
@@ -335,9 +339,9 @@ describe('itemService (emulator)', () => {
         createdBy: uid,
       })
 
-      await expect(
-        editItemText('list-1', 'item-1', '   ', db),
-      ).rejects.toThrow('invalid-item-text')
+      await expect(editItemText('list-1', 'item-1', '   ', db)).rejects.toThrow(
+        'invalid-item-text',
+      )
 
       const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
       expect(itemDoc.data()?.text).toBe('mlieko')
@@ -444,7 +448,11 @@ describe('itemService (emulator)', () => {
         createdAt,
         updatedAt: createdAt,
       })
-      const item = makeShoppingItem('item-1', { createdBy: uid, createdAt, updatedAt: createdAt })
+      const item = makeShoppingItem('item-1', {
+        createdBy: uid,
+        createdAt,
+        updatedAt: createdAt,
+      })
 
       const result = await moveItemToList('list-1', 'list-2', item, 1, db)
 
@@ -490,7 +498,11 @@ describe('itemService (emulator)', () => {
         createdAt,
         updatedAt: createdAt,
       })
-      const item = makeShoppingItem('item-1', { createdBy: uid, createdAt, updatedAt: createdAt })
+      const item = makeShoppingItem('item-1', {
+        createdBy: uid,
+        createdAt,
+        updatedAt: createdAt,
+      })
 
       const result = await moveItemToList('list-1', 'list-2', item, 1, db)
 

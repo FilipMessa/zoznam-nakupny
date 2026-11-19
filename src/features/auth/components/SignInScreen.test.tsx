@@ -32,7 +32,11 @@ describe('SignInScreen', () => {
     expect(mockedSignIn).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/popup-blocked'])(
+  it.each([
+    'auth/popup-closed-by-user',
+    'auth/cancelled-popup-request',
+    'auth/popup-blocked',
+  ])(
     'shows an inline retry message on non-fatal popup error %s, without throwing',
     async (code) => {
       mockedSignIn.mockRejectedValueOnce({ code })

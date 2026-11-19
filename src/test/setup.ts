@@ -1,10 +1,10 @@
-import '@testing-library/jest-dom/vitest';
-import { afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest'
+import { afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
 
 afterEach(() => {
-  cleanup();
-});
+  cleanup()
+})
 
 // jsdom shims required by Chakra UI / Zag.js machines used under the hood
 // by Dialog, Drawer, Checkbox, etc.
@@ -18,15 +18,15 @@ if (!window.matchMedia) {
     addEventListener: () => {},
     removeEventListener: () => {},
     dispatchEvent: () => false,
-  });
+  })
 }
 
 if (!Element.prototype.scrollTo) {
-  Element.prototype.scrollTo = () => {};
+  Element.prototype.scrollTo = () => {}
 }
 
 if (!Element.prototype.scrollIntoView) {
-  Element.prototype.scrollIntoView = () => {};
+  Element.prototype.scrollIntoView = () => {}
 }
 
 if (!window.ResizeObserver) {
@@ -34,5 +34,5 @@ if (!window.ResizeObserver) {
     observe() {}
     unobserve() {}
     disconnect() {}
-  };
+  }
 }

@@ -14,7 +14,11 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { FAMILY_ID } from '../../constants/family'
-import { completeItemPatch, restoreItemPatch, nextActiveOrder } from './itemLogic'
+import {
+  completeItemPatch,
+  restoreItemPatch,
+  nextActiveOrder,
+} from './itemLogic'
 import type { ShoppingItem } from './types'
 
 function itemsCollectionPath(listId: string): string {
@@ -144,8 +148,7 @@ export async function clearDoneItems(
 }
 
 export type MoveItemResult =
-  | { ok: true }
-  | { ok: false; reason: 'source-missing' | 'dest-list-missing' }
+  { ok: true } | { ok: false; reason: 'source-missing' | 'dest-list-missing' }
 
 // Moves an Item to a different List, preserving its identity (same doc id,
 // same createdBy/createdAt) -- this is a move, not a re-creation. There is
@@ -175,7 +178,11 @@ export async function moveItemToList(
   destActiveOrder: number,
   firestore: Firestore = db,
 ): Promise<MoveItemResult> {
-  const sourceItemRef = doc(firestore, itemsCollectionPath(sourceListId), item.id)
+  const sourceItemRef = doc(
+    firestore,
+    itemsCollectionPath(sourceListId),
+    item.id,
+  )
   const destListRef = doc(firestore, listDocPath(), destListId)
   const destItemRef = doc(firestore, itemsCollectionPath(destListId), item.id)
 

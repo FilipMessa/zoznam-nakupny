@@ -80,7 +80,10 @@ afterEach(() => {
 describe('ListsScreen — empty state', () => {
   beforeEach(() => {
     mockedUseLists.mockReturnValue({ lists: [], listsLoading: false })
-    mockedUseSelectedListId.mockReturnValue({ selectedListId: null, selectList })
+    mockedUseSelectedListId.mockReturnValue({
+      selectedListId: null,
+      selectList,
+    })
   })
 
   it('shows the empty state and opens the create form from it', async () => {
@@ -269,7 +272,10 @@ describe('ListsScreen — all lists screen', () => {
     // the resulting empty state would silently re-enter the all-lists
     // screen instead of landing on the normal single-list flow.
     mockedUseLists.mockReturnValue({ lists: [], listsLoading: false })
-    mockedUseSelectedListId.mockReturnValue({ selectedListId: null, selectList })
+    mockedUseSelectedListId.mockReturnValue({
+      selectedListId: null,
+      selectList,
+    })
     rerender(<ListsScreen />)
 
     expect(screen.queryByTestId('all-lists-screen')).not.toBeInTheDocument()

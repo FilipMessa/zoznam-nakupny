@@ -27,7 +27,11 @@ type SnapshotCallback = (snapshot: {
   docChanges: () => { type: 'added' | 'modified' | 'removed'; doc: FakeDoc }[]
 }) => void
 
-function fakeDoc(id: string, data: Record<string, unknown>, hasPendingWrites = false) {
+function fakeDoc(
+  id: string,
+  data: Record<string, unknown>,
+  hasPendingWrites = false,
+) {
   return {
     id,
     data: () => data,
@@ -71,7 +75,9 @@ describe('useItems', () => {
     const firstItemA = result.current.items.find((item) => item.id === 'a')
 
     act(() => {
-      capturedCallback(fakeSnapshot([docA, docB], [{ type: 'modified', doc: docB }]))
+      capturedCallback(
+        fakeSnapshot([docA, docB], [{ type: 'modified', doc: docB }]),
+      )
     })
     const secondItemA = result.current.items.find((item) => item.id === 'a')
 

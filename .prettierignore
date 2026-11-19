@@ -1,0 +1,13 @@
+dist
+dist-ssr
+node_modules
+coverage
+.firebase
+.claude
+test-results
+playwright-report
+blob-report
+playwright
+package-lock.json
+# Prose docs are Slovak/English markdown written by hand; not auto-formatted
+*.md

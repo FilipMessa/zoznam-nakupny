@@ -15,7 +15,9 @@ export function Toaster() {
         {(toast) => (
           <ToastRoot>
             {toast.title && <ToastTitle>{toast.title}</ToastTitle>}
-            {toast.description && <ToastDescription>{toast.description}</ToastDescription>}
+            {toast.description && (
+              <ToastDescription>{toast.description}</ToastDescription>
+            )}
             <ToastCloseTrigger />
           </ToastRoot>
         )}

@@ -29,7 +29,8 @@ const config = defineConfig({
       display: 'flex',
       flexDirection: 'column',
       background: 'bg',
-      boxShadow: '0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 24px 72px rgba(0, 0, 0, 0.2)',
+      boxShadow:
+        '0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 24px 72px rgba(0, 0, 0, 0.2)',
       overflow: 'hidden',
       position: 'relative',
     },
@@ -49,7 +50,9 @@ const config = defineConfig({
       },
       fonts: {
         body: { value: "'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif" },
-        heading: { value: "'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif" },
+        heading: {
+          value: "'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif",
+        },
       },
       sizes: {
         touchTarget: { value: '44px' },

@@ -40,7 +40,12 @@ function AllListsDoneSectionImpl({
       </Flex>
 
       {items.length === 0 ? (
-        <Text padding="0 16px 20px" fontSize="14px" color="fg.subtle" fontWeight="500">
+        <Text
+          padding="0 16px 20px"
+          fontSize="14px"
+          color="fg.subtle"
+          fontWeight="500"
+        >
           Zatiaľ nič hotové.
         </Text>
       ) : (

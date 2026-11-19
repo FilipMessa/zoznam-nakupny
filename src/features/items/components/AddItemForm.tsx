@@ -1,4 +1,10 @@
-import { Box, IconButton, Input, VisuallyHidden, chakra } from '@chakra-ui/react'
+import {
+  Box,
+  IconButton,
+  Input,
+  VisuallyHidden,
+  chakra,
+} from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
 import { useAddItemForm } from '../useAddItemForm'
 
@@ -40,7 +46,11 @@ export function AddItemForm({ onSubmit, error }: AddItemFormProps) {
         border="2px solid transparent"
         borderRadius="12px"
         color="fg"
-        _focus={{ borderColor: 'terracotta.solid', bg: 'bg.panel', outline: 'none' }}
+        _focus={{
+          borderColor: 'terracotta.solid',
+          bg: 'bg.panel',
+          outline: 'none',
+        }}
       />
       <IconButton
         type="submit"

@@ -25,7 +25,11 @@ type SnapshotCallback = (snapshot: {
   docChanges: () => { type: 'added' | 'modified' | 'removed'; doc: FakeDoc }[]
 }) => void
 
-function fakeDoc(id: string, data: Record<string, unknown>, hasPendingWrites = false) {
+function fakeDoc(
+  id: string,
+  data: Record<string, unknown>,
+  hasPendingWrites = false,
+) {
   return {
     id,
     data: () => data,
@@ -73,7 +77,9 @@ describe('useLists', () => {
         fakeSnapshot([listA, listB], [{ type: 'modified', doc: listB }]),
       )
     })
-    const secondListA = result.current.lists.find((list) => list.id === 'list-1')
+    const secondListA = result.current.lists.find(
+      (list) => list.id === 'list-1',
+    )
 
     expect(secondListA).toBe(firstListA)
   })
@@ -93,7 +99,9 @@ describe('useLists', () => {
         fakeSnapshot([listARenamed], [{ type: 'modified', doc: listARenamed }]),
       )
     })
-    const secondListA = result.current.lists.find((list) => list.id === 'list-1')
+    const secondListA = result.current.lists.find(
+      (list) => list.id === 'list-1',
+    )
 
     expect(secondListA).not.toBe(firstListA)
     expect(secondListA?.name).toBe('Týždenný nákup')
