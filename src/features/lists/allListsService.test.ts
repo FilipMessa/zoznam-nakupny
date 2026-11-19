@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { mergeDoneItems } from './allListsDoneItems'
+import {
+  listColorFor,
+  LIST_COLOR_PALETTE,
+  mergeDoneItems,
+  moveConflictMessage,
+} from './allListsService'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
@@ -79,5 +84,49 @@ describe('mergeDoneItems', () => {
     const result = mergeDoneItems(lists, doneItemsByListId)
 
     expect(result.map((entry) => entry.item.id)).toEqual(['current'])
+  })
+})
+
+describe('listColorFor', () => {
+  it('returns the same color for the same list id every time', () => {
+    const first = listColorFor('list-abc')
+    const second = listColorFor('list-abc')
+
+    expect(second).toEqual(first)
+  })
+
+  it('returns a token pair from the fixed palette', () => {
+    const color = listColorFor('list-xyz')
+    const hue = color.solid.split('.')[0]
+
+    expect(LIST_COLOR_PALETTE).toContain(hue)
+    expect(color).toEqual({ solid: `${hue}.solid`, subtle: `${hue}.subtle` })
+  })
+
+  it('spreads different ids across more than one palette color', () => {
+    const ids = ['list-a', 'list-b', 'list-c', 'list-d', 'list-e', 'list-f']
+    const colors = new Set(ids.map((id) => listColorFor(id).solid))
+
+    expect(colors.size).toBeGreaterThan(1)
+  })
+})
+
+describe('moveConflictMessage', () => {
+  it('returns a Slovak message for source-missing', () => {
+    expect(moveConflictMessage('source-missing')).toBe(
+      'Položku medzičasom presunul niekto iný.',
+    )
+  })
+
+  it('returns a Slovak message for dest-list-missing', () => {
+    expect(moveConflictMessage('dest-list-missing')).toBe(
+      'Cieľový zoznam už neexistuje.',
+    )
+  })
+
+  it('returns a distinct message per reason', () => {
+    expect(moveConflictMessage('source-missing')).not.toBe(
+      moveConflictMessage('dest-list-missing'),
+    )
   })
 })

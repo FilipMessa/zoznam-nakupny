@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import {
   reorderActiveItems,
   insertActiveOrder,
-} from '@/features/items/itemLogic'
+} from '@/features/items/itemService'
 import {
   addItem,
   reorderItem,
@@ -13,10 +13,13 @@ import {
   deleteItem,
   clearDoneItems,
 } from '@/features/items/itemApi'
-import { moveConflictMessage } from '@/features/items/moveConflictMessages'
 import { notify } from '@/lib/toaster'
 import { useCreateListForm } from './useCreateListForm'
-import { mergeDoneItems, type DoneItemWithOrigin } from './allListsDoneItems'
+import {
+  mergeDoneItems,
+  moveConflictMessage,
+  type DoneItemWithOrigin,
+} from './allListsService'
 import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,

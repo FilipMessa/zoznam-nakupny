@@ -21,7 +21,7 @@ import {
   completeItemPatch,
   restoreItemPatch,
   nextActiveOrder,
-} from './itemLogic'
+} from './itemService'
 import type { MoveItemResult, ShoppingItem } from './types'
 
 // Realtime subscription to a List's Items, oldest first. Calls `onNext` on

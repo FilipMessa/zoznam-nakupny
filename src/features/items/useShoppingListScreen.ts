@@ -1,6 +1,6 @@
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from './useItems'
-import { sortItems } from './itemLogic'
+import { sortItems } from './itemService'
 import { useScrollNewItemIntoView } from './useScrollNewItemIntoView'
 import { useSwipeRowRegistry } from './useSwipeRowRegistry'
 import { useItemEditing } from './useItemEditing'

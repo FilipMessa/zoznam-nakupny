@@ -7,15 +7,3 @@ export function validateListName(name: string): ValidateListNameResult {
   }
   return { ok: true, name: trimmed }
 }
-
-export interface CascadeDeletePlan {
-  listId: string
-  itemIds: string[]
-}
-
-export function planCascadeDelete(
-  listId: string,
-  itemIds: string[],
-): CascadeDeletePlan {
-  return { listId, itemIds }
-}

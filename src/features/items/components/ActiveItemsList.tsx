@@ -2,7 +2,7 @@ import { Box, Text } from '@chakra-ui/react'
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { ShoppingItem } from '@/features/items/types'
-import { reorderActiveItems } from '@/features/items/itemLogic'
+import { reorderActiveItems } from '@/features/items/itemService'
 import { useShoppingListDndSensors } from '@/features/items/dndSensors'
 import { ActiveItemRow } from './ActiveItemRow'
 

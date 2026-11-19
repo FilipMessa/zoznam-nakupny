@@ -3,8 +3,10 @@ import { Box, Flex, Heading, Text } from '@chakra-ui/react'
 import { ClearDoneButton } from '@/features/items/components/ClearDoneButton'
 import { DoneItemRow } from '@/features/items/components/DoneItemRow'
 import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
-import { listColorFor } from '@/features/lists/listColor'
-import type { DoneItemWithOrigin } from '@/features/lists/allListsDoneItems'
+import {
+  listColorFor,
+  type DoneItemWithOrigin,
+} from '@/features/lists/allListsService'
 
 export interface AllListsDoneSectionProps {
   items: DoneItemWithOrigin[]

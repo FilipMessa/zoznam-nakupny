@@ -8,12 +8,12 @@ import {
   reorderActiveItems,
   insertActiveOrder,
   latestNewActiveId,
-} from './itemLogic'
+} from './itemService'
 import type { ShoppingItem } from './types'
 
 // Fabricates a Timestamp-shaped value (only the `toMillis()` member that
-// itemLogic actually relies on) without pulling in the firebase/firestore
-// runtime -- itemLogic.ts must have zero Firestore imports, and this keeps
+// itemService actually relies on) without pulling in the firebase/firestore
+// runtime -- itemService.ts must have zero Firestore imports, and this keeps
 // the test file's only firebase dependency a type-only import (erased at
 // build time, same as src/features/lists/types.ts).
 function fakeTimestamp(millis: number): Timestamp {

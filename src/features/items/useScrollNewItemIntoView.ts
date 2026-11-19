@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
-import { sortItems, latestNewActiveId } from './itemLogic'
+import { sortItems, latestNewActiveId } from './itemService'
 import type { ShoppingItem } from './types'
 
 export interface UseScrollNewItemIntoViewResult {

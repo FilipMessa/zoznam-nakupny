@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
 import { useOnlineStatus } from '@/lib/useOnlineStatus'
-import { validateListName } from './listCrud'
+import { validateListName } from './listService'
 import { createList, generateListId } from './listApi'
 
 export interface UseCreateListFormParams {

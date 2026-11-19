@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
-import { validateListName } from './listCrud'
+import { validateListName } from './listService'
 import type { ShoppingList } from './types'
 
 // Firestore batched writes are capped at 500 operations; chunk to a safe
