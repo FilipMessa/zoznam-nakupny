@@ -2,7 +2,7 @@
 
 Mobile-first webova appka pre rodinu na spravu spolocnych nakupnych zoznamov. Prihlasenie cez Google, pripojenie k rodine cez invite kod, realtime synchronizacia poloziek medzi vsetkymi clenmi. Postavene na Vite + React + TypeScript, backend je Firebase (Auth, Firestore, Hosting).
 
-Detaily o domenovom modeli a terminologii su v [`CONTEXT.md`](./CONTEXT.md), architektonicke rozhodnutia v [`docs/adr/`](./docs/adr), povodny implementacny plan v [`PLAN.md`](./PLAN.md).
+Detaily o domenovom modeli a terminologii su v [`CONTEXT.md`](./CONTEXT.md), architektonicke rozhodnutia v [`docs/adr/`](./docs/adr), povodny implementacny plan v [`PLAN.md`](./PLAN.md), konvencie struktury kodu v [`docs/conventions.md`](./docs/conventions.md).
 
 ## Predpoklady
 
