@@ -7,13 +7,13 @@ import { useItemActions } from '@/features/items/useItemActions'
 import { useItemEditing } from '@/features/items/useItemEditing'
 import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
 import { useScrollNewItemIntoView } from '@/features/items/useScrollNewItemIntoView'
-import { listColorFor } from '@/features/allLists/allListsService'
+import { listColorFor } from './allListsService'
 import type { ShoppingItem } from '@/features/items/types'
 
 export interface UseAllListsSectionParams {
   listId: string
   // Reports this section's current active items up to the shared
-  // DndContext's onDragEnd handler (in useAllListsScreen), which needs
+  // DndContext's drag-end handler (useAllListsDrag, via useItemRegistry), which needs
   // synchronous read access to every list's items to compute a drop's
   // destination order and resolve the dragged item's full record -- data
   // that only exists inside each section's own useItems subscription.
@@ -75,7 +75,7 @@ export function useAllListsSection({
 
   // Stabilized so ActiveItemRow.memo isn't defeated by a new object literal
   // every render (dnd-kit attaches this to the shared DndContext's
-  // active.data.current, read in useAllListsScreen's onDragEnd).
+  // active.data.current, read in useAllListsDrag's handleDragEnd).
   const sortableData = useMemo(() => ({ listId }), [listId])
   // Same reasoning for @dnd-kit/sortable's own internal memoization, which
   // is keyed on this array's identity.

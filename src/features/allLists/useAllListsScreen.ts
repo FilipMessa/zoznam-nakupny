@@ -16,15 +16,16 @@ export interface UseAllListsScreenResult {
   registerActiveItems: (listId: string, items: ShoppingItem[]) => void
   // Add-list sheet -- creating here deliberately does not navigate away
   // (see docs/feature-all-lists-add-list.md); the new list's section just
-  // appears already expanded since collapsedListIds never named it.
+  // appears already expanded since nothing marks it collapsed (see
+  // useCollapsedSections).
   showCreateForm: boolean
   openCreateForm: () => void
   handleCancelCreate: () => void
   handleCreate: (name: string) => Promise<void>
   createPending: boolean
   createError: string | null
-  // Deliberately separate from collapsedListIds -- collapsing the target
-  // via its chevron must not clear the selection.
+  // Deliberately separate from the collapsed-sections state -- collapsing
+  // the target via its chevron must not clear the selection.
   addTargetListId: string | null
   isAddTarget: (listId: string) => boolean
   selectAddTarget: (listId: string) => void
@@ -37,13 +38,7 @@ export interface UseAllListsScreenResult {
   handleUncheckDone: (listId: string, itemId: string) => Promise<void>
   handleDeleteDone: (listId: string, itemId: string) => Promise<void>
   handleClearAllDone: () => Promise<void>
-  // The item currently being dragged, for <DragOverlay> to render a
-  // floating clone of -- needed because a dragged row's own useSortable
-  // transform only reflects its position *within its own SortableContext*
-  // (dnd-kit computes it from that context's own items array), so it stops
-  // following the pointer the moment `over` leaves the row's own list.
-  // Without an overlay, a cross-list drag would visually snap back to its
-  // origin mid-drag even though the resulting write is still correct.
+  // Dragged item for <DragOverlay> (see useAllListsDrag).
   draggedItem: ShoppingItem | null
   handleDragStart: (event: DragStartEvent) => void
   handleDragEnd: (event: DragEndEvent) => void

@@ -221,3 +221,14 @@ export function planDragEnd({
     newOrder: insertActiveOrder(destItems, resolvedToIndex),
   }
 }
+
+// Error texts/codes for the screen's failure paths, kept next to
+// moveConflictMessage so all of this screen's user-facing copy lives in one
+// place.
+export const REORDER_FAILED_MESSAGE = 'Preusporiadanie sa nepodarilo.'
+export const MOVE_FAILED_MESSAGE = 'Presun sa nepodarilo.'
+export const CLEAR_DONE_FAILED_MESSAGE =
+  'Vyčistenie sa nepodarilo pre niektoré zoznamy.'
+// Code AddItemForm understands for "the add failed" (shared with the
+// single-list flow's useAddItemSubmit).
+export const ADD_ITEM_ERROR_UNKNOWN = 'unknown'

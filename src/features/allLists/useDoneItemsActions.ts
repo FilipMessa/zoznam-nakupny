@@ -5,6 +5,7 @@ import {
   uncheckItem,
 } from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
+import { CLEAR_DONE_FAILED_MESSAGE } from './allListsService'
 import type { ItemRegistry } from './useItemRegistry'
 import type { ShoppingList } from '@/features/lists/types'
 
@@ -44,7 +45,7 @@ export function useDoneItemsActions({
     const hasFailure = results.some((result) => result.status === 'rejected')
     if (hasFailure) {
       console.error('Failed to clear done items for one or more lists', results)
-      notify('Vyčistenie sa nepodarilo pre niektoré zoznamy.', 'error')
+      notify(CLEAR_DONE_FAILED_MESSAGE, 'error')
     }
   }, [lists])
 

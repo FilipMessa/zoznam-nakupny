@@ -2,7 +2,12 @@ import { useCallback, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { moveItemToList, reorderItem } from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
-import { moveConflictMessage, planDragEnd } from './allListsService'
+import {
+  MOVE_FAILED_MESSAGE,
+  REORDER_FAILED_MESSAGE,
+  moveConflictMessage,
+  planDragEnd,
+} from './allListsService'
 import type { ItemRegistry } from './useItemRegistry'
 import type { ShoppingItem } from '@/features/items/types'
 
@@ -55,7 +60,7 @@ export function useAllListsDrag({
         reorderItem(plan.listId, plan.itemId, plan.newOrder).catch(
           (error: unknown) => {
             console.error('Failed to reorder item', error)
-            notify('Preusporiadanie sa nepodarilo.', 'error')
+            notify(REORDER_FAILED_MESSAGE, 'error')
           },
         )
       } else if (plan.type === 'move') {
@@ -72,7 +77,7 @@ export function useAllListsDrag({
           })
           .catch((error: unknown) => {
             console.error('Failed to move item between lists', error)
-            notify('Presun sa nepodarilo.', 'error')
+            notify(MOVE_FAILED_MESSAGE, 'error')
           })
       }
     },

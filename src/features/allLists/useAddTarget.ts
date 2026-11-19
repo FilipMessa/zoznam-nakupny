@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { addItem } from '@/features/items/itemApi'
+import { ADD_ITEM_ERROR_UNKNOWN } from './allListsService'
 import type { ItemRegistry } from './useItemRegistry'
 
 // Which list the bottom "add item" form writes to. Deliberately separate
@@ -48,7 +49,7 @@ export function useAddTarget({
       try {
         await addItem(listId, text, uid, getActiveItems(listId))
       } catch {
-        setAddItemError('unknown')
+        setAddItemError(ADD_ITEM_ERROR_UNKNOWN)
       }
     },
     [uid, addTargetListId, expandIfCollapsed, requestScroll, getActiveItems],
