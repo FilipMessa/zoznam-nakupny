@@ -1,0 +1,56 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@/test/render'
+import userEvent from '@testing-library/user-event'
+import { SignInScreen } from '@/features/auth/components/SignInScreen'
+import { signInWithGoogle } from '@/features/auth/authApi'
+
+vi.mock('@/features/auth/authApi', () => ({
+  signInWithGoogle: vi.fn(),
+}))
+
+const mockedSignIn = vi.mocked(signInWithGoogle)
+
+describe('SignInScreen', () => {
+  beforeEach(() => {
+    mockedSignIn.mockReset()
+  })
+
+  it('renders a sign-in button', () => {
+    render(<SignInScreen />)
+    expect(
+      screen.getByRole('button', { name: /prihlásiť/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('calls signInWithGoogle when the button is clicked', async () => {
+    mockedSignIn.mockResolvedValueOnce(undefined)
+    const user = userEvent.setup()
+    render(<SignInScreen />)
+
+    await user.click(screen.getByRole('button', { name: /prihlásiť/i }))
+
+    expect(mockedSignIn).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    'auth/popup-closed-by-user',
+    'auth/cancelled-popup-request',
+    'auth/popup-blocked',
+  ])(
+    'shows an inline retry message on non-fatal popup error %s, without throwing',
+    async (code) => {
+      mockedSignIn.mockRejectedValueOnce({ code })
+      const user = userEvent.setup()
+      render(<SignInScreen />)
+
+      await user.click(screen.getByRole('button', { name: /prihlásiť/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/skúste to znova/i)).toBeInTheDocument()
+      })
+      expect(
+        screen.getByRole('button', { name: /prihlásiť/i }),
+      ).toBeInTheDocument()
+    },
+  )
+})
