@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -10,7 +11,7 @@ concurrency:
 
 jobs:
   check:
-    name: Check (lint, format, typecheck, unit tests, build)
+    name: Check (lint, cycles, format, unit tests, build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
