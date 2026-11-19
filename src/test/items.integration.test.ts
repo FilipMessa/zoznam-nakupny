@@ -15,12 +15,15 @@ import {
   collection,
   connectFirestoreEmulator,
   doc,
+  type DocumentData,
+  type DocumentSnapshot,
+  type Firestore,
   getDoc,
   getDocs,
   getFirestore,
+  type QuerySnapshot,
   setDoc,
   Timestamp,
-  type Firestore,
 } from 'firebase/firestore'
 import {
   beforeAll,
@@ -134,7 +137,7 @@ async function seedItemAsAdmin(
 }
 
 async function getItemDocAsAdmin(listId: string, itemId: string) {
-  let snapshot: Awaited<ReturnType<typeof getDoc>> | undefined
+  let snapshot: DocumentSnapshot<DocumentData> | undefined
   await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
     snapshot = await getDoc(
       doc(
@@ -151,7 +154,7 @@ async function getItemDocAsAdmin(listId: string, itemId: string) {
 }
 
 async function getItemDocsAsAdmin(listId: string) {
-  let snapshots: Awaited<ReturnType<typeof getDocs>> | undefined
+  let snapshots: QuerySnapshot<DocumentData> | undefined
   await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
     snapshots = await getDocs(
       collection(

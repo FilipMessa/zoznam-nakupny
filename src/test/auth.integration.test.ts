@@ -14,11 +14,13 @@ import {
 import {
   connectFirestoreEmulator,
   doc,
+  type DocumentData,
+  type DocumentSnapshot,
+  type Firestore,
   getDoc,
   getFirestore,
   onSnapshot,
   setDoc,
-  type Firestore,
 } from 'firebase/firestore'
 import {
   beforeAll,
@@ -100,7 +102,7 @@ async function signInAsNewUser(): Promise<string> {
 // the library (it always resolves to void), so we capture the snapshot via
 // a closure variable instead of relying on the callback's return value.
 async function getMemberDocAsAdmin(uid: string) {
-  let snapshot: Awaited<ReturnType<typeof getDoc>> | undefined
+  let snapshot: DocumentSnapshot<DocumentData> | undefined
   await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
     snapshot = await getDoc(
       doc(context.firestore(), `families/${FAMILY_ID}/members`, uid),
