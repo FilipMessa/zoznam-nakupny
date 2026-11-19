@@ -5,12 +5,12 @@ import userEvent from '@testing-library/user-event'
 import { ShoppingListScreen } from '@/features/items/components/ShoppingListScreen'
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from '@/features/items/useItems'
-import * as itemService from '@/features/items/itemApi'
+import * as itemApi from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
-// The screen imports the whole itemService; mock every function it calls so no
+// The screen imports the whole itemApi; mock every function it calls so no
 // test touches real Firestore. Only addItem matters here.
 vi.mock('@/features/items/itemApi', () => ({
   addItem: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('@/features/items/itemApi', () => ({
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseItems = vi.mocked(useItems)
-const mockedAddItem = vi.mocked(itemService.addItem)
+const mockedAddItem = vi.mocked(itemApi.addItem)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

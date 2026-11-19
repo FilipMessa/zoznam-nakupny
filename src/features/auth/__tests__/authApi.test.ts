@@ -44,7 +44,7 @@ function stubNavigator(userAgent: string, maxTouchPoints = 0) {
   })
 }
 
-describe('googleAuth', () => {
+describe('authApi', () => {
   beforeEach(() => {
     vi.unstubAllGlobals()
     firebaseAuthMocks.provider.setCustomParameters.mockReset()

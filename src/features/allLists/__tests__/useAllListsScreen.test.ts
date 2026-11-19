@@ -4,7 +4,7 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { renderHook, act } from '@testing-library/react'
 import { useAllListsScreen } from '@/features/allLists/useAllListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
-import * as itemService from '@/features/items/itemApi'
+import * as itemApi from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
@@ -21,12 +21,12 @@ vi.mock('@/features/items/itemApi', () => ({
 vi.mock('@/lib/toaster', () => ({ notify: vi.fn() }))
 
 const mockedUseAuth = vi.mocked(useAuth)
-const mockedReorderItem = vi.mocked(itemService.reorderItem)
-const mockedMoveItemToList = vi.mocked(itemService.moveItemToList)
-const mockedAddItem = vi.mocked(itemService.addItem)
-const mockedUncheckItem = vi.mocked(itemService.uncheckItem)
-const mockedDeleteItem = vi.mocked(itemService.deleteItem)
-const mockedClearDoneItems = vi.mocked(itemService.clearDoneItems)
+const mockedReorderItem = vi.mocked(itemApi.reorderItem)
+const mockedMoveItemToList = vi.mocked(itemApi.moveItemToList)
+const mockedAddItem = vi.mocked(itemApi.addItem)
+const mockedUncheckItem = vi.mocked(itemApi.uncheckItem)
+const mockedDeleteItem = vi.mocked(itemApi.deleteItem)
+const mockedClearDoneItems = vi.mocked(itemApi.clearDoneItems)
 const mockedNotify = vi.mocked(notify)
 
 function fakeTimestamp(millis: number): Timestamp {
@@ -416,7 +416,7 @@ describe('useAllListsScreen', () => {
       expect(result.current.isAddTarget('list-1')).toBe(true)
     })
 
-    it('calls itemService.addItem with the target list and its registered active items', async () => {
+    it('calls itemApi.addItem with the target list and its registered active items', async () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const items = [makeItem({ id: 'a' })]
       act(() => {
@@ -542,7 +542,7 @@ describe('useAllListsScreen', () => {
       expect(requestScroll).toHaveBeenCalledTimes(1)
     })
 
-    it('handleDeleteDone calls itemService.deleteItem with the origin list and item id', async () => {
+    it('handleDeleteDone calls itemApi.deleteItem with the origin list and item id', async () => {
       const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       await act(async () => {

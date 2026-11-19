@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsScreen } from '@/features/allLists/components/AllListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
-import * as listService from '@/features/lists/listApi'
+import * as listApi from '@/features/lists/listApi'
 import type { ShoppingList } from '@/features/lists/types'
 
 // AllListsSection has its own suite (mounts useAuth/useItems for a real
@@ -27,7 +27,7 @@ vi.mock('@/features/lists/listApi', () => ({
 }))
 
 const mockedUseAuth = vi.mocked(useAuth)
-const mockedCreateList = vi.mocked(listService.createList)
+const mockedCreateList = vi.mocked(listApi.createList)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

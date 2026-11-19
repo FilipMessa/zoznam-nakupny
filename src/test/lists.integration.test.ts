@@ -36,7 +36,7 @@ import {
 import { FAMILY_ID } from '@/constants/family'
 import { createList, renameList, deleteList } from '@/features/lists/listApi'
 
-// Exercises listService's createList/renameList/deleteList against the real
+// Exercises listApi's createList/renameList/deleteList against the real
 // Auth + Firestore emulators using a genuine signed-in member client (not an
 // admin bypass), so these tests also double as proof that firestore.rules
 // supports the create/rename/cascade-delete access pattern for a real
@@ -153,7 +153,7 @@ async function getItemDocsAsAdmin(listId: string) {
   return snapshots
 }
 
-describe('listService (emulator)', () => {
+describe('listApi (emulator)', () => {
   describe('createList', () => {
     it('creates a list doc with the given name and createdBy uid', async () => {
       const uid = await signInAsMember()

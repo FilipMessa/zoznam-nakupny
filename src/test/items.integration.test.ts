@@ -46,7 +46,7 @@ import {
 } from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 
-// Exercises itemService's addItem/checkItem/uncheckItem/deleteItem/clearDoneItems
+// Exercises itemApi's addItem/checkItem/uncheckItem/deleteItem/clearDoneItems
 // against the real Auth + Firestore emulators using a genuine signed-in
 // member client (not an admin bypass), mirroring lists.integration.test.ts
 // exactly: this also doubles as proof that firestore.rules' isMember()
@@ -169,7 +169,7 @@ async function getItemDocsAsAdmin(listId: string) {
   return snapshots
 }
 
-// itemService's checkItem/uncheckItem take the caller's currently-known
+// itemApi's checkItem/uncheckItem take the caller's currently-known
 // active items (the same shape useItems() would hand them from its
 // onSnapshot listener) so they can compute completeItemPatch/restoreItemPatch
 // locally before writing. These convert admin-seeded raw docs into that shape.
@@ -211,7 +211,7 @@ function makeShoppingItem(
   }
 }
 
-describe('itemService (emulator)', () => {
+describe('itemApi (emulator)', () => {
   describe('addItem', () => {
     it('adds the first item to an empty list with activeOrder 1', async () => {
       const uid = await signInAsMember()

@@ -197,7 +197,7 @@ export async function clearDoneItems(
 // + create-in-dest.
 //
 // Deliberately a runTransaction, not writeBatch like every other multi-op
-// write in this file (clearDoneItems above, listService.ts's deleteList).
+// write in this file (clearDoneItems above, listApi.ts's deleteList).
 // A plain batch has two race windows this operation can actually hit:
 //   1. Two members move the same item to two different lists at once --
 //      deleteDoc is idempotent and the two set()s land on different

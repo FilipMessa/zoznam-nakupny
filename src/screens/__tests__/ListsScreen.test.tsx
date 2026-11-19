@@ -6,7 +6,7 @@ import { ListsScreen } from '@/screens/ListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
 import { useLists } from '@/features/lists/useLists'
 import { useSelectedListId } from '@/features/lists/useSelectedListId'
-import * as listService from '@/features/lists/listApi'
+import * as listApi from '@/features/lists/listApi'
 import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
@@ -19,7 +19,7 @@ vi.mock('@/features/lists/listApi', () => ({
   renameList: vi.fn(),
   deleteList: vi.fn(),
 }))
-// ListHeader calls signOutUser directly; keep googleAuth (and its Firebase
+// ListHeader calls signOutUser directly; keep authApi (and its Firebase
 // initialization) out of this suite.
 vi.mock('@/features/auth/authApi', () => ({ signOutUser: vi.fn() }))
 // The selected list's items screen has its own suite; stub it so this one
@@ -42,9 +42,9 @@ vi.mock('@/features/allLists/components/AllListsScreen', () => ({
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseLists = vi.mocked(useLists)
 const mockedUseSelectedListId = vi.mocked(useSelectedListId)
-const mockedCreateList = vi.mocked(listService.createList)
-const mockedRenameList = vi.mocked(listService.renameList)
-const mockedDeleteList = vi.mocked(listService.deleteList)
+const mockedCreateList = vi.mocked(listApi.createList)
+const mockedRenameList = vi.mocked(listApi.renameList)
+const mockedDeleteList = vi.mocked(listApi.deleteList)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

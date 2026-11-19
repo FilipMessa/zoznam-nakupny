@@ -9,7 +9,7 @@ import {
 } from '@/features/allLists/components/AllListsSection'
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from '@/features/items/useItems'
-import * as itemService from '@/features/items/itemApi'
+import * as itemApi from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
@@ -26,8 +26,8 @@ vi.mock('@/features/items/itemApi', () => ({
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseItems = vi.mocked(useItems)
-const mockedCheckItem = vi.mocked(itemService.checkItem)
-const mockedDeleteItem = vi.mocked(itemService.deleteItem)
+const mockedCheckItem = vi.mocked(itemApi.checkItem)
+const mockedDeleteItem = vi.mocked(itemApi.deleteItem)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp

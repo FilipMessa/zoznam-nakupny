@@ -34,7 +34,7 @@ import {
 import { FAMILY_ID } from '@/constants/family'
 import { redeemInviteCode } from '@/features/auth/inviteApi'
 
-// This suite exercises inviteService.redeemInviteCode and the
+// This suite exercises inviteApi.redeemInviteCode and the
 // members/{uid} permission-denied signal against the real Auth + Firestore
 // emulators, using the actual client SDK (not @firebase/rules-unit-testing's
 // mocked auth contexts) since redeemInviteCode is called by real signed-in
@@ -114,7 +114,7 @@ async function getMemberDocAsAdmin(uid: string) {
   return snapshot
 }
 
-describe('inviteService.redeemInviteCode (emulator)', () => {
+describe('inviteApi.redeemInviteCode (emulator)', () => {
   it('creates families/{FAMILY_ID}/members/{uid} for a valid invite code', async () => {
     const uid = await signInAsNewUser()
 
