@@ -4,7 +4,7 @@ import {
   completeRedirectSignIn,
   signInWithGoogle,
   signOutUser,
-} from './googleAuth'
+} from './authApi'
 
 const firebaseAuthMocks = vi.hoisted(() => {
   const provider = {

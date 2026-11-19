@@ -6,13 +6,13 @@ import userEvent from '@testing-library/user-event'
 import { AllListsSection, type AllListsSectionProps } from './AllListsSection'
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from '@/features/items/useItems'
-import * as itemService from '@/features/items/itemService'
+import * as itemService from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
-vi.mock('@/features/items/itemService', () => ({
+vi.mock('@/features/items/itemApi', () => ({
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),
   deleteItem: vi.fn(),

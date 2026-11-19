@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { onAuthStateChanged, type Unsubscribe, type User } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { AuthContext } from './AuthContext'
-import { completeRedirectSignIn } from './googleAuth'
+import { completeRedirectSignIn } from './authApi'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)

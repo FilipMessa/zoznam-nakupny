@@ -2,6 +2,8 @@ import {
   collection,
   doc,
   getDocs,
+  onSnapshot,
+  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -11,22 +13,63 @@ import {
   where,
   writeBatch,
   type Firestore,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { FAMILY_ID } from '@/constants/family'
+import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
 import {
   completeItemPatch,
   restoreItemPatch,
   nextActiveOrder,
 } from './itemLogic'
-import type { ShoppingItem } from './types'
+import type { MoveItemResult, ShoppingItem } from './types'
 
-function itemsCollectionPath(listId: string): string {
-  return `families/${FAMILY_ID}/lists/${listId}/items`
-}
+// Realtime subscription to a List's Items, oldest first. Calls `onNext` on
+// every snapshot (including metadata-only ones, hence
+// `includeMetadataChanges`) with the full item array, each item stamped with
+// a client-only `pendingSync` flag (never persisted to Firestore).
+//
+// Reused across snapshots so a document unchanged since the last snapshot
+// keeps the same object reference -- otherwise every doc gets a brand new
+// object on every snapshot (even ones `docChanges()` says didn't change),
+// which defeats React.memo on item rows down the tree: they'd see a "new"
+// item prop and re-render regardless of whether anything in it actually
+// changed. A snapshot without changes re-emits the previous array as is.
+export function subscribeItems(
+  listId: string,
+  onNext: (items: ShoppingItem[]) => void,
+  firestore: Firestore = db,
+): Unsubscribe {
+  const itemsQuery = query(
+    collection(firestore, itemsCollectionPath(listId)),
+    orderBy('createdAt', 'asc'),
+  )
 
-function listDocPath(): string {
-  return `families/${FAMILY_ID}/lists`
+  const itemsById = new Map<string, ShoppingItem>()
+  let items: ShoppingItem[] = []
+
+  return onSnapshot(
+    itemsQuery,
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      const changes = snapshot.docChanges()
+      if (changes.length > 0) {
+        for (const change of changes) {
+          if (change.type === 'removed') {
+            itemsById.delete(change.doc.id)
+          } else {
+            itemsById.set(change.doc.id, {
+              id: change.doc.id,
+              ...(change.doc.data() as Omit<ShoppingItem, 'id'>),
+              pendingSync: change.doc.metadata.hasPendingWrites,
+            })
+          }
+        }
+        items = snapshot.docs.map((docSnap) => itemsById.get(docSnap.id)!)
+      }
+      onNext(items)
+    },
+  )
 }
 
 export async function addItem(
@@ -147,9 +190,6 @@ export async function clearDoneItems(
   await batch.commit()
 }
 
-export type MoveItemResult =
-  { ok: true } | { ok: false; reason: 'source-missing' | 'dest-list-missing' }
-
 // Moves an Item to a different List, preserving its identity (same doc id,
 // same createdBy/createdAt) -- this is a move, not a re-creation. There is
 // no `listId` field on ShoppingItem (list membership is purely the
@@ -183,7 +223,7 @@ export async function moveItemToList(
     itemsCollectionPath(sourceListId),
     item.id,
   )
-  const destListRef = doc(firestore, listDocPath(), destListId)
+  const destListRef = doc(firestore, listsCollectionPath(), destListId)
   const destItemRef = doc(firestore, itemsCollectionPath(destListId), item.id)
 
   return runTransaction(firestore, async (transaction) => {

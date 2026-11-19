@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { SignInScreen } from './SignInScreen'
-import { signInWithGoogle } from '@/features/auth/googleAuth'
+import { signInWithGoogle } from '@/features/auth/authApi'
 
-vi.mock('@/features/auth/googleAuth', () => ({
+vi.mock('@/features/auth/authApi', () => ({
   signInWithGoogle: vi.fn(),
 }))
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { User } from 'firebase/auth'
-import { addItem } from './itemService'
+import { addItem } from './itemApi'
 import type { ShoppingItem } from './types'
 
 export interface UseAddItemSubmitParams {

@@ -6,35 +6,21 @@ import {
   signOut,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { isLikelyMobileBrowser, isPopupFallbackError } from './authService'
 
-const POPUP_FALLBACK_ERROR_CODES = new Set([
-  'auth/popup-blocked',
-  'auth/operation-not-supported-in-this-environment',
-])
-
-function isLikelyMobileBrowser(): boolean {
+function isMobileBrowser(): boolean {
   if (typeof navigator === 'undefined') {
     return false
   }
 
-  return (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
-    ) ||
-    (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
-  )
-}
-
-function isPopupFallbackError(error: unknown): boolean {
-  const code = (error as { code?: string } | undefined)?.code
-  return Boolean(code && POPUP_FALLBACK_ERROR_CODES.has(code))
+  return isLikelyMobileBrowser(navigator.userAgent, navigator.maxTouchPoints)
 }
 
 export async function signInWithGoogle(): Promise<void> {
   const provider = new GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
 
-  if (isLikelyMobileBrowser()) {
+  if (isMobileBrowser()) {
     await signInWithRedirect(auth, provider)
     return
   }

@@ -4,13 +4,13 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { renderHook, act } from '@testing-library/react'
 import { useAllListsScreen } from './useAllListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
-import * as itemService from '@/features/items/itemService'
+import * as itemService from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from './types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('@/features/items/itemService', () => ({
+vi.mock('@/features/items/itemApi', () => ({
   reorderItem: vi.fn(),
   moveItemToList: vi.fn(),
   addItem: vi.fn(),

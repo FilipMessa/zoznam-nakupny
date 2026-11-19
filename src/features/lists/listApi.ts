@@ -2,28 +2,25 @@ import {
   collection,
   doc,
   getDocs,
+  onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
   writeBatch,
   type Firestore,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { FAMILY_ID } from '@/constants/family'
+import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
 import { validateListName } from './listCrud'
+import type { ShoppingList } from './types'
 
 // Firestore batched writes are capped at 500 operations; chunk to a safe
 // margin below that so a batch that also needs to delete the parent list
 // doc in its final chunk never risks exceeding the limit.
 const MAX_BATCH_WRITES = 450
-
-function listsCollectionPath(): string {
-  return `families/${FAMILY_ID}/lists`
-}
-
-function itemsCollectionPath(listId: string): string {
-  return `families/${FAMILY_ID}/lists/${listId}/items`
-}
 
 function chunk<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = []
@@ -31,6 +28,48 @@ function chunk<T>(items: T[], size: number): T[][] {
     chunks.push(items.slice(i, i + size))
   }
   return chunks
+}
+
+// Realtime subscription to the Family's Lists, oldest first. Same contract
+// as itemApi.subscribeItems: `onNext` fires on every snapshot with the full
+// array, each List stamped with a client-only `pendingSync` flag, unchanged
+// Lists keep a stable object reference (so React.memo on AllListsSection
+// isn't defeated whenever some *other* list changes), and a snapshot without
+// changes re-emits the previous array as is.
+export function subscribeLists(
+  onNext: (lists: ShoppingList[]) => void,
+  firestore: Firestore = db,
+): Unsubscribe {
+  const listsQuery = query(
+    collection(firestore, listsCollectionPath()),
+    orderBy('createdAt', 'asc'),
+  )
+
+  const listsById = new Map<string, ShoppingList>()
+  let lists: ShoppingList[] = []
+
+  return onSnapshot(
+    listsQuery,
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      const changes = snapshot.docChanges()
+      if (changes.length > 0) {
+        for (const change of changes) {
+          if (change.type === 'removed') {
+            listsById.delete(change.doc.id)
+          } else {
+            listsById.set(change.doc.id, {
+              id: change.doc.id,
+              ...(change.doc.data() as Omit<ShoppingList, 'id'>),
+              pendingSync: change.doc.metadata.hasPendingWrites,
+            })
+          }
+        }
+        lists = snapshot.docs.map((docSnap) => listsById.get(docSnap.id)!)
+      }
+      onNext(lists)
+    },
+  )
 }
 
 // Mints a list ID without writing anything -- a plain client-side ref id,

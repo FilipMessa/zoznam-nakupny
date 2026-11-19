@@ -43,7 +43,7 @@ import {
   editItemText,
   clearDoneItems,
   moveItemToList,
-} from '@/features/items/itemService'
+} from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 
 // Exercises itemService's addItem/checkItem/uncheckItem/deleteItem/clearDoneItems

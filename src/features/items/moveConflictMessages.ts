@@ -1,4 +1,4 @@
-import type { MoveItemResult } from './itemService'
+import type { MoveItemResult } from './types'
 
 type MoveConflictReason = Exclude<MoveItemResult, { ok: true }>['reason']
 

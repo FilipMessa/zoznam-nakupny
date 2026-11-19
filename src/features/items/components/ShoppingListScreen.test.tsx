@@ -5,14 +5,14 @@ import userEvent from '@testing-library/user-event'
 import { ShoppingListScreen } from './ShoppingListScreen'
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from '@/features/items/useItems'
-import * as itemService from '@/features/items/itemService'
+import * as itemService from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
 // The screen imports the whole itemService; mock every function it calls so no
 // test touches real Firestore. Only addItem matters here.
-vi.mock('@/features/items/itemService', () => ({
+vi.mock('@/features/items/itemApi', () => ({
   addItem: vi.fn(),
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),

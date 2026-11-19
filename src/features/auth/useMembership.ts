@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-import { FAMILY_ID } from '@/constants/family'
+import { subscribeMembership } from './membershipApi'
 import type { MembershipStatus } from './types'
 
 export interface UseMembershipResult {
@@ -32,23 +30,9 @@ export function useMembership(uid: string | null): UseMembershipResult {
       return
     }
 
-    const memberRef = doc(db, `families/${FAMILY_ID}/members`, uid)
-
-    const unsubscribe = onSnapshot(
-      memberRef,
-      (snapshot) => {
-        setState({ uid, status: snapshot.exists() ? 'member' : 'non-member' })
-      },
-      () => {
-        // Reading our own not-yet-existing members/{uid} doc is denied by
-        // the security rules (isMember() requires the doc to already
-        // exist), so permission-denied here is the expected "not a member
-        // yet" signal rather than a fatal error.
-        setState({ uid, status: 'non-member' })
-      },
-    )
-
-    return unsubscribe
+    return subscribeMembership(uid, (isMember) => {
+      setState({ uid, status: isMember ? 'member' : 'non-member' })
+    })
   }, [uid])
 
   const markAsMember = useCallback(() => {

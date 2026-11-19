@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsScreen } from './AllListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
-import * as listService from '@/features/lists/listService'
+import * as listService from '@/features/lists/listApi'
 import type { ShoppingList } from '@/features/lists/types'
 
 // AllListsSection has its own suite (mounts useAuth/useItems for a real
@@ -21,7 +21,7 @@ vi.mock('./AllListsDoneSection', () => ({
   AllListsDoneSection: () => <div data-testid="all-lists-done-section" />,
 }))
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('@/features/lists/listService', () => ({
+vi.mock('@/features/lists/listApi', () => ({
   createList: vi.fn(),
   generateListId: vi.fn(),
 }))

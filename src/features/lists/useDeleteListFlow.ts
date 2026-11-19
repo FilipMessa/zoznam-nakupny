@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { deleteList } from './listService'
+import { deleteList } from './listApi'
 import type { ShoppingList } from './types'
 
 export interface UseDeleteListFlowResult {

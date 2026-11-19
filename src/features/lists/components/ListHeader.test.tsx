@@ -3,9 +3,9 @@ import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { act } from '@testing-library/react'
 import { ListHeader } from './ListHeader'
-import { signOutUser } from '@/features/auth/googleAuth'
+import { signOutUser } from '@/features/auth/authApi'
 
-vi.mock('@/features/auth/googleAuth', () => ({
+vi.mock('@/features/auth/authApi', () => ({
   signOutUser: vi.fn(),
 }))
 

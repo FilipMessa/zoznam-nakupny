@@ -7,6 +7,10 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { FAMILY_ID } from '@/constants/family'
+import {
+  invitesCollectionPath,
+  membersCollectionPath,
+} from '@/lib/firestorePaths'
 import type { InviteDoc, RedeemResult } from './types'
 
 export async function redeemInviteCode(
@@ -15,7 +19,7 @@ export async function redeemInviteCode(
   firestore: Firestore = db,
 ): Promise<RedeemResult> {
   try {
-    const inviteRef = doc(firestore, 'invites', code)
+    const inviteRef = doc(firestore, invitesCollectionPath(), code)
     const inviteSnap = await getDoc(inviteRef)
 
     if (!inviteSnap.exists()) {
@@ -27,7 +31,7 @@ export async function redeemInviteCode(
       return { ok: false, error: 'invalid-code' }
     }
 
-    const memberRef = doc(firestore, `families/${FAMILY_ID}/members`, uid)
+    const memberRef = doc(firestore, membersCollectionPath(), uid)
     await setDoc(memberRef, { uid, joinedAt: serverTimestamp() })
 
     return { ok: true }

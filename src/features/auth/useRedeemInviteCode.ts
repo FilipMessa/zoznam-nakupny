@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { redeemInviteCode } from './inviteService'
+import { redeemInviteCode } from './inviteApi'
 import { useAuth } from './useAuth'
 import type { RedeemError } from './types'
 

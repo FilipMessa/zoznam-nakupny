@@ -6,7 +6,7 @@ import { ListsScreen } from './ListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
 import { useLists } from '@/features/lists/useLists'
 import { useSelectedListId } from '@/features/lists/useSelectedListId'
-import * as listService from '@/features/lists/listService'
+import * as listService from '@/features/lists/listApi'
 import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
@@ -14,14 +14,14 @@ vi.mock('@/features/lists/useLists', () => ({ useLists: vi.fn() }))
 vi.mock('@/features/lists/useSelectedListId', () => ({
   useSelectedListId: vi.fn(),
 }))
-vi.mock('@/features/lists/listService', () => ({
+vi.mock('@/features/lists/listApi', () => ({
   createList: vi.fn(),
   renameList: vi.fn(),
   deleteList: vi.fn(),
 }))
 // ListHeader calls signOutUser directly; keep googleAuth (and its Firebase
 // initialization) out of this suite.
-vi.mock('@/features/auth/googleAuth', () => ({ signOutUser: vi.fn() }))
+vi.mock('@/features/auth/authApi', () => ({ signOutUser: vi.fn() }))
 // The selected list's items screen has its own suite; stub it so this one
 // never touches useItems/Firestore.
 vi.mock('@/features/items/components/ShoppingListScreen', () => ({

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { signInWithGoogle } from './googleAuth'
+import { signInWithGoogle } from './authApi'
 
 const NON_FATAL_ERROR_CODES = new Set([
   'auth/popup-closed-by-user',

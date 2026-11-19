@@ -12,7 +12,7 @@ import {
   uncheckItem,
   deleteItem,
   clearDoneItems,
-} from '@/features/items/itemService'
+} from '@/features/items/itemApi'
 import { moveConflictMessage } from '@/features/items/moveConflictMessages'
 import { notify } from '@/lib/toaster'
 import { useCreateListForm } from './useCreateListForm'

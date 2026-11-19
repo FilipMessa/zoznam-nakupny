@@ -6,7 +6,7 @@ import {
   deleteItem,
   clearDoneItems,
   reorderItem,
-} from './itemService'
+} from './itemApi'
 import type { ShoppingItem } from './types'
 
 export interface UseItemActionsParams {

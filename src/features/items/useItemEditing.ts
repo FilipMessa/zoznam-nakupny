@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { editItemText } from './itemService'
+import { editItemText } from './itemApi'
 
 export interface UseItemEditingResult {
   editingItemId: string | null

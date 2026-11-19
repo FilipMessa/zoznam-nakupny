@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
 import { onSnapshot } from 'firebase/firestore'
-import { useLists } from './useLists'
+import { subscribeLists } from './listApi'
+import type { ShoppingList } from './types'
 
-// Same scope/rationale as useItems.test.ts: this is not a test of
+// Same scope/rationale as itemApi.test.ts: this is not a test of
 // onSnapshot reflecting real Firestore changes (see
 // items.integration.test.ts's "remote change visibility" comment). It tests
 // the object-reference-reuse logic added on top, so React.memo on
@@ -44,7 +44,15 @@ function fakeSnapshot(
   return { docs, docChanges: () => changes }
 }
 
-describe('useLists', () => {
+function subscribeForTest() {
+  let latest: ShoppingList[] = []
+  subscribeLists((next) => {
+    latest = next
+  })
+  return () => latest
+}
+
+describe('subscribeLists', () => {
   let capturedCallback: SnapshotCallback = () => {}
 
   beforeEach(() => {
@@ -55,71 +63,55 @@ describe('useLists', () => {
   })
 
   it('keeps the same list object reference across snapshots when it is unchanged', () => {
-    const { result } = renderHook(() => useLists())
+    const latest = subscribeForTest()
     const listA = fakeDoc('list-1', { name: 'Potraviny' })
     const listB = fakeDoc('list-2', { name: 'Drogéria' })
 
-    act(() => {
-      capturedCallback(
-        fakeSnapshot(
-          [listA, listB],
-          [
-            { type: 'added', doc: listA },
-            { type: 'added', doc: listB },
-          ],
-        ),
-      )
-    })
-    const firstListA = result.current.lists.find((list) => list.id === 'list-1')
-
-    act(() => {
-      capturedCallback(
-        fakeSnapshot([listA, listB], [{ type: 'modified', doc: listB }]),
-      )
-    })
-    const secondListA = result.current.lists.find(
-      (list) => list.id === 'list-1',
+    capturedCallback(
+      fakeSnapshot(
+        [listA, listB],
+        [
+          { type: 'added', doc: listA },
+          { type: 'added', doc: listB },
+        ],
+      ),
     )
+    const firstListA = latest().find((list) => list.id === 'list-1')
+
+    capturedCallback(
+      fakeSnapshot([listA, listB], [{ type: 'modified', doc: listB }]),
+    )
+    const secondListA = latest().find((list) => list.id === 'list-1')
 
     expect(secondListA).toBe(firstListA)
   })
 
   it('gives a renamed list a new object reference', () => {
-    const { result } = renderHook(() => useLists())
+    const latest = subscribeForTest()
     const listA = fakeDoc('list-1', { name: 'Potraviny' })
 
-    act(() => {
-      capturedCallback(fakeSnapshot([listA], [{ type: 'added', doc: listA }]))
-    })
-    const firstListA = result.current.lists.find((list) => list.id === 'list-1')
+    capturedCallback(fakeSnapshot([listA], [{ type: 'added', doc: listA }]))
+    const firstListA = latest().find((list) => list.id === 'list-1')
 
     const listARenamed = fakeDoc('list-1', { name: 'Týždenný nákup' })
-    act(() => {
-      capturedCallback(
-        fakeSnapshot([listARenamed], [{ type: 'modified', doc: listARenamed }]),
-      )
-    })
-    const secondListA = result.current.lists.find(
-      (list) => list.id === 'list-1',
+    capturedCallback(
+      fakeSnapshot([listARenamed], [{ type: 'modified', doc: listARenamed }]),
     )
+    const secondListA = latest().find((list) => list.id === 'list-1')
 
     expect(secondListA).not.toBe(firstListA)
     expect(secondListA?.name).toBe('Týždenný nákup')
   })
 
   it('does not update lists when a snapshot reports no changes', () => {
-    const { result } = renderHook(() => useLists())
+    const latest = subscribeForTest()
     const listA = fakeDoc('list-1', { name: 'Potraviny' })
 
-    act(() => {
-      capturedCallback(fakeSnapshot([listA], [{ type: 'added', doc: listA }]))
-    })
-    const firstLists = result.current.lists
+    capturedCallback(fakeSnapshot([listA], [{ type: 'added', doc: listA }]))
+    const firstLists = latest()
 
-    act(() => {
-      capturedCallback(fakeSnapshot([listA], []))
-    })
+    capturedCallback(fakeSnapshot([listA], []))
 
-    expect(result.current.lists).toBe(firstLists)
+    expect(latest()).toBe(firstLists)
   })
 })

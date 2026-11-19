@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { renameList } from './listService'
+import { renameList } from './listApi'
 import type { ShoppingList } from './types'
 
 export interface UseRenameListFormResult {

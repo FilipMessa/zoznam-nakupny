@@ -32,7 +32,7 @@ import {
   expect,
 } from 'vitest'
 import { FAMILY_ID } from '@/constants/family'
-import { redeemInviteCode } from '@/features/auth/inviteService'
+import { redeemInviteCode } from '@/features/auth/inviteApi'
 
 // This suite exercises inviteService.redeemInviteCode and the
 // members/{uid} permission-denied signal against the real Auth + Firestore

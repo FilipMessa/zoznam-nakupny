@@ -2,6 +2,9 @@ import type { Timestamp } from 'firebase/firestore'
 
 export type ShoppingItemStatus = 'active' | 'done'
 
+export type MoveItemResult =
+  { ok: true } | { ok: false; reason: 'source-missing' | 'dest-list-missing' }
+
 export interface ShoppingItem {
   id: string
   text: string
