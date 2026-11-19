@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Box, Button, Checkbox, IconButton, Input, Text, chakra } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -37,7 +38,7 @@ export interface ActiveItemRowProps {
   dimWhileDragging?: boolean
 }
 
-export function ActiveItemRow({
+function ActiveItemRowImpl({
   item,
   onCheck,
   onDelete,
@@ -329,3 +330,5 @@ export function ActiveItemRow({
     </Box>
   )
 }
+
+export const ActiveItemRow = memo(ActiveItemRowImpl)

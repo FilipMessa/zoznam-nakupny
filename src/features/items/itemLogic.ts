@@ -14,7 +14,7 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
     .filter((item) => item.status === 'done')
     .sort(
       (a, b) =>
-        (a.completedAt?.toMillis() ?? 0) - (b.completedAt?.toMillis() ?? 0),
+        (b.completedAt?.toMillis() ?? 0) - (a.completedAt?.toMillis() ?? 0),
     )
 
   return { active, done }

@@ -46,7 +46,7 @@ describe('sortItems', () => {
     expect(active.map((item) => item.id)).toEqual(['b', 'c', 'a'])
   })
 
-  it('sorts done items by completedAt ascending', () => {
+  it('sorts done items by completedAt descending', () => {
     const a = makeItem({
       id: 'a',
       status: 'done',
@@ -71,7 +71,7 @@ describe('sortItems', () => {
 
     const { done } = sortItems([a, b, c])
 
-    expect(done.map((item) => item.id)).toEqual(['b', 'c', 'a'])
+    expect(done.map((item) => item.id)).toEqual(['a', 'c', 'b'])
   })
 
   it('returns active and done items in separate lists, active items first', () => {

@@ -19,17 +19,33 @@ export function useLists(): UseListsResult {
       orderBy('createdAt', 'asc'),
     )
 
+    // See useItems.ts's identical cache -- keeps unchanged lists'
+    // object references stable across snapshots so React.memo on
+    // AllListsSection isn't defeated whenever some *other* list changes.
+    const listsById = new Map<string, ShoppingList>()
+
     const unsubscribe = onSnapshot(
       listsQuery,
       { includeMetadataChanges: true },
       (snapshot) => {
-        setLists(
-          snapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...(docSnap.data() as Omit<ShoppingList, 'id'>),
-            pendingSync: docSnap.metadata.hasPendingWrites,
-          })),
-        )
+        const changes = snapshot.docChanges()
+        if (changes.length === 0) {
+          setListsLoading(false)
+          return
+        }
+
+        for (const change of changes) {
+          if (change.type === 'removed') {
+            listsById.delete(change.doc.id)
+          } else {
+            listsById.set(change.doc.id, {
+              id: change.doc.id,
+              ...(change.doc.data() as Omit<ShoppingList, 'id'>),
+              pendingSync: change.doc.metadata.hasPendingWrites,
+            })
+          }
+        }
+        setLists(snapshot.docs.map((docSnap) => listsById.get(docSnap.id)!))
         setListsLoading(false)
       },
     )

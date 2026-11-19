@@ -93,6 +93,42 @@ const config = defineConfig({
           subtle: { value: '#fdeaea' },
           contrast: { value: 'white' },
         },
+        // List-identity palette (docs/feature-all-lists-done-items.md) --
+        // deterministically assigned per list via listColorFor, distinct
+        // from terracotta (Add Target highlight) and green/red (checked/
+        // delete semantics elsewhere).
+        blue: {
+          solid: { value: '#4a6fa5' },
+          subtle: { value: '#eaf0f7' },
+        },
+        plum: {
+          solid: { value: '#7d5093' },
+          subtle: { value: '#f2ebf5' },
+        },
+        teal: {
+          solid: { value: '#3f8f86' },
+          subtle: { value: '#e8f3f2' },
+        },
+        amber: {
+          solid: { value: '#b8862e' },
+          subtle: { value: '#f7f0e2' },
+        },
+        rose: {
+          solid: { value: '#b8507a' },
+          subtle: { value: '#f7e9ef' },
+        },
+        sage: {
+          solid: { value: '#6b8f5a' },
+          subtle: { value: '#eef3ea' },
+        },
+        sky: {
+          solid: { value: '#4a93b5' },
+          subtle: { value: '#e8f2f6' },
+        },
+        mauve: {
+          solid: { value: '#8f6a7d' },
+          subtle: { value: '#f2eaee' },
+        },
       },
     },
     keyframes: {

@@ -6,6 +6,7 @@ import { useShoppingListDndSensors } from '../../items/dndSensors'
 import { AddItemForm } from '../../items/components/AddItemForm'
 import { useAllListsScreen } from '../useAllListsScreen'
 import { AllListsSection } from './AllListsSection'
+import { AllListsDoneSection } from './AllListsDoneSection'
 import { CreateListForm } from './CreateListForm'
 import { DraggedItemPreview } from './DraggedItemPreview'
 import type { ShoppingList } from '../types'
@@ -36,7 +37,12 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     registerScrollRequester,
     addItemError,
     handleAddItem,
-  } = useAllListsScreen()
+    registerDoneItems,
+    doneItems,
+    handleUncheckDone,
+    handleDeleteDone,
+    handleClearAllDone,
+  } = useAllListsScreen(lists)
   const sensors = useShoppingListDndSensors()
   const mainScrollRef = useRef<HTMLElement>(null)
 
@@ -105,14 +111,21 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
               key={list.id}
               list={list}
               expanded={isExpanded(list.id)}
-              onToggle={() => toggleSection(list.id)}
+              onToggle={toggleSection}
               onActiveItemsChange={registerActiveItems}
+              onDoneItemsChange={registerDoneItems}
               isAddTarget={isAddTarget(list.id)}
-              onSelectAddTarget={() => selectAddTarget(list.id)}
+              onSelectAddTarget={selectAddTarget}
               mainScrollRef={mainScrollRef}
               onRegisterScrollRequester={registerScrollRequester}
             />
           ))}
+          <AllListsDoneSection
+            items={doneItems}
+            onUncheck={handleUncheckDone}
+            onDelete={handleDeleteDone}
+            onClearAll={handleClearAllDone}
+          />
         </Box>
         <DragOverlay>
           {draggedItem ? <DraggedItemPreview item={draggedItem} /> : null}
@@ -121,10 +134,7 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
 
       {addTargetListId && (
         <Box flex="0 0 auto" bg="bg" borderTop="1px solid" borderColor="border" pb="env(safe-area-inset-bottom)">
-          <AddItemForm
-            onSubmit={(text) => void handleAddItem(text)}
-            error={addItemError}
-          />
+          <AddItemForm onSubmit={handleAddItem} error={addItemError} />
         </Box>
       )}
 

@@ -1,16 +1,25 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { useAuth } from '../auth/useAuth'
 import { reorderActiveItems, insertActiveOrder } from '../items/itemLogic'
-import { addItem, reorderItem, moveItemToList } from '../items/itemService'
+import {
+  addItem,
+  reorderItem,
+  moveItemToList,
+  uncheckItem,
+  deleteItem,
+  clearDoneItems,
+} from '../items/itemService'
 import { moveConflictMessage } from '../items/moveConflictMessages'
 import { notify } from '../../lib/toaster'
 import { useCreateListForm } from './useCreateListForm'
+import { mergeDoneItems, type DoneItemWithOrigin } from './allListsDoneItems'
 import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
 } from './components/AllListsSection'
 import type { ShoppingItem } from '../items/types'
+import type { ShoppingList } from './types'
 
 export interface UseAllListsScreenResult {
   isExpanded: (listId: string) => boolean
@@ -33,6 +42,12 @@ export interface UseAllListsScreenResult {
   registerScrollRequester: (listId: string, requestScroll: () => void) => void
   addItemError: string | null
   handleAddItem: (text: string) => Promise<void>
+  // Combined Done section (docs/feature-all-lists-done-items.md).
+  registerDoneItems: (listId: string, items: ShoppingItem[]) => void
+  doneItems: DoneItemWithOrigin[]
+  handleUncheckDone: (listId: string, itemId: string) => Promise<void>
+  handleDeleteDone: (listId: string, itemId: string) => Promise<void>
+  handleClearAllDone: () => Promise<void>
   // The item currently being dragged, for <DragOverlay> to render a
   // floating clone of -- needed because a dragged row's own useSortable
   // transform only reflects its position *within its own SortableContext*
@@ -80,7 +95,7 @@ function resolveDrop(
 // cross-list drag is even possible would work against that. Collapsing a
 // section is a purely opt-in way to reduce clutter, not persisted across
 // screen opens (a fresh Set every time this hook mounts).
-export function useAllListsScreen(): UseAllListsScreenResult {
+export function useAllListsScreen(lists: ShoppingList[]): UseAllListsScreenResult {
   const { user } = useAuth()
   const [collapsedListIds, setCollapsedListIds] = useState<Set<string>>(
     () => new Set(),
@@ -109,9 +124,12 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     activeItemsByListId.current.set(listId, items)
   }, [])
 
-  const isExpanded = (listId: string) => !collapsedListIds.has(listId)
+  const isExpanded = useCallback(
+    (listId: string) => !collapsedListIds.has(listId),
+    [collapsedListIds],
+  )
 
-  const toggleSection = (listId: string) => {
+  const toggleSection = useCallback((listId: string) => {
     setCollapsedListIds((prev) => {
       const next = new Set(prev)
       if (next.has(listId)) {
@@ -121,18 +139,38 @@ export function useAllListsScreen(): UseAllListsScreenResult {
       }
       return next
     })
-  }
+  }, [])
+
+  // Expands `listId` if it's currently collapsed, otherwise a no-op --
+  // written as a functional setState update (rather than reading
+  // isExpanded/calling toggleSection) so callers below don't need either in
+  // their own useCallback deps, which would otherwise force them to change
+  // identity every time collapsedListIds does.
+  const expandIfCollapsed = useCallback((listId: string) => {
+    setCollapsedListIds((prev) => {
+      if (!prev.has(listId)) {
+        return prev
+      }
+      const next = new Set(prev)
+      next.delete(listId)
+      return next
+    })
+  }, [])
 
   const [addTargetListId, setAddTargetListId] = useState<string | null>(null)
 
-  const isAddTarget = (listId: string) => addTargetListId === listId
+  const isAddTarget = useCallback(
+    (listId: string) => addTargetListId === listId,
+    [addTargetListId],
+  )
 
-  const selectAddTarget = (listId: string) => {
-    setAddTargetListId(listId)
-    if (!isExpanded(listId)) {
-      toggleSection(listId)
-    }
-  }
+  const selectAddTarget = useCallback(
+    (listId: string) => {
+      setAddTargetListId(listId)
+      expandIfCollapsed(listId)
+    },
+    [expandIfCollapsed],
+  )
 
   // Same ref-registry shape as activeItemsByListId above.
   const scrollRequestersByListId = useRef<Map<string, () => void>>(new Map())
@@ -150,38 +188,85 @@ export function useAllListsScreen(): UseAllListsScreenResult {
   // param, which would read activeItemsByListId.current during render
   // (refs must only be read in effects/handlers). Reading it here instead
   // mirrors handleDragStart/handleDragEnd below.
-  const handleAddItem = async (text: string) => {
-    if (!user || !addTargetListId) {
-      return
-    }
-    const listId = addTargetListId
-    scrollRequestersByListId.current.get(listId)?.()
-    if (!isExpanded(listId)) {
-      toggleSection(listId)
-    }
-    setAddItemError(null)
-    try {
-      const activeItems = activeItemsByListId.current.get(listId) ?? []
-      await addItem(listId, text, user.uid, activeItems)
-    } catch {
-      setAddItemError('unknown')
-    }
-  }
+  const handleAddItem = useCallback(
+    async (text: string) => {
+      if (!user || !addTargetListId) {
+        return
+      }
+      const listId = addTargetListId
+      scrollRequestersByListId.current.get(listId)?.()
+      expandIfCollapsed(listId)
+      setAddItemError(null)
+      try {
+        const activeItems = activeItemsByListId.current.get(listId) ?? []
+        await addItem(listId, text, user.uid, activeItems)
+      } catch {
+        setAddItemError('unknown')
+      }
+    },
+    [user, addTargetListId, expandIfCollapsed],
+  )
 
-  const handleDragStart = (event: DragStartEvent) => {
+  // Unlike activeItemsByListId (a ref -- only read synchronously inside
+  // event handlers), this must be state: the combined Done section needs to
+  // render reactively as any list's done items change.
+  const [doneItemsByListId, setDoneItemsByListId] = useState<
+    Map<string, ShoppingItem[]>
+  >(new Map())
+
+  const registerDoneItems = useCallback((listId: string, items: ShoppingItem[]) => {
+    setDoneItemsByListId((prev) => new Map(prev).set(listId, items))
+  }, [])
+
+  // Memoized so AllListsDoneSection (React.memo) only re-renders when the
+  // merge's actual inputs change, not on every unrelated render of this hook.
+  const doneItems = useMemo(
+    () => mergeDoneItems(lists, doneItemsByListId),
+    [lists, doneItemsByListId],
+  )
+
+  const handleUncheckDone = useCallback(
+    async (listId: string, itemId: string) => {
+      scrollRequestersByListId.current.get(listId)?.()
+      expandIfCollapsed(listId)
+      const activeItems = activeItemsByListId.current.get(listId) ?? []
+      await uncheckItem(listId, itemId, activeItems)
+    },
+    [expandIfCollapsed],
+  )
+
+  const handleDeleteDone = useCallback(async (listId: string, itemId: string) => {
+    await deleteItem(listId, itemId)
+  }, [])
+
+  const handleClearAllDone = useCallback(async () => {
+    const results = await Promise.allSettled(
+      lists.map((list) => clearDoneItems(list.id)),
+    )
+    const hasFailure = results.some((result) => result.status === 'rejected')
+    if (hasFailure) {
+      console.error(
+        'Failed to clear done items for one or more lists',
+        results,
+      )
+      notify('Vyčistenie sa nepodarilo pre niektoré zoznamy.', 'error')
+    }
+  }, [lists])
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const listId = event.active.data.current?.listId
     if (typeof listId !== 'string') {
       return
     }
     const items = activeItemsByListId.current.get(listId) ?? []
     setDraggedItem(items.find((item) => item.id === event.active.id) ?? null)
-  }
+  }, [])
 
-  const handleDragCancel = () => {
+  const handleDragCancel = useCallback(() => {
     setDraggedItem(null)
-  }
+  }, [])
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     setDraggedItem(null)
 
     const { active, over } = event
@@ -236,7 +321,7 @@ export function useAllListsScreen(): UseAllListsScreenResult {
         console.error('Failed to move item between lists', error)
         notify('Presun sa nepodarilo.', 'error')
       })
-  }
+  }, [])
 
   return {
     isExpanded,
@@ -258,5 +343,10 @@ export function useAllListsScreen(): UseAllListsScreenResult {
     registerScrollRequester,
     addItemError,
     handleAddItem,
+    registerDoneItems,
+    doneItems,
+    handleUncheckDone,
+    handleDeleteDone,
+    handleClearAllDone,
   }
 }

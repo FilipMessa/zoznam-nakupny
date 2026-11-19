@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen } from '../../../test/render'
+import { render, screen, fireEvent } from '../../../test/render'
 import userEvent from '@testing-library/user-event'
 import { AllListsSection, type AllListsSectionProps } from './AllListsSection'
 import { useAuth } from '../../auth/useAuth'
@@ -62,6 +63,7 @@ function defaultProps(
     expanded: true,
     onToggle: vi.fn(),
     onActiveItemsChange: vi.fn(),
+    onDoneItemsChange: vi.fn(),
     isAddTarget: false,
     onSelectAddTarget: vi.fn(),
     mainScrollRef: { current: null },
@@ -91,6 +93,28 @@ describe('AllListsSection', () => {
     render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByText('Potraviny · 2')).toBeInTheDocument()
+  })
+
+  it('reports its done items up without rendering them', () => {
+    const onDoneItemsChange = vi.fn()
+    const doneItem = makeItem({ id: 'd', text: 'chlieb', status: 'done' })
+    mockedUseItems.mockReturnValue({
+      items: [makeItem({ id: 'a', text: 'mlieko' }), doneItem],
+      itemsLoading: false,
+    })
+
+    render(<AllListsSection {...defaultProps({ onDoneItemsChange })} />)
+
+    expect(onDoneItemsChange).toHaveBeenCalledWith('list-1', [doneItem])
+    expect(screen.queryByText(doneItem.text)).not.toBeInTheDocument()
+  })
+
+  it('renders a list-color dot in the header', () => {
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+
+    render(<AllListsSection {...defaultProps()} />)
+
+    expect(screen.getByTestId('list-color-dot')).toBeInTheDocument()
   })
 
   it('renders active items when expanded', () => {
@@ -222,5 +246,34 @@ describe('AllListsSection', () => {
     )
 
     expect(screen.getByTitle('Zoznam čaká na odoslanie')).toBeInTheDocument()
+  })
+
+  it('does not re-render when re-rendered with referentially identical props (React.memo)', () => {
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+    const props = defaultProps()
+
+    // mockedUseItems is called once per AllListsSection function-body
+    // execution, so its call count is a proxy for "did this component
+    // actually re-render" -- a re-render triggered by an unrelated sibling
+    // (forceRerender here stands in for e.g. another section toggling)
+    // should be skipped entirely by React.memo when props haven't changed.
+    function Harness() {
+      const [, forceRerender] = useState(0)
+      return (
+        <>
+          <button type="button" onClick={() => forceRerender((n) => n + 1)}>
+            rerender
+          </button>
+          <AllListsSection {...props} />
+        </>
+      )
+    }
+
+    render(<Harness />)
+    const callsBefore = mockedUseItems.mock.calls.length
+
+    fireEvent.click(screen.getByRole('button', { name: 'rerender' }))
+
+    expect(mockedUseItems.mock.calls.length).toBe(callsBefore)
   })
 })

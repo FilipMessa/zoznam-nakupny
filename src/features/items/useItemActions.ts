@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import type { User } from 'firebase/auth'
 import {
   checkItem,
@@ -27,28 +28,40 @@ export function useItemActions({
   user,
   activeItems,
 }: UseItemActionsParams): UseItemActionsResult {
-  const handleCheck = async (itemId: string) => {
-    if (!user) {
-      return
-    }
-    await checkItem(listId, itemId, user.uid)
-  }
+  const handleCheck = useCallback(
+    async (itemId: string) => {
+      if (!user) {
+        return
+      }
+      await checkItem(listId, itemId, user.uid)
+    },
+    [listId, user],
+  )
 
-  const handleUncheck = async (itemId: string) => {
-    await uncheckItem(listId, itemId, activeItems)
-  }
+  const handleUncheck = useCallback(
+    async (itemId: string) => {
+      await uncheckItem(listId, itemId, activeItems)
+    },
+    [listId, activeItems],
+  )
 
-  const handleReorder = async (itemId: string, activeOrder: number) => {
-    await reorderItem(listId, itemId, activeOrder)
-  }
+  const handleReorder = useCallback(
+    async (itemId: string, activeOrder: number) => {
+      await reorderItem(listId, itemId, activeOrder)
+    },
+    [listId],
+  )
 
-  const handleDelete = async (itemId: string) => {
-    await deleteItem(listId, itemId)
-  }
+  const handleDelete = useCallback(
+    async (itemId: string) => {
+      await deleteItem(listId, itemId)
+    },
+    [listId],
+  )
 
-  const handleClearDone = async () => {
+  const handleClearDone = useCallback(async () => {
     await clearDoneItems(listId)
-  }
+  }, [listId])
 
   return {
     handleCheck,

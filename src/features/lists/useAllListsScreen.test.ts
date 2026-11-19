@@ -7,12 +7,16 @@ import { useAuth } from '../auth/useAuth'
 import * as itemService from '../items/itemService'
 import { notify } from '../../lib/toaster'
 import type { ShoppingItem } from '../items/types'
+import type { ShoppingList } from './types'
 
 vi.mock('../auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../items/itemService', () => ({
   reorderItem: vi.fn(),
   moveItemToList: vi.fn(),
   addItem: vi.fn(),
+  uncheckItem: vi.fn(),
+  deleteItem: vi.fn(),
+  clearDoneItems: vi.fn(),
 }))
 vi.mock('../../lib/toaster', () => ({ notify: vi.fn() }))
 
@@ -20,6 +24,9 @@ const mockedUseAuth = vi.mocked(useAuth)
 const mockedReorderItem = vi.mocked(itemService.reorderItem)
 const mockedMoveItemToList = vi.mocked(itemService.moveItemToList)
 const mockedAddItem = vi.mocked(itemService.addItem)
+const mockedUncheckItem = vi.mocked(itemService.uncheckItem)
+const mockedDeleteItem = vi.mocked(itemService.deleteItem)
+const mockedClearDoneItems = vi.mocked(itemService.clearDoneItems)
 const mockedNotify = vi.mocked(notify)
 
 function fakeTimestamp(millis: number): Timestamp {
@@ -40,6 +47,25 @@ function makeItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
     ...overrides,
   }
 }
+
+function makeList(overrides: Partial<ShoppingList> = {}): ShoppingList {
+  return {
+    id: 'list-1',
+    name: 'Zoznam',
+    createdAt: fakeTimestamp(0),
+    createdBy: 'uid-1',
+    ...overrides,
+  }
+}
+
+// Covers every listId this suite's fixtures reference ('list-1'/'list-2'/
+// 'list-3') -- useAllListsScreen now needs `lists` for the combined Done
+// section's merge and the global clear-all.
+const TEST_LISTS: ShoppingList[] = [
+  makeList({ id: 'list-1', name: 'Zoznam 1' }),
+  makeList({ id: 'list-2', name: 'Zoznam 2' }),
+  makeList({ id: 'list-3', name: 'Zoznam 3' }),
+]
 
 // Builds a minimal DragEndEvent -- only the fields useAllListsScreen's
 // onDragEnd actually reads (active.id, active.data.current.listId,
@@ -75,6 +101,9 @@ describe('useAllListsScreen', () => {
     mockedReorderItem.mockResolvedValue(undefined)
     mockedMoveItemToList.mockResolvedValue({ ok: true })
     mockedAddItem.mockResolvedValue('item-new')
+    mockedUncheckItem.mockResolvedValue(undefined)
+    mockedDeleteItem.mockResolvedValue(undefined)
+    mockedClearDoneItems.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -83,14 +112,14 @@ describe('useAllListsScreen', () => {
 
   describe('expand/collapse', () => {
     it('starts every list expanded', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       expect(result.current.isExpanded('list-1')).toBe(true)
       expect(result.current.isExpanded('list-2')).toBe(true)
     })
 
     it('toggleSection collapses then re-expands a list independently of others', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       act(() => result.current.toggleSection('list-1'))
       expect(result.current.isExpanded('list-1')).toBe(false)
@@ -103,13 +132,13 @@ describe('useAllListsScreen', () => {
 
   describe('draggedItem (for DragOverlay)', () => {
     it('is null before any drag starts', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       expect(result.current.draggedItem).toBeNull()
     })
 
     it('is set to the dragged item on drag start', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
 
@@ -119,7 +148,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('is cleared on drag end', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
       act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
@@ -133,7 +162,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('is cleared on drag cancel', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const item = makeItem({ id: 'a', text: 'mlieko' })
       act(() => result.current.registerActiveItems('list-1', [item]))
       act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
@@ -145,7 +174,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('stays null when the dragged item is not found in the registered list', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => result.current.registerActiveItems('list-1', [makeItem({ id: 'b' })]))
 
       act(() => result.current.handleDragStart(makeDragStartEvent('a', 'list-1')))
@@ -156,7 +185,7 @@ describe('useAllListsScreen', () => {
 
   describe('handleDragEnd — same-list reorder', () => {
     it('calls reorderItem with the fractional order computed for the drop position', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const items = [
         makeItem({ id: 'a', activeOrder: 1 }),
         makeItem({ id: 'b', activeOrder: 2 }),
@@ -179,7 +208,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('does nothing when dropped on itself', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() =>
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })]),
       )
@@ -195,7 +224,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('does nothing when the dragged item is no longer in the registered list', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() =>
         result.current.registerActiveItems('list-1', [makeItem({ id: 'b' })]),
       )
@@ -214,7 +243,7 @@ describe('useAllListsScreen', () => {
 
   describe('handleDragEnd — cross-list move', () => {
     it('calls moveItemToList with the dragged item and the order computed from the destination index', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const draggedItem = makeItem({ id: 'a', activeOrder: 1 })
       act(() => {
         result.current.registerActiveItems('list-1', [draggedItem])
@@ -241,7 +270,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('appends to the end when dropped on a collapsed list header', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })])
         result.current.registerActiveItems('list-2', [
@@ -263,7 +292,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('inserts at order 1 when dropped on an empty list body', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })])
         result.current.registerActiveItems('list-3', [])
@@ -283,7 +312,7 @@ describe('useAllListsScreen', () => {
 
     it('shows a toast when moveItemToList reports an expected conflict', async () => {
       mockedMoveItemToList.mockResolvedValue({ ok: false, reason: 'source-missing' })
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })])
         result.current.registerActiveItems('list-2', [])
@@ -305,7 +334,7 @@ describe('useAllListsScreen', () => {
     it('shows a generic toast and logs when moveItemToList rejects', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       mockedMoveItemToList.mockRejectedValue(new Error('boom'))
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.registerActiveItems('list-1', [makeItem({ id: 'a' })])
         result.current.registerActiveItems('list-2', [])
@@ -326,14 +355,14 @@ describe('useAllListsScreen', () => {
 
   describe('add item', () => {
     it('starts with no add target selected', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       expect(result.current.addTargetListId).toBeNull()
       expect(result.current.isAddTarget('list-1')).toBe(false)
     })
 
     it('selectAddTarget sets the target and expands a collapsed section', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => result.current.toggleSection('list-1'))
       expect(result.current.isExpanded('list-1')).toBe(false)
 
@@ -345,7 +374,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('does not collapse an already-expanded section when selected as target', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       act(() => result.current.selectAddTarget('list-1'))
 
@@ -353,7 +382,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('keeps the add target selected after manually collapsing it via its chevron', () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => result.current.selectAddTarget('list-1'))
 
       act(() => result.current.toggleSection('list-1'))
@@ -364,7 +393,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('calls itemService.addItem with the target list and its registered active items', async () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const items = [makeItem({ id: 'a' })]
       act(() => {
         result.current.registerActiveItems('list-1', items)
@@ -379,7 +408,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('does nothing when no add target is selected', async () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
 
       await act(async () => {
         await result.current.handleAddItem('chlieb')
@@ -389,7 +418,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('triggers the registered scroll requester for the target list on add', async () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       const requestScroll = vi.fn()
       act(() => {
         result.current.registerActiveItems('list-1', [])
@@ -405,7 +434,7 @@ describe('useAllListsScreen', () => {
     })
 
     it('re-expands the target on add if it had been manually collapsed since selection', async () => {
-      const { result } = renderHook(() => useAllListsScreen())
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
       act(() => {
         result.current.selectAddTarget('list-1')
         result.current.toggleSection('list-1')
@@ -417,6 +446,102 @@ describe('useAllListsScreen', () => {
       })
 
       expect(result.current.isExpanded('list-1')).toBe(true)
+    })
+  })
+
+  describe('done items', () => {
+    it('starts with an empty merged done list', () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+
+      expect(result.current.doneItems).toEqual([])
+    })
+
+    it('merges registered done items from multiple lists sorted newest-first', () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+      const older = makeItem({ id: 'a', status: 'done', completedAt: fakeTimestamp(100) })
+      const newer = makeItem({ id: 'b', status: 'done', completedAt: fakeTimestamp(200) })
+
+      act(() => {
+        result.current.registerDoneItems('list-1', [older])
+        result.current.registerDoneItems('list-2', [newer])
+      })
+
+      expect(result.current.doneItems.map((entry) => entry.item.id)).toEqual([
+        'b',
+        'a',
+      ])
+    })
+
+    it('handleUncheckDone calls uncheckItem with the origin list and its registered active items', async () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+      const activeItems = [makeItem({ id: 'x' })]
+      act(() => result.current.registerActiveItems('list-1', activeItems))
+
+      await act(async () => {
+        await result.current.handleUncheckDone('list-1', 'done-1')
+      })
+
+      expect(mockedUncheckItem).toHaveBeenCalledWith('list-1', 'done-1', activeItems)
+    })
+
+    it('handleUncheckDone re-expands the origin list if it is collapsed and triggers its scroll requester', async () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+      const requestScroll = vi.fn()
+      act(() => {
+        result.current.toggleSection('list-1')
+        result.current.registerScrollRequester('list-1', requestScroll)
+      })
+      expect(result.current.isExpanded('list-1')).toBe(false)
+
+      await act(async () => {
+        await result.current.handleUncheckDone('list-1', 'done-1')
+      })
+
+      expect(result.current.isExpanded('list-1')).toBe(true)
+      expect(requestScroll).toHaveBeenCalledTimes(1)
+    })
+
+    it('handleDeleteDone calls itemService.deleteItem with the origin list and item id', async () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+
+      await act(async () => {
+        await result.current.handleDeleteDone('list-2', 'done-1')
+      })
+
+      expect(mockedDeleteItem).toHaveBeenCalledWith('list-2', 'done-1')
+    })
+
+    it('handleClearAllDone calls clearDoneItems once per list', async () => {
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+
+      await act(async () => {
+        await result.current.handleClearAllDone()
+      })
+
+      expect(mockedClearDoneItems).toHaveBeenCalledTimes(TEST_LISTS.length)
+      for (const list of TEST_LISTS) {
+        expect(mockedClearDoneItems).toHaveBeenCalledWith(list.id)
+      }
+    })
+
+    it('shows a toast and logs when clearing done items fails for some lists', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      mockedClearDoneItems
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce(undefined)
+      const { result } = renderHook(() => useAllListsScreen(TEST_LISTS))
+
+      await act(async () => {
+        await result.current.handleClearAllDone()
+      })
+
+      expect(mockedNotify).toHaveBeenCalledWith(
+        'Vyčistenie sa nepodarilo pre niektoré zoznamy.',
+        'error',
+      )
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      consoleErrorSpy.mockRestore()
     })
   })
 })

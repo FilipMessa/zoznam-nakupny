@@ -103,6 +103,18 @@ describe('DoneItemRow', () => {
     expect(onDelete).toHaveBeenCalledWith('item-9')
   })
 
+  it('does not render an origin dot by default', () => {
+    render(<DoneItemRow {...makeProps()} />)
+
+    expect(screen.queryByTestId('done-item-origin-dot')).not.toBeInTheDocument()
+  })
+
+  it('renders an origin color dot when originColor is passed', () => {
+    render(<DoneItemRow {...makeProps({ originColor: 'blue.solid' })} />)
+
+    expect(screen.getByTestId('done-item-origin-dot')).toBeInTheDocument()
+  })
+
   it('shows a pending-sync icon when the item has not synced yet', () => {
     render(<DoneItemRow {...makeProps({ item: makeDoneItem({ pendingSync: true }) })} />)
 

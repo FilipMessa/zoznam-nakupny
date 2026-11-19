@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { editItemText } from './itemService'
 
 export interface UseItemEditingResult {
@@ -11,18 +11,21 @@ export interface UseItemEditingResult {
 export function useItemEditing(listId: string): UseItemEditingResult {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
 
-  const handleStartEdit = (itemId: string) => {
+  const handleStartEdit = useCallback((itemId: string) => {
     setEditingItemId(itemId)
-  }
+  }, [])
 
-  const handleSubmitEdit = async (itemId: string, text: string) => {
-    setEditingItemId(null)
-    await editItemText(listId, itemId, text)
-  }
+  const handleSubmitEdit = useCallback(
+    async (itemId: string, text: string) => {
+      setEditingItemId(null)
+      await editItemText(listId, itemId, text)
+    },
+    [listId],
+  )
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingItemId(null)
-  }
+  }, [])
 
   return { editingItemId, handleStartEdit, handleSubmitEdit, handleCancelEdit }
 }

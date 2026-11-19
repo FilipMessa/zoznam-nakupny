@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '../types'
@@ -14,14 +15,19 @@ export interface DoneItemRowProps {
   onDelete: (id: string) => void
   isSwipeOpen: boolean
   onSwipeOpenChange: (open: boolean) => void
+  // Origin List indicator (docs/feature-all-lists-done-items.md) -- only
+  // used by the All Lists screen's combined Done section, which mixes
+  // items from several lists. ShoppingListScreen never passes this.
+  originColor?: string
 }
 
-export function DoneItemRow({
+function DoneItemRowImpl({
   item,
   onUncheck,
   onDelete,
   isSwipeOpen,
   onSwipeOpenChange,
+  originColor,
 }: DoneItemRowProps) {
   const {
     swipeOffset,
@@ -112,6 +118,19 @@ export function DoneItemRow({
             _checked={{ bg: 'green.solid', borderColor: 'green.solid' }}
           />
         </Checkbox.Root>
+        {originColor && (
+          <Box
+            as="span"
+            aria-hidden="true"
+            data-testid="done-item-origin-dot"
+            w="8px"
+            h="8px"
+            borderRadius="50%"
+            flexShrink="0"
+            m="0 0 0 10px"
+            bg={originColor}
+          />
+        )}
         <Text
           flex="1 1 auto"
           minW="0"
@@ -159,3 +178,5 @@ export function DoneItemRow({
     </Box>
   )
 }
+
+export const DoneItemRow = memo(DoneItemRowImpl)

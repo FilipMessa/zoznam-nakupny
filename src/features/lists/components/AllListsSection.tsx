@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { memo, useEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { Box, Flex, IconButton, Text, chakra } from '@chakra-ui/react'
 import { useDroppable } from '@dnd-kit/core'
@@ -12,6 +12,7 @@ import { useItemEditing } from '../../items/useItemEditing'
 import { useSwipeRowRegistry } from '../../items/useSwipeRowRegistry'
 import { useScrollNewItemIntoView } from '../../items/useScrollNewItemIntoView'
 import { ActiveItemRow } from '../../items/components/ActiveItemRow'
+import { listColorFor } from '../listColor'
 import type { ShoppingItem } from '../../items/types'
 import type { ShoppingList } from '../types'
 
@@ -25,15 +26,23 @@ export const LIST_BODY_DROPPABLE_PREFIX = 'list-body-'
 export interface AllListsSectionProps {
   list: ShoppingList
   expanded: boolean
-  onToggle: () => void
+  // Takes listId rather than being pre-bound per instance, so the parent
+  // can pass its own stable handler reference directly instead of a new
+  // per-list closure every render -- required for React.memo below to
+  // actually skip unrelated sections.
+  onToggle: (listId: string) => void
   // Reports this section's current active items up to the shared
   // DndContext's onDragEnd handler (in useAllListsScreen), which needs
   // synchronous read access to every list's items to compute a drop's
   // destination order and resolve the dragged item's full record -- data
   // that only exists inside each section's own useItems subscription.
   onActiveItemsChange: (listId: string, items: ShoppingItem[]) => void
+  // Reports this section's done items up for the combined Done section at
+  // the bottom of the screen -- done items are never rendered inside this
+  // section itself.
+  onDoneItemsChange: (listId: string, items: ShoppingItem[]) => void
   isAddTarget: boolean
-  onSelectAddTarget: () => void
+  onSelectAddTarget: (listId: string) => void
   // One shared container for the whole screen, not per section.
   mainScrollRef: RefObject<HTMLElement | null>
   onRegisterScrollRequester: (listId: string, requestScroll: () => void) => void
@@ -46,11 +55,12 @@ export interface AllListsSectionProps {
 // hook, since the number of lists can change while the screen is open --
 // one useItems call per AllListsSection component instance (keyed by
 // list.id in the parent's map) is the only correct way to do this.
-export function AllListsSection({
+function AllListsSectionImpl({
   list,
   expanded,
   onToggle,
   onActiveItemsChange,
+  onDoneItemsChange,
   isAddTarget,
   onSelectAddTarget,
   mainScrollRef,
@@ -58,7 +68,8 @@ export function AllListsSection({
 }: AllListsSectionProps) {
   const { user } = useAuth()
   const { items } = useItems(list.id)
-  const { active } = sortItems(items)
+  const { active, done } = sortItems(items)
+  const listColor = listColorFor(list.id)
 
   useEffect(() => {
     onActiveItemsChange(list.id, active)
@@ -67,6 +78,11 @@ export function AllListsSection({
     // and simpler than hand-rolling a deep-equality check.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list.id, active])
+
+  useEffect(() => {
+    onDoneItemsChange(list.id, done)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.id, done])
 
   const { requestScrollAfterAdd } = useScrollNewItemIntoView(active, mainScrollRef)
 
@@ -84,6 +100,14 @@ export function AllListsSection({
     user,
     activeItems: active,
   })
+
+  // Stabilized so ActiveItemRow.memo isn't defeated by a new object literal
+  // every render (dnd-kit attaches this to the shared DndContext's
+  // active.data.current, read in useAllListsScreen's onDragEnd).
+  const sortableData = useMemo(() => ({ listId: list.id }), [list.id])
+  // Same reasoning for @dnd-kit/sortable's own internal memoization, which
+  // is keyed on this array's identity.
+  const sortableIds = useMemo(() => active.map((item) => item.id), [active])
 
   // Collapsed header is a drop target -- dragging an item onto it appends
   // to the end of this list, whether or not it's currently expanded to show
@@ -110,7 +134,7 @@ export function AllListsSection({
         <IconButton
           type="button"
           aria-label={expanded ? 'Zbaliť' : 'Rozbaliť'}
-          onClick={onToggle}
+          onClick={() => onToggle(list.id)}
           variant="ghost"
           minW="touchTarget"
           minH="touchTarget"
@@ -120,9 +144,19 @@ export function AllListsSection({
         >
           {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </IconButton>
+        <Box
+          as="span"
+          aria-hidden="true"
+          data-testid="list-color-dot"
+          w="8px"
+          h="8px"
+          borderRadius="50%"
+          flexShrink="0"
+          bg={listColor.solid}
+        />
         <chakra.button
           type="button"
-          onClick={onSelectAddTarget}
+          onClick={() => onSelectAddTarget(list.id)}
           aria-current={isAddTarget ? 'true' : undefined}
           display="flex"
           alignItems="center"
@@ -178,22 +212,19 @@ export function AllListsSection({
               Žiadne položky na kúpu.
             </Text>
           ) : (
-            <SortableContext
-              items={active.map((item) => item.id)}
-              strategy={verticalListSortingStrategy}
-            >
+            <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
               <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
                 {active.map((item) => (
                   <ActiveItemRow
                     key={item.id}
                     item={item}
-                    sortableData={{ listId: list.id }}
+                    sortableData={sortableData}
                     dimWhileDragging
-                    onCheck={(itemId) => void handleCheck(itemId)}
-                    onDelete={(itemId) => void handleDelete(itemId)}
+                    onCheck={handleCheck}
+                    onDelete={handleDelete}
                     isEditing={editingItemId === item.id}
                     onStartEdit={handleStartEdit}
-                    onSubmitEdit={(itemId, text) => void handleSubmitEdit(itemId, text)}
+                    onSubmitEdit={handleSubmitEdit}
                     onCancelEdit={handleCancelEdit}
                     isSwipeOpen={openSwipeItemId === item.id}
                     onSwipeOpenChange={(open) => handleSwipeOpenChange(item.id, open)}
@@ -207,3 +238,5 @@ export function AllListsSection({
     </Box>
   )
 }
+
+export const AllListsSection = memo(AllListsSectionImpl)

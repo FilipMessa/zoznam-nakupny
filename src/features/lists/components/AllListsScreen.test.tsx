@@ -15,6 +15,11 @@ vi.mock('./AllListsSection', () => ({
     <div data-testid={`all-lists-section-${list.id}`}>{list.name}</div>
   ),
 }))
+// AllListsDoneSection has its own suite; stub it for the same reason as
+// AllListsSection above.
+vi.mock('./AllListsDoneSection', () => ({
+  AllListsDoneSection: () => <div data-testid="all-lists-done-section" />,
+}))
 vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../listService', () => ({
   createList: vi.fn(),
