@@ -30,8 +30,8 @@ component (*.tsx)  ->  useX hook  ->  xService.ts  (ciste funkcie)
                                   ->  xApi.ts      (Firestore / Firebase I/O)
 ```
 
-- **Komponent** iba renderuje a vola callbacky z props / hooku. Ziadna business logika, ziadny pristup k Firebase.
-- **`useX` hook** drzi stav a prepaja: vola service funkcie a api funkcie, vracia hodnoty a handlery pre komponent.
+- **Komponent** iba renderuje a vola callbacky z props / hooku. Ziadna business logika, ziadny pristup k Firebase, ziadny `useEffect` (efekty a prepojenie patria do `useX` hooku; tabulku v `docs/refactor-presentation-business-split.md`). Velky komponent sa deli na mensie prezentacne komponenty v tom istom priecinku (napr. `ActiveItemRow` -> `ActiveItemContent`, `ActiveItemSwipeActions`, `ActiveItemEditForm`).
+- **`useX` hook** drzi stav a prepaja: vola service funkcie a api funkcie, vracia hodnoty a handlery pre komponent. Jeden hook = jeden zamer; obrazovka ich sklada v `use<Obrazovka>` hooku (napr. `useAllListsScreen` sklada `useCollapsedSections`, `useItemRegistry`, `useAllListsDrag`, `useAddTarget`, `useDoneItemsActions`).
 - **`xService.ts`** je ciste business logika: validacia, sort, vypocet `activeOrder`, tvorba patchov, texty chyb. Bez Reactu a bez Firebase runtime importov (`import type` z `firebase/*` je v poriadku). Testuje sa bez emulatora.
 - **`xApi.ts`** je jediné miesto, kde sa vola Firestore/Auth (`getDoc`, `onSnapshot`, `writeBatch`, `signInWithPopup`, ...). Kazda funkcia prijima volitelny posledny parameter `firestore: Firestore = db`, aby ju testy mohli spustit proti emulatoru. Realtime odbery su `subscribeX(..., onNext, firestore?)` a vracaju `Unsubscribe`.
 - **Cesty ku kolekciam** su len v `src/lib/firestorePaths.ts`.
