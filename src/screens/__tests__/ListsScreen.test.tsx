@@ -19,7 +19,7 @@ vi.mock('@/features/lists/listApi', () => ({
   renameList: vi.fn(),
   deleteList: vi.fn(),
 }))
-// ListHeader calls signOutUser directly; keep authApi (and its Firebase
+// ListHeader signs out through useSignOut -> authApi; keep authApi (and its Firebase
 // initialization) out of this suite.
 vi.mock('@/features/auth/authApi', () => ({ signOutUser: vi.fn() }))
 // The selected list's items screen has its own suite; stub it so this one

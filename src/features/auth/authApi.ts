@@ -1,9 +1,12 @@
 import {
   getRedirectResult,
   GoogleAuthProvider,
+  onAuthStateChanged,
   signInWithPopup,
   signInWithRedirect,
   signOut,
+  type Unsubscribe,
+  type User,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { isLikelyMobileBrowser, isPopupFallbackError } from './authService'
@@ -43,4 +46,10 @@ export async function completeRedirectSignIn(): Promise<void> {
 
 export async function signOutUser(): Promise<void> {
   await signOut(auth)
+}
+
+export function subscribeAuthState(
+  onNext: (user: User | null) => void,
+): Unsubscribe {
+  return onAuthStateChanged(auth, onNext)
 }

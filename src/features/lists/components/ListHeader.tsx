@@ -7,7 +7,7 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react'
-import { signOutUser } from '@/features/auth/authApi'
+import { useSignOut } from '@/features/auth/useSignOut'
 import { useOnlineStatus } from '@/lib/useOnlineStatus'
 
 export interface ListHeaderProps {
@@ -28,6 +28,7 @@ export function ListHeader({
   onDeleteClick,
 }: ListHeaderProps) {
   const isOnline = useOnlineStatus()
+  const { handleSignOut } = useSignOut()
 
   return (
     <Flex
@@ -141,7 +142,7 @@ export function ListHeader({
         type="button"
         className="icon-btn"
         aria-label="Odhlásiť sa"
-        onClick={() => void signOutUser()}
+        onClick={handleSignOut}
         variant="ghost"
         minW="touchTarget"
         minH="touchTarget"

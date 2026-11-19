@@ -4,6 +4,7 @@ import {
   completeRedirectSignIn,
   signInWithGoogle,
   signOutUser,
+  subscribeAuthState,
 } from '@/features/auth/authApi'
 
 const firebaseAuthMocks = vi.hoisted(() => {
@@ -17,6 +18,7 @@ const firebaseAuthMocks = vi.hoisted(() => {
       return provider
     }),
     getRedirectResult: vi.fn(),
+    onAuthStateChanged: vi.fn(),
     signInWithPopup: vi.fn(),
     signInWithRedirect: vi.fn(),
     signOut: vi.fn(),
@@ -31,6 +33,7 @@ vi.mock('firebase/auth', () => {
   return {
     GoogleAuthProvider: firebaseAuthMocks.GoogleAuthProvider,
     getRedirectResult: firebaseAuthMocks.getRedirectResult,
+    onAuthStateChanged: firebaseAuthMocks.onAuthStateChanged,
     signInWithPopup: firebaseAuthMocks.signInWithPopup,
     signInWithRedirect: firebaseAuthMocks.signInWithRedirect,
     signOut: firebaseAuthMocks.signOut,
@@ -50,6 +53,7 @@ describe('authApi', () => {
     firebaseAuthMocks.provider.setCustomParameters.mockReset()
     firebaseAuthMocks.GoogleAuthProvider.mockClear()
     firebaseAuthMocks.getRedirectResult.mockReset()
+    firebaseAuthMocks.onAuthStateChanged.mockReset()
     firebaseAuthMocks.signInWithPopup.mockReset()
     firebaseAuthMocks.signInWithRedirect.mockReset()
     firebaseAuthMocks.signOut.mockReset()
@@ -127,5 +131,19 @@ describe('authApi', () => {
     await signOutUser()
 
     expect(firebaseAuthMocks.signOut).toHaveBeenCalledWith(auth)
+  })
+
+  it('subscribes to auth state changes and returns the unsubscribe function', () => {
+    const unsubscribe = vi.fn()
+    const onNext = vi.fn()
+    firebaseAuthMocks.onAuthStateChanged.mockReturnValueOnce(unsubscribe)
+
+    const result = subscribeAuthState(onNext)
+
+    expect(firebaseAuthMocks.onAuthStateChanged).toHaveBeenCalledWith(
+      auth,
+      onNext,
+    )
+    expect(result).toBe(unsubscribe)
   })
 })
