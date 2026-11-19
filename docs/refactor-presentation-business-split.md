@@ -1,3 +1,5 @@
+> Superseded by [docs/conventions.md](./conventions.md), which is now the authority for layering and naming (`*Service.ts` = pure logic, `*Api.ts` = Firebase I/O). Below is the historical working spec; its file names and backlog paths predate that rename.
+
 # Spec: split presentation and business layers (agentic loop task)
 
 This is the working spec for an agentic loop that refactors existing screens/rows
@@ -31,7 +33,7 @@ change to do cleanly, stop and ask — don't guess.
 - May keep a plain synchronous handler if it does nothing but read local
   state and call a prop callback (e.g. validate-and-clear-then-`onSubmit`).
 - Must **not** contain: `useEffect`, `try/catch`, `await`, calls into
-  `*Service.ts`/`*Crud.ts`, or state that other components need to know about
+  `*Service.ts`/`*Api.ts` (formerly `*Crud.ts`), or state that other components need to know about
   (e.g. "which row is currently open/editing").
 
 **Business layer** (`.ts`, not `.tsx`):
@@ -43,8 +45,8 @@ change to do cleanly, stop and ask — don't guess.
   hook (e.g. `useShoppingListScreen`, `useListsScreen`) that calls the smaller
   hooks internally and returns a flat object of values/handlers the component
   spreads into JSX. The component itself calls only this one composing hook.
-- Hooks call existing pure logic (`itemLogic.ts`, `listCrud.ts`) and service
-  I/O wrappers (`itemService.ts`, `listService.ts`, `inviteService.ts`)
+- Hooks call pure logic (`itemService.ts`, `listService.ts`) and Firebase I/O
+  wrappers (`itemApi.ts`, `listApi.ts`, `inviteApi.ts`)
   directly — don't introduce a new layer between hooks and services.
 - File location: colocate single-intent hooks and the composing hook at the
   feature root, next to the existing `useItems.ts` / `useLists.ts` /
