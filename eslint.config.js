@@ -22,4 +22,11 @@ export default defineConfig([
   },
   // Must stay last so it can switch off stylistic rules that conflict with Prettier.
   prettier,
+  // After prettier: eslint-config-prettier turns `curly` off, we want it on.
+  {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      curly: ['error', 'all'],
+    },
+  },
 ])
