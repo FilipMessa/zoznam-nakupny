@@ -11,10 +11,10 @@ export default defineConfig({
     exclude: [
       'e2e/**',
       'node_modules/**',
-      'src/test/firestore.rules.test.ts',
-      'src/test/auth.integration.test.ts',
-      'src/test/lists.integration.test.ts',
-      'src/test/items.integration.test.ts',
+      // Emulator-backed suites run via their own configs (npm run test:rules /
+      // test:integration); a new suite only needs the right filename suffix.
+      '**/*.integration.test.ts',
+      '**/*.rules.test.ts',
     ],
   },
 })

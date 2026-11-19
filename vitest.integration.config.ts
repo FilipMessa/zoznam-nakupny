@@ -4,11 +4,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: [
-      'src/test/auth.integration.test.ts',
-      'src/test/lists.integration.test.ts',
-      'src/test/items.integration.test.ts',
-    ],
+    include: ['**/*.integration.test.ts'],
+    exclude: ['node_modules/**', 'e2e/**'],
     // All suites spin up a RulesTestEnvironment against the same emulator
     // projectId and call clearFirestore()/cleanup() in their own
     // beforeEach/afterAll hooks. Running the files in parallel workers lets

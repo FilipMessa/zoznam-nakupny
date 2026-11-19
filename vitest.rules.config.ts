@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/test/firestore.rules.test.ts'],
+    include: ['**/*.rules.test.ts'],
+    exclude: ['node_modules/**', 'e2e/**'],
   },
 })
