@@ -86,15 +86,18 @@ function ActiveItemRowImpl({
     transition,
   }
 
-  const handleDelete = () => {
+  const closeSwipe = () => {
     closeSwipeAction()
     onSwipeOpenChange(false)
+  }
+
+  const handleDelete = () => {
+    closeSwipe()
     onDelete(item.id)
   }
 
   const handleEditTrigger = () => {
-    closeSwipeAction()
-    onSwipeOpenChange(false)
+    closeSwipe()
     onStartEdit(item.id)
   }
 
