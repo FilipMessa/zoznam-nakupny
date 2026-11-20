@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export interface UseSwipeRowRegistryResult {
   openSwipeItemId: string | null
@@ -6,12 +6,11 @@ export interface UseSwipeRowRegistryResult {
   handleListScroll: () => void
 }
 
-// Native-app swipe-action pattern: an open swipe (Upraviť/Zmazať reveal)
-// closes on any interaction outside the row it belongs to -- tapping
-// another row, the add-item bar, or anywhere else on the page.
-// Opening a *different* row's swipe already forces this one closed via
-// each row's own "isSwipeOpen" prop; this listener covers everything
-// that isn't a row at all.
+// Which row's swipe actions (Upraviť/Zmazať reveal) are open -- the single
+// source of truth rows render from, so opening one row closes any other.
+// Native-app pattern: an open swipe also closes on any interaction outside
+// its row -- tapping another row, the add-item bar, or anywhere else on the
+// page (the listener below).
 export function useSwipeRowRegistry(): UseSwipeRowRegistryResult {
   const [openSwipeItemId, setOpenSwipeItemId] = useState<string | null>(null)
 
@@ -33,9 +32,10 @@ export function useSwipeRowRegistry(): UseSwipeRowRegistryResult {
       document.removeEventListener('pointerdown', handlePointerDown, true)
   }, [openSwipeItemId])
 
-  const handleSwipeOpenChange = (itemId: string, open: boolean) => {
+  // Stable, so lists can hand it straight to memoized rows.
+  const handleSwipeOpenChange = useCallback((itemId: string, open: boolean) => {
     setOpenSwipeItemId(open ? itemId : null)
-  }
+  }, [])
 
   const handleListScroll = () => {
     if (openSwipeItemId) {

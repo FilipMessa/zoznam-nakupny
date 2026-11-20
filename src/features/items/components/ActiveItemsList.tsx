@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Box, Text } from '@chakra-ui/react'
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -32,6 +33,10 @@ export function ActiveItemsList({
   onSwipeOpenChange,
 }: ActiveItemsListProps) {
   const sensors = useShoppingListDndSensors()
+  // Stable across renders with the same items: SortableContext's value is
+  // keyed on this array's identity, and every row consumes that context, so
+  // a fresh array would re-render all (memoized) rows.
+  const sortableIds = useMemo(() => items.map((item) => item.id), [items])
 
   if (items.length === 0) {
     return (
@@ -75,7 +80,7 @@ export function ActiveItemsList({
       onDragEnd={handleDragEnd}
     >
       <SortableContext
-        items={items.map((item) => item.id)}
+        items={sortableIds}
         strategy={verticalListSortingStrategy}
       >
         <Box as="ul" listStyle="none" m="0" p="0" css={{ userSelect: 'none' }}>
@@ -90,7 +95,7 @@ export function ActiveItemsList({
               onSubmitEdit={onSubmitEdit}
               onCancelEdit={onCancelEdit}
               isSwipeOpen={openSwipeItemId === item.id}
-              onSwipeOpenChange={(open) => onSwipeOpenChange(item.id, open)}
+              onSwipeOpenChange={onSwipeOpenChange}
             />
           ))}
         </Box>

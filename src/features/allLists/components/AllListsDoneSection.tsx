@@ -60,7 +60,7 @@ function AllListsDoneSectionImpl({
               onUncheck={(itemId) => onUncheck(listId, itemId)}
               onDelete={(itemId) => onDelete(listId, itemId)}
               isSwipeOpen={openSwipeItemId === item.id}
-              onSwipeOpenChange={(open) => handleSwipeOpenChange(item.id, open)}
+              onSwipeOpenChange={handleSwipeOpenChange}
             />
           ))}
         </Box>

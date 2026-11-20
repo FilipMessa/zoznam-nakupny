@@ -1,15 +1,20 @@
-import {
-  useCallback,
-  useRef,
-  useState,
-  type MouseEvent,
-  type PointerEvent,
-} from 'react'
+import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 
 const swipeOpenThreshold = 36
 
 function clampSwipeOffset(actionsWidth: number, value: number) {
   return Math.min(0, Math.max(-actionsWidth, value))
+}
+
+export interface UseSwipeActionsParams {
+  // Total width of the revealed action button(s) -- DoneItemRow has a
+  // single action, ActiveItemRow two stacked ones (Upraviť + Zmazať).
+  actionsWidth: number
+  // Whether the row is open, owned by the parent list (useSwipeRowRegistry)
+  // -- the only "open" state there is. This hook only tracks a swipe that's
+  // in flight and reports where it ended via onOpenChange.
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 // Uses Pointer Events (onPointerDown/Move/Up/Cancel) rather than Touch
@@ -19,37 +24,22 @@ function clampSwipeOffset(actionsWidth: number, value: number) {
 // still resolved from an 8px dead zone (matching dnd-kit's own
 // `tolerance: 8` touch activation constraint) so a fast horizontal swipe
 // naturally cancels dnd-kit's pending long-press drag before it starts.
-//
-// `actionsWidth` is the total width of the revealed action button(s) --
-// callers with a single action (DoneItemRow) and callers with two stacked
-// actions (ActiveItemRow's Upraviť + Zmazať) pass their own total.
-export function useSwipeActions(actionsWidth: number) {
-  const [swipeOffset, setSwipeOffsetState] = useState(0)
-  const [isSwiping, setIsSwiping] = useState(false)
-  const swipeOffsetRef = useRef(0)
+export function useSwipeActions({
+  actionsWidth,
+  isOpen,
+  onOpenChange,
+}: UseSwipeActionsParams) {
+  // The foreground's offset while a swipe is in flight; null otherwise, when
+  // the row rests where the parent's open state puts it.
+  const [dragOffset, setDragOffset] = useState<number | null>(null)
+  const swipeOffset = dragOffset ?? (isOpen ? -actionsWidth : 0)
   const touchStartRef = useRef<{
     x: number
     y: number
     startOffset: number
+    offset: number
     swiping: boolean
   } | null>(null)
-
-  // Stable across renders (only actionsWidth as a dependency, which is
-  // effectively constant per call site) so callers can safely depend on
-  // `closeSwipeAction`'s identity in their own effects.
-  const setSwipeOffset = useCallback(
-    (value: number) => {
-      const clampedValue = clampSwipeOffset(actionsWidth, value)
-      swipeOffsetRef.current = clampedValue
-      setSwipeOffsetState(clampedValue)
-    },
-    [actionsWidth],
-  )
-
-  const closeSwipeAction = useCallback(
-    () => setSwipeOffset(0),
-    [setSwipeOffset],
-  )
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType !== 'touch') {
@@ -59,7 +49,8 @@ export function useSwipeActions(actionsWidth: number) {
     touchStartRef.current = {
       x: event.clientX,
       y: event.clientY,
-      startOffset: swipeOffsetRef.current,
+      startOffset: swipeOffset,
+      offset: swipeOffset,
       swiping: false,
     }
   }
@@ -86,7 +77,6 @@ export function useSwipeActions(actionsWidth: number) {
       }
 
       touchStart.swiping = true
-      setIsSwiping(true)
       try {
         event.currentTarget.setPointerCapture?.(event.pointerId)
       } catch (error) {
@@ -95,36 +85,45 @@ export function useSwipeActions(actionsWidth: number) {
     }
 
     event.preventDefault()
-    setSwipeOffset(touchStart.startOffset + deltaX)
+    touchStart.offset = clampSwipeOffset(
+      actionsWidth,
+      touchStart.startOffset + deltaX,
+    )
+    setDragOffset(touchStart.offset)
   }
 
+  // A swipe snaps open past the threshold and shut otherwise; a tap that
+  // never started swiping closes an open row too.
   const finishSwipe = () => {
     const touchStart = touchStartRef.current
     if (!touchStart) {
       return
     }
 
-    const shouldOpen =
-      touchStart.swiping && swipeOffsetRef.current <= -swipeOpenThreshold
-    setIsSwiping(false)
-    setSwipeOffset(shouldOpen ? -actionsWidth : 0)
     touchStartRef.current = null
+    const shouldOpen =
+      touchStart.swiping && touchStart.offset <= -swipeOpenThreshold
+    setDragOffset(null)
+    if (shouldOpen !== isOpen) {
+      onOpenChange(shouldOpen)
+    }
   }
 
+  // A click on an open row's foreground (e.g. a mouse click on a row opened
+  // by touch) only closes it.
   const handleForegroundClickCapture = (event: MouseEvent<HTMLElement>) => {
-    if (swipeOffsetRef.current === 0) {
+    if (swipeOffset === 0) {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
-    closeSwipeAction()
+    onOpenChange(false)
   }
 
   return {
     swipeOffset,
-    isSwiping,
-    closeSwipeAction,
+    isSwiping: dragOffset !== null,
     swipeHandlers: {
       onPointerDown: handlePointerDown,
       onPointerMove: handlePointerMove,

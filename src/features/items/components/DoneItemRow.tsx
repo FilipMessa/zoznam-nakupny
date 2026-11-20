@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '@/features/items/types'
-import { useRowSwipeSync } from '@/features/items/useRowSwipeSync'
+import { useSwipeActions } from '@/features/items/useSwipeActions'
 
 // Done items only ever reveal a single "Zmazať" action -- editing a
 // checked-off item's text isn't supported (see ActiveItemRow for the
@@ -14,7 +14,8 @@ export interface DoneItemRowProps {
   onUncheck: (id: string) => void
   onDelete: (id: string) => void
   isSwipeOpen: boolean
-  onSwipeOpenChange: (open: boolean) => void
+  // Id-addressed like onUncheck -- see ActiveItemRow.
+  onSwipeOpenChange: (id: string, open: boolean) => void
   // Origin List indicator (docs/feature-all-lists-done-items.md) -- only
   // used by the All Lists screen's combined Done section, which mixes
   // items from several lists. ShoppingListScreen never passes this.
@@ -29,21 +30,15 @@ function DoneItemRowImpl({
   onSwipeOpenChange,
   originColor,
 }: DoneItemRowProps) {
-  const {
-    swipeOffset,
-    isSwiping,
-    closeSwipeAction,
-    swipeHandlers,
-    onForegroundClickCapture,
-  } = useRowSwipeSync({
-    actionsWidth: swipeActionWidth,
-    isSwipeOpen,
-    onSwipeOpenChange,
-  })
+  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
+    useSwipeActions({
+      actionsWidth: swipeActionWidth,
+      isOpen: isSwipeOpen,
+      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    })
 
   const handleDelete = () => {
-    closeSwipeAction()
-    onSwipeOpenChange(false)
+    onSwipeOpenChange(item.id, false)
     onDelete(item.id)
   }
 

@@ -2,10 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 import { fireEvent, render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import {
-  DoneItemRow,
+  DoneItemRow as ControlledDoneItemRow,
   type DoneItemRowProps,
 } from '@/features/items/components/DoneItemRow'
+import { withSwipeParent } from '@/test/withSwipeParent'
 import type { ShoppingItem } from '@/features/items/types'
+
+// Rendered under a parent that owns the open state, as in the app.
+const DoneItemRow = withSwipeParent(ControlledDoneItemRow)
 
 function makeDoneItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   return {
@@ -30,7 +34,7 @@ function makeProps(
     onUncheck: vi.fn(),
     onDelete: vi.fn(),
     // Matches the real app's initial state -- see ActiveItemRow.test.tsx's
-    // makeProps for why this must be false, not true.
+    // makeProps.
     isSwipeOpen: false,
     onSwipeOpenChange: vi.fn(),
     ...overrides,

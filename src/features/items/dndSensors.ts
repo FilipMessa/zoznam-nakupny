@@ -14,14 +14,18 @@ import {
 // how it disambiguates a horizontal swipe-to-reveal gesture from a
 // vertical/long-press drag on the same row element -- keep them in sync if
 // either ever changes.
+//
+// Module-level so the sensors keep their identity across renders: useSensor
+// memoizes on the options object, and a new sensor set changes DndContext's
+// value, which re-renders every (memoized) sortable row under it.
+const mouseSensorOptions = { activationConstraint: { distance: 8 } }
+const touchSensorOptions = {
+  activationConstraint: { delay: 180, tolerance: 8 },
+}
+
 export function useShoppingListDndSensors(): SensorDescriptor<SensorOptions>[] {
   return useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 180,
-        tolerance: 8,
-      },
-    }),
+    useSensor(MouseSensor, mouseSensorOptions),
+    useSensor(TouchSensor, touchSensorOptions),
   )
 }

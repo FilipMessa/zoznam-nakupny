@@ -3,7 +3,7 @@ import { Box } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ShoppingItem } from '@/features/items/types'
-import { useRowSwipeSync } from '@/features/items/useRowSwipeSync'
+import { useSwipeActions } from '@/features/items/useSwipeActions'
 import { useItemEditForm } from '@/features/items/useItemEditForm'
 import {
   ActiveItemSwipeActions,
@@ -21,7 +21,9 @@ export interface ActiveItemRowProps {
   onSubmitEdit: (id: string, text: string) => void
   onCancelEdit: () => void
   isSwipeOpen: boolean
-  onSwipeOpenChange: (open: boolean) => void
+  // Id-addressed like onCheck, so the list can pass one stable handler to
+  // every row instead of a per-row closure that would defeat memo below.
+  onSwipeOpenChange: (id: string, open: boolean) => void
   // Attached to dnd-kit's useSortable `data` -- lets a shared DndContext
   // spanning multiple lists (the "All Lists" screen) identify which list a
   // dragged/hovered row belongs to via active.data.current/over.data.current.
@@ -60,19 +62,14 @@ function ActiveItemRowImpl({
     isDragging,
   } = useSortable({ id: item.id, disabled: isEditing, data: sortableData })
 
-  const {
-    swipeOffset,
-    isSwiping,
-    closeSwipeAction,
-    swipeHandlers,
-    onForegroundClickCapture,
-  } = useRowSwipeSync({
-    actionsWidth: SWIPE_ACTIONS_WIDTH,
-    isSwipeOpen,
-    onSwipeOpenChange,
-    // Entering edit mode always closes the swipe -- see useRowSwipeSync.
-    forceClosed: isEditing,
-  })
+  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
+    useSwipeActions({
+      actionsWidth: SWIPE_ACTIONS_WIDTH,
+      // The edit form doesn't apply the swipe transform, so an editing row
+      // always rests closed.
+      isOpen: isSwipeOpen && !isEditing,
+      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    })
 
   const { inputRef, handleEditKeyDown, handleEditBlur, handleEditSubmit } =
     useItemEditForm({
@@ -86,18 +83,15 @@ function ActiveItemRowImpl({
     transition,
   }
 
-  const closeSwipe = () => {
-    closeSwipeAction()
-    onSwipeOpenChange(false)
-  }
-
+  // Both close the swipe first, so the row never comes back open after an
+  // edit and the parent never keeps a deleted row as its open one.
   const handleDelete = () => {
-    closeSwipe()
+    onSwipeOpenChange(item.id, false)
     onDelete(item.id)
   }
 
   const handleEditTrigger = () => {
-    closeSwipe()
+    onSwipeOpenChange(item.id, false)
     onStartEdit(item.id)
   }
 

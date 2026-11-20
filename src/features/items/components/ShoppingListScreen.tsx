@@ -63,14 +63,14 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           </Flex>
           <ActiveItemsList
             items={active}
-            onCheck={(itemId) => void handleCheck(itemId)}
-            onDelete={(itemId) => void handleDelete(itemId)}
+            onCheck={handleCheck}
+            onDelete={handleDelete}
             onReorder={(itemId, activeOrder) =>
               void handleReorder(itemId, activeOrder)
             }
             editingItemId={editingItemId}
             onStartEdit={handleStartEdit}
-            onSubmitEdit={(itemId, text) => void handleSubmitEdit(itemId, text)}
+            onSubmitEdit={handleSubmitEdit}
             onCancelEdit={handleCancelEdit}
             openSwipeItemId={openSwipeItemId}
             onSwipeOpenChange={handleSwipeOpenChange}
@@ -89,8 +89,8 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           </Flex>
           <DoneItemsList
             items={done}
-            onUncheck={(itemId) => void handleUncheck(itemId)}
-            onDelete={(itemId) => void handleDelete(itemId)}
+            onUncheck={handleUncheck}
+            onDelete={handleDelete}
             openSwipeItemId={openSwipeItemId}
             onSwipeOpenChange={handleSwipeOpenChange}
           />

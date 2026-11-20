@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import { render, screen } from '@/test/render'
+import { render, screen, fireEvent } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { ShoppingListScreen } from '@/features/items/components/ShoppingListScreen'
 import { useAuth } from '@/features/auth/useAuth'
@@ -111,5 +111,79 @@ describe('ShoppingListScreen — scroll new item into view', () => {
     rerender(<ShoppingListScreen listId="list-1" />)
 
     expect(scrollIntoView).not.toHaveBeenCalled()
+  })
+})
+
+// Swipes a row's foreground left past the open threshold with touch input.
+function swipeOpen(itemId: string) {
+  const content = screen.getByTestId(`active-item-content-${itemId}`)
+  content.setPointerCapture = vi.fn()
+  fireEvent.pointerDown(content, {
+    pointerType: 'touch',
+    clientX: 200,
+    clientY: 100,
+  })
+  fireEvent.pointerMove(content, {
+    pointerType: 'touch',
+    clientX: 150,
+    clientY: 102,
+  })
+  fireEvent.pointerMove(content, {
+    pointerType: 'touch',
+    clientX: 50,
+    clientY: 103,
+  })
+  fireEvent.pointerUp(content, {
+    pointerType: 'touch',
+    clientX: 50,
+    clientY: 103,
+  })
+}
+
+function deleteActionOf(itemId: string) {
+  return screen
+    .getByTestId(`active-item-${itemId}`)
+    .querySelector('button[aria-label="Vymazať položku"]')
+}
+
+describe('ShoppingListScreen — swipe actions', () => {
+  beforeEach(() => {
+    mockedUseAuth.mockReturnValue({
+      user: { uid: 'uid-1' } as never,
+      authLoading: false,
+    })
+    mockedUseItems.mockReturnValue({
+      items: [
+        makeItem({ id: 'a', text: 'mlieko', activeOrder: 1 }),
+        makeItem({ id: 'b', text: 'chlieb', activeOrder: 2 }),
+      ],
+      itemsLoading: false,
+    })
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("opening one row's swipe closes the row that was open", () => {
+    render(<ShoppingListScreen listId="list-1" />)
+
+    swipeOpen('a')
+    expect(deleteActionOf('a')).toHaveAttribute('aria-hidden', 'false')
+
+    swipeOpen('b')
+    expect(deleteActionOf('b')).toHaveAttribute('aria-hidden', 'false')
+    expect(deleteActionOf('a')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('closes the swipe before deleting from the revealed delete action', async () => {
+    const user = userEvent.setup()
+    render(<ShoppingListScreen listId="list-1" />)
+    swipeOpen('a')
+
+    await user.click(deleteActionOf('a')!)
+
+    expect(itemApi.deleteItem).toHaveBeenCalledWith('list-1', 'a')
+    expect(deleteActionOf('a')).toHaveAttribute('aria-hidden', 'true')
   })
 })

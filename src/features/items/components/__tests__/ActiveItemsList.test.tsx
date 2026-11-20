@@ -5,7 +5,18 @@ import {
   ActiveItemsList,
   type ActiveItemsListProps,
 } from '@/features/items/components/ActiveItemsList'
+import { useSwipeActions } from '@/features/items/useSwipeActions'
 import type { ShoppingItem } from '@/features/items/types'
+
+// Wrapped (not replaced) so tests can count row renders: every
+// ActiveItemRow render calls it exactly once.
+vi.mock('@/features/items/useSwipeActions', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/items/useSwipeActions')>()
+  return { useSwipeActions: vi.fn(actual.useSwipeActions) }
+})
+
+const mockedUseSwipeActions = vi.mocked(useSwipeActions)
 
 function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   return {
@@ -135,5 +146,18 @@ describe('ActiveItemsList', () => {
 
     expect(screen.getByRole('textbox')).toHaveValue('vajcia')
     expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  })
+
+  it('re-renders only the row whose swipe opened (stable, id-addressed callbacks)', () => {
+    const props = makeProps({
+      items: [makeActiveItem({ id: 'a' }), makeActiveItem({ id: 'b' })],
+    })
+    const { rerender } = render(<ActiveItemsList {...props} />)
+    mockedUseSwipeActions.mockClear()
+
+    rerender(<ActiveItemsList {...props} openSwipeItemId="a" />)
+
+    expect(mockedUseSwipeActions).toHaveBeenCalledTimes(1)
+    expect(mockedUseSwipeActions.mock.calls[0][0].isOpen).toBe(true)
   })
 })

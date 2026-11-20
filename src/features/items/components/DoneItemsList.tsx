@@ -39,7 +39,7 @@ export function DoneItemsList({
           onUncheck={onUncheck}
           onDelete={onDelete}
           isSwipeOpen={openSwipeItemId === item.id}
-          onSwipeOpenChange={(open) => onSwipeOpenChange(item.id, open)}
+          onSwipeOpenChange={onSwipeOpenChange}
         />
       ))}
     </Box>

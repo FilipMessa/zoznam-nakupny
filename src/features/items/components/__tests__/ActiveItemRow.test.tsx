@@ -2,10 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import {
-  ActiveItemRow,
+  ActiveItemRow as ControlledActiveItemRow,
   type ActiveItemRowProps,
 } from '@/features/items/components/ActiveItemRow'
+import { withSwipeParent } from '@/test/withSwipeParent'
 import type { ShoppingItem } from '@/features/items/types'
+
+// Rendered under a parent that owns the open state, as in the app.
+const ActiveItemRow = withSwipeParent(ControlledActiveItemRow)
 
 function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   return {
@@ -35,9 +39,8 @@ function makeProps(
     onCancelEdit: vi.fn(),
     // Matches the real app's initial state (ShoppingListScreen's
     // openSwipeItemId starts null, so every row's isSwipeOpen starts
-    // false) -- a mocked onSwipeOpenChange won't flip this to true the way
-    // the real parent would, so tests below rely on the row's own gesture
-    // being enough to open and stay open without external confirmation.
+    // false); withSwipeParent then applies the row's onSwipeOpenChange the
+    // way the real parent does.
     isSwipeOpen: false,
     onSwipeOpenChange: vi.fn(),
     ...overrides,
@@ -421,6 +424,65 @@ describe('ActiveItemRow', () => {
     ).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('closes an open swipe on a tap that never starts swiping', () => {
+    const onSwipeOpenChange = vi.fn()
+    const { container } = render(
+      <ActiveItemRow
+        {...makeProps({ isSwipeOpen: true, onSwipeOpenChange })}
+      />,
+    )
+    const content = screen.getByTestId('active-item-content-item-1')
+
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 201,
+      clientY: 100,
+    })
+
+    expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)
+    expect(
+      container.querySelector('button[aria-label="Vymazať položku"]'),
+    ).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('reports the gesture result once, addressed by item id', () => {
+    const onSwipeOpenChange = vi.fn()
+    render(<ActiveItemRow {...makeProps({ onSwipeOpenChange })} />)
+    const content = screen.getByTestId('active-item-content-item-1')
+    content.setPointerCapture = vi.fn()
+
+    fireEvent.pointerDown(content, {
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 100,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 150,
+      clientY: 102,
+    })
+    fireEvent.pointerMove(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+    // Nothing is reported while the swipe is still in flight.
+    expect(onSwipeOpenChange).not.toHaveBeenCalled()
+    fireEvent.pointerUp(content, {
+      pointerType: 'touch',
+      clientX: 50,
+      clientY: 103,
+    })
+
+    expect(onSwipeOpenChange).toHaveBeenCalledTimes(1)
+    expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', true)
+  })
+
   it('shows a pending-sync icon when the item has not synced yet', () => {
     render(
       <ActiveItemRow
@@ -492,6 +554,54 @@ describe('ActiveItemRow', () => {
       // it needs its own visibility:hidden or it visibly peeks out from
       // behind the edit input.
       expect(deleteButton?.parentElement).toHaveStyle({ visibility: 'hidden' })
+    })
+
+    it('only closes an open swipe when its desktop Pencil button is clicked', async () => {
+      const onSwipeOpenChange = vi.fn()
+      const onStartEdit = vi.fn()
+      const user = userEvent.setup()
+      const { container } = render(
+        <ActiveItemRow
+          {...makeProps({ isSwipeOpen: true, onSwipeOpenChange, onStartEdit })}
+        />,
+      )
+
+      // display:none below md in jsdom, so query by attribute (see above).
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Upraviť"]',
+        )!,
+      )
+
+      expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)
+      expect(onStartEdit).not.toHaveBeenCalled()
+      expect(
+        container.querySelector('button[aria-label="Vymazať položku"]'),
+      ).toHaveAttribute('aria-hidden', 'true')
+    })
+
+    it('closes the swipe before starting an edit from the revealed edit action', async () => {
+      const calls: string[] = []
+      const onSwipeOpenChange = vi.fn((_id: string, open: boolean) => {
+        calls.push(`swipe:${open}`)
+      })
+      const onStartEdit = vi.fn(() => {
+        calls.push('edit')
+      })
+      const user = userEvent.setup()
+      const { container } = render(
+        <ActiveItemRow
+          {...makeProps({ isSwipeOpen: true, onSwipeOpenChange, onStartEdit })}
+        />,
+      )
+
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Upraviť položku"]',
+        )!,
+      )
+
+      expect(calls).toEqual(['swipe:false', 'edit'])
     })
 
     it('renders a text input pre-filled with the item text when editing', () => {
