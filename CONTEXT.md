@@ -12,3 +12,6 @@
 
 **Add Target** — The single List currently selected, on the All Lists screen, as the destination for new Items added via the pinned add-item input. At most one List is the Add Target at a time; none is selected by default when the screen opens. Distinct from Origin List: Add Target is a transient UI selection the Member makes, not an intrinsic property of an Item.
 _Avoid_: "selected list" (ambiguous with the single-list screen's own list-switcher selection).
+
+**Purchase Memory** (_Pamäť nákupov_) — The Family-wide record of Item names someone has bought: one entry per normalized name (case, diacritics and repeated spaces ignored; "mlieko" and "Mlieko 2x" stay separate) holding the most recently used spelling, the total number of purchases, the number per List and the time of the last purchase. Checking an Item off adds a purchase; nothing removes one. Add-item suggestions are read from it, not from the Done section (_Kúpené_), so clearing the Done section, deleting a done Item or deleting a List keeps the suggestions. See `docs/adr/0004-purchase-memory-catalog.md`.
+_Avoid_: "history" (there is no per-purchase log), "done items" as the source of suggestions.

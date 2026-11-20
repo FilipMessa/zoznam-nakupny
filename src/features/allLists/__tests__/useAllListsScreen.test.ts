@@ -6,12 +6,14 @@ import { useAllListsScreen } from '@/features/allLists/useAllListsScreen'
 import { useAuth } from '@/features/auth/useAuth'
 import * as itemApi from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
-import type { ShoppingItem } from '@/features/items/types'
+import type { PurchaseMemoryEntry, ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/itemApi', () => ({
   subscribeItems: vi.fn(),
+  subscribePurchaseMemory: vi.fn(),
+  readdPurchasedItem: vi.fn(),
   reorderItem: vi.fn(),
   moveItemToList: vi.fn(),
   addItem: vi.fn(),
@@ -30,6 +32,26 @@ const mockedUncheckItem = vi.mocked(itemApi.uncheckItem)
 const mockedDeleteItem = vi.mocked(itemApi.deleteItem)
 const mockedClearDoneItems = vi.mocked(itemApi.clearDoneItems)
 const mockedNotify = vi.mocked(notify)
+const mockedSubscribePurchaseMemory = vi.mocked(itemApi.subscribePurchaseMemory)
+const mockedReaddPurchasedItem = vi.mocked(itemApi.readdPurchasedItem)
+
+// What the Purchase Memory subscription delivers in a test (empty unless
+// a test sets it before rendering).
+let purchaseMemory: PurchaseMemoryEntry[] = []
+
+function makeEntry(
+  text: string,
+  overrides: Partial<PurchaseMemoryEntry> = {},
+): PurchaseMemoryEntry {
+  return {
+    id: text,
+    text,
+    purchaseCount: 1,
+    lastPurchasedAt: fakeTimestamp(0),
+    countByList: {},
+    ...overrides,
+  }
+}
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -143,6 +165,11 @@ describe('useAllListsScreen', () => {
       listeners.set(listId, onNext)
       return () => listeners.delete(listId)
     })
+    mockedSubscribePurchaseMemory.mockImplementation((onNext) => {
+      onNext(purchaseMemory)
+      return () => {}
+    })
+    mockedReaddPurchasedItem.mockResolvedValue(undefined)
     mockedUseAuth.mockReturnValue({
       user: { uid: 'uid-1', displayName: 'Jana' } as never,
       authLoading: false,
@@ -158,6 +185,7 @@ describe('useAllListsScreen', () => {
   afterEach(() => {
     scrollIntoView.mockRestore()
     listeners.clear()
+    purchaseMemory = []
     vi.clearAllMocks()
   })
 
@@ -467,17 +495,56 @@ describe('useAllListsScreen', () => {
       expect(result.current.addTarget.isAddTarget('list-1')).toBe(false)
     })
 
-    it('switches purchased suggestions to the current add target', () => {
+    it('suggests from the Purchase Memory for the current add target', () => {
+      purchaseMemory = [
+        makeEntry('maslo', { countByList: { 'list-1': 5 } }),
+        makeEntry('mak', { countByList: { 'list-2': 5 } }),
+      ]
       const { result } = renderScreen()
-      const milk = makeItem({ id: 'milk', status: 'done' })
-      const bread = makeItem({ id: 'bread', status: 'done' })
-      emit('list-1', [milk])
-      emit('list-2', [bread])
-      expect(result.current.purchasedItems).toEqual([])
+      const texts = () =>
+        result.current.addTarget.suggest('ma').map((entry) => entry.text)
+
+      expect(texts()).toEqual([])
       act(() => result.current.addTarget.selectAddTarget('list-1'))
-      expect(result.current.purchasedItems).toEqual([milk])
+      expect(texts()).toEqual(['maslo', 'mak'])
       act(() => result.current.addTarget.selectAddTarget('list-2'))
-      expect(result.current.purchasedItems).toEqual([bread])
+      expect(texts()).toEqual(['mak', 'maslo'])
+    })
+
+    it('leaves out names already active in the add target, not in other lists', () => {
+      purchaseMemory = [makeEntry('mlieko')]
+      const { result } = renderScreen()
+      emit('list-1', [makeItem({ id: 'a', text: 'Mlieko' })])
+      const texts = () =>
+        result.current.addTarget.suggest('ml').map((entry) => entry.text)
+
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
+      expect(texts()).toEqual([])
+      act(() => result.current.addTarget.selectAddTarget('list-2'))
+      expect(texts()).toEqual(['mlieko'])
+    })
+
+    it("a picked suggestion brings back the add target's done item, else adds a new one", async () => {
+      const { result } = renderScreen()
+      emit('list-1', [
+        makeItem({ id: 'done-1', status: 'done', activeOrder: null }),
+      ])
+      emit('list-2', [])
+      const author = { uid: 'uid-1', displayName: 'Jana' }
+
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
+      await act(() => result.current.addTarget.handleAdd(makeEntry('Mlieko')))
+      expect(mockedReaddPurchasedItem).toHaveBeenCalledWith(
+        'list-1',
+        'done-1',
+        author,
+        [],
+      )
+      expect(mockedAddItem).not.toHaveBeenCalled()
+
+      act(() => result.current.addTarget.selectAddTarget('list-2'))
+      await act(() => result.current.addTarget.handleAdd(makeEntry('Mlieko')))
+      expect(mockedAddItem).toHaveBeenCalledWith('list-2', 'Mlieko', author, [])
     })
 
     it('selectAddTarget sets the target and expands a collapsed section', () => {

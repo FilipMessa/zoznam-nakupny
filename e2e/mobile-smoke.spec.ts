@@ -132,6 +132,17 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     await doneSection.getByRole('button').click()
     await expect(page.getByText('mlieko', { exact: true })).toHaveCount(1)
 
+    // --- Clearing Kúpené keeps the suggestion (Purchase Memory) ------------
+    await page.getByRole('button', { name: 'Vyčistiť kúpené' }).click()
+    await expect(doneSection).toHaveText(/Kúpené · 0/i)
+    await expect(page.getByText('mlieko', { exact: true })).toHaveCount(0)
+    await addInput.fill('ml')
+    await page.getByRole('button', { name: 'mlieko', exact: true }).click()
+    await expect(addInput).toHaveValue('')
+    await expect(
+      page.locator('section', { has: activeSection }).getByText('mlieko'),
+    ).toBeVisible()
+
     // --- Open the list switcher and confirm it renders as a bottom sheet ---
     const switcherTrigger = page.getByRole('button', {
       name: /prepnúť zoznam/i,

@@ -1,4 +1,4 @@
-import type { ShoppingItem } from './types'
+import type { PurchaseMemoryEntry } from './types'
 import {
   useRef,
   useState,
@@ -9,16 +9,19 @@ import {
 
 export interface UseAddItemFormResult {
   text: string
+  suggestions: PurchaseMemoryEntry[]
   handleTextChange: (event: ChangeEvent<HTMLInputElement>) => void
   inputRef: RefObject<HTMLInputElement | null>
-  submitItem: (item: string | ShoppingItem) => void
+  submitItem: (item: string | PurchaseMemoryEntry) => void
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void
 }
 
 // Rapid-entry submit gate: a non-empty trimmed value clears the field and
 // submits; an empty submit just refocuses the input so the keyboard stays up.
+// `suggest` (usePurchaseSuggestions) turns the typed text into suggestions.
 export function useAddItemForm(
-  onSubmit: (item: string | ShoppingItem) => void,
+  onSubmit: (item: string | PurchaseMemoryEntry) => void,
+  suggest: (text: string) => PurchaseMemoryEntry[],
 ): UseAddItemFormResult {
   const [text, setText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -27,7 +30,7 @@ export function useAddItemForm(
     setText(event.target.value)
   }
 
-  const submitItem = (item: string | ShoppingItem) => {
+  const submitItem = (item: string | PurchaseMemoryEntry) => {
     const value = typeof item === 'string' ? item.trim() : item
     if (value === '') {
       inputRef.current?.focus()
@@ -43,5 +46,12 @@ export function useAddItemForm(
     submitItem(text)
   }
 
-  return { submitItem, text, handleTextChange, inputRef, handleSubmit }
+  return {
+    submitItem,
+    text,
+    suggestions: suggest(text),
+    handleTextChange,
+    inputRef,
+    handleSubmit,
+  }
 }

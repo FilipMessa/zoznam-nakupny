@@ -14,25 +14,13 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { createSnapshotMapper } from '@/lib/snapshotMapper'
+import { chunk, MAX_BATCH_WRITES } from '@/lib/batchChunks'
 import {
   itemsCollectionPath,
   LISTS_COLLECTION_PATH,
 } from '@/lib/firestorePaths'
 import { validateListName } from './listService'
 import type { ShoppingList } from './types'
-
-// Firestore batched writes are capped at 500 operations; chunk to a safe
-// margin below that so a batch that also needs to delete the parent list
-// doc in its final chunk never risks exceeding the limit.
-const MAX_BATCH_WRITES = 450
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = []
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size))
-  }
-  return chunks
-}
 
 // Realtime subscription to the Family's Lists, oldest first. Same contract
 // as itemApi.subscribeItems (see createSnapshotMapper): `onNext` fires on

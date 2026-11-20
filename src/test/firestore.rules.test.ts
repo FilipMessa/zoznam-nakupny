@@ -15,6 +15,8 @@ const NON_MEMBER_UID = 'non-member-user'
 const INVITE_CODE = 'ABC123'
 const LIST_ID = 'list-1'
 const ITEM_ID = 'item-1'
+const MEMORY_PATH = `families/${FAMILY_ID}/purchaseMemory`
+const MEMORY_ENTRY_ID = 'mlieko'
 
 let testEnv: RulesTestEnvironment
 
@@ -50,6 +52,10 @@ beforeEach(async () => {
       doc(db, `families/${FAMILY_ID}/lists/${LIST_ID}/items`, ITEM_ID),
       { name: 'mlieko', done: false },
     )
+    await setDoc(doc(db, MEMORY_PATH, MEMORY_ENTRY_ID), {
+      text: 'mlieko',
+      purchaseCount: 1,
+    })
     await setDoc(doc(db, 'invites', INVITE_CODE), { familyId: FAMILY_ID })
   })
 })
@@ -86,6 +92,15 @@ describe('firestore.rules', () => {
       )
     })
 
+    it('cannot read or write the Purchase Memory', async () => {
+      const db = testEnv.unauthenticatedContext().firestore()
+      await assertFails(getDoc(doc(db, MEMORY_PATH, MEMORY_ENTRY_ID)))
+      await assertFails(getDocs(collection(db, MEMORY_PATH)))
+      await assertFails(
+        setDoc(doc(db, MEMORY_PATH, 'chlieb'), { text: 'chlieb' }),
+      )
+    })
+
     it('cannot get invites/{code}', async () => {
       const db = testEnv.unauthenticatedContext().firestore()
       await assertFails(getDoc(doc(db, 'invites', INVITE_CODE)))
@@ -110,6 +125,22 @@ describe('firestore.rules', () => {
         setDoc(
           doc(db, `families/${FAMILY_ID}/lists/${LIST_ID}/items`, 'new-item'),
           { name: 'nope', done: false },
+        ),
+      )
+    })
+
+    it('cannot read or write the Purchase Memory', async () => {
+      const db = testEnv.authenticatedContext(NON_MEMBER_UID).firestore()
+      await assertFails(getDoc(doc(db, MEMORY_PATH, MEMORY_ENTRY_ID)))
+      await assertFails(getDocs(collection(db, MEMORY_PATH)))
+      await assertFails(
+        setDoc(doc(db, MEMORY_PATH, 'chlieb'), { text: 'chlieb' }),
+      )
+      await assertFails(
+        setDoc(
+          doc(db, MEMORY_PATH, MEMORY_ENTRY_ID),
+          { purchaseCount: 99 },
+          { merge: true },
         ),
       )
     })
@@ -155,6 +186,22 @@ describe('firestore.rules', () => {
         setDoc(
           doc(db, `families/${FAMILY_ID}/lists/${LIST_ID}/items`, 'new-item'),
           { name: 'vajcia', done: false },
+        ),
+      )
+    })
+
+    it('can read and write the Purchase Memory', async () => {
+      const db = testEnv.authenticatedContext(MEMBER_UID).firestore()
+      await assertSucceeds(getDoc(doc(db, MEMORY_PATH, MEMORY_ENTRY_ID)))
+      await assertSucceeds(getDocs(collection(db, MEMORY_PATH)))
+      await assertSucceeds(
+        setDoc(doc(db, MEMORY_PATH, 'chlieb'), { text: 'chlieb' }),
+      )
+      await assertSucceeds(
+        setDoc(
+          doc(db, MEMORY_PATH, MEMORY_ENTRY_ID),
+          { purchaseCount: 2 },
+          { merge: true },
         ),
       )
     })

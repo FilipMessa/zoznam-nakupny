@@ -1,4 +1,4 @@
-import type { ActiveItem, ShoppingItem } from './types'
+import type { ActiveItem, PurchaseMemoryEntry, ShoppingItem } from './types'
 
 export interface SortedItems {
   active: ActiveItem[]
@@ -44,40 +44,123 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
 }
 
 // Fewer typed characters than this suggest nothing: one letter matches too
-// much of the purchase history to be useful.
+// much of the Purchase Memory to be useful.
 const MIN_SUGGESTION_PREFIX_LENGTH = 2
 const MAX_SUGGESTIONS = 3
 
-// Case- and diacritics-insensitive form of an item name, so typing "soj"
-// finds "Sójové mäso" and "salat"/"Šalát" count as one suggestion.
-function suggestionKey(text: string): string {
+// The Purchase Memory key of an Item name: whitespace trimmed and collapsed,
+// Slovak-locale lowercase, diacritics stripped -- so "salat" and "Šalát"
+// are one entry. Quantities and variants are kept: "Mlieko 2x" is not
+// "mlieko". Pure strings and no `@/` imports, like the rest of this module,
+// so scripts/migrate-purchase-memory.ts can use it under tsx.
+export function purchaseKey(text: string): string {
   return text
     .trim()
+    .replace(/\s+/g, ' ')
     .toLocaleLowerCase('sk')
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
 }
 
-export function purchasedSuggestions(
-  items: readonly ShoppingItem[],
+// Firestore caps a document id at 1500 bytes; a UTF-8 code point is at most
+// 4 bytes. Keys this long merge on their first 375 code points, which no
+// real Item name reaches.
+const MAX_ENTRY_ID_CODE_POINTS = 1500 / 4
+
+// The Purchase Memory document id of a key. Deterministic, so two Members
+// checking off the same name write to the same document without a
+// transaction (ADR 0004). Firestore ids can't contain '/', can't be '.' or
+// '..' and can't look like `__x__`; those are percent-escaped, and '%'
+// itself always is, so different keys never share an id.
+export function purchaseMemoryEntryId(key: string): string {
+  const id = Array.from(key)
+    .slice(0, MAX_ENTRY_ID_CODE_POINTS)
+    .join('')
+    .replace(/[%/]/g, (char) => (char === '%' ? '%25' : '%2F'))
+  if (id === '.' || id === '..') {
+    return id.replace(/\./g, '%2E')
+  }
+  if (/^__.*__$/.test(id)) {
+    return `%5F${id.slice(1)}`
+  }
+  return id
+}
+
+// A word starts after anything that isn't a letter or digit, so "polo"
+// finds "mlieko (polotucne)" and "maso" finds "sojove-maso".
+const WORD_BOUNDARY = /[^\p{L}\p{N}]/u
+
+// 0 = the whole key starts with the typed text, 1 = a later word does,
+// null = no match.
+function matchRank(key: string, prefix: string): 0 | 1 | null {
+  if (key.startsWith(prefix)) {
+    return 0
+  }
+  for (
+    let at = key.indexOf(prefix, 1);
+    at !== -1;
+    at = key.indexOf(prefix, at + 1)
+  ) {
+    if (WORD_BOUNDARY.test(key[at - 1])) {
+      return 1
+    }
+  }
+  return null
+}
+
+// An entry whose serverTimestamp() is still pending was bought just now.
+function lastPurchasedMillis(entry: PurchaseMemoryEntry): number {
+  return entry.lastPurchasedAt?.toMillis() ?? Number.POSITIVE_INFINITY
+}
+
+// What to suggest for `text` typed into the add-item form of List `listId`:
+// up to three Purchase Memory entries whose key has a word starting with the
+// typed text, minus names already active in that List. A match at the very
+// start of the name ranks first, then purchases in that List, then in total,
+// then the most recent purchase.
+export function purchaseSuggestions(
+  entries: readonly PurchaseMemoryEntry[],
   text: string,
-): ShoppingItem[] {
-  const prefix = suggestionKey(text)
+  listId: string,
+  activeItems: readonly ShoppingItem[],
+): PurchaseMemoryEntry[] {
+  const prefix = purchaseKey(text)
   if (prefix.length < MIN_SUGGESTION_PREFIX_LENGTH) {
     return []
   }
 
-  const matches = new Map<string, ShoppingItem>()
-  for (const item of items) {
-    const key = suggestionKey(item.text)
-    if (key.startsWith(prefix) && !matches.has(key)) {
-      matches.set(key, item)
-      if (matches.size === MAX_SUGGESTIONS) {
-        break
-      }
+  const activeKeys = new Set(activeItems.map((item) => purchaseKey(item.text)))
+  const matches: { entry: PurchaseMemoryEntry; rank: 0 | 1 }[] = []
+  for (const entry of entries) {
+    const key = purchaseKey(entry.text)
+    const rank = matchRank(key, prefix)
+    if (rank !== null && !activeKeys.has(key)) {
+      matches.push({ entry, rank })
     }
   }
-  return Array.from(matches.values())
+
+  return matches
+    .sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        (b.entry.countByList[listId] ?? 0) -
+          (a.entry.countByList[listId] ?? 0) ||
+        b.entry.purchaseCount - a.entry.purchaseCount ||
+        lastPurchasedMillis(b.entry) - lastPurchasedMillis(a.entry),
+    )
+    .slice(0, MAX_SUGGESTIONS)
+    .map(({ entry }) => entry)
+}
+
+// The done Item a suggestion should bring back instead of adding a
+// duplicate: the first of `doneItems` (newest first, as sortItems orders
+// them) with the same Purchase Memory key as `text`.
+export function purchasedItemFor(
+  doneItems: readonly ShoppingItem[],
+  text: string,
+): ShoppingItem | undefined {
+  const key = purchaseKey(text)
+  return doneItems.find((item) => purchaseKey(item.text) === key)
 }
 
 // Declared as type aliases (not interfaces) so they are assignable to

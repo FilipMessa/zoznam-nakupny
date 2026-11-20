@@ -10,9 +10,16 @@ import {
   insertActiveOrder,
   planReorder,
   latestNewActiveId,
-  purchasedSuggestions,
+  purchaseKey,
+  purchaseMemoryEntryId,
+  purchaseSuggestions,
+  purchasedItemFor,
 } from '@/features/items/itemService'
-import type { ActiveItem, ShoppingItem } from '@/features/items/types'
+import type {
+  ActiveItem,
+  PurchaseMemoryEntry,
+  ShoppingItem,
+} from '@/features/items/types'
 
 // Fabricates a Timestamp-shaped value (only the `toMillis()` member that
 // itemService actually relies on) without pulling in the firebase/firestore
@@ -525,58 +532,167 @@ describe('validateItemText', () => {
   })
 })
 
-describe('purchasedSuggestions', () => {
-  const texts = (items: ShoppingItem[]) => items.map((item) => item.text)
-
-  it('matches regardless of diacritics, in both directions', () => {
-    const items = [
-      makeItem({ id: 'a', text: 'Čučoriedky' }),
-      makeItem({ id: 'b', text: 'cesnak' }),
-    ]
-
-    expect(texts(purchasedSuggestions(items, 'cuc'))).toEqual(['Čučoriedky'])
-    expect(texts(purchasedSuggestions(items, 'čes'))).toEqual(['cesnak'])
+describe('purchaseKey', () => {
+  it('trims, collapses inner whitespace, lowercases and strips diacritics', () => {
+    expect(purchaseKey('  Sójové \t  MÄSO ')).toBe('sojove maso')
+    expect(purchaseKey('Šalát')).toBe(purchaseKey('salat'))
+    expect(purchaseKey('Ľadový čaj')).toBe('ladovy caj')
   })
 
-  it('matches case-insensitively by prefix of the trimmed text', () => {
-    const items = [makeItem({ text: '  Mlieko ' })]
+  it('keeps quantities and variants in the key', () => {
+    expect(purchaseKey('Mlieko 2x')).toBe('mlieko 2x')
+    expect(purchaseKey('Mlieko 2x')).not.toBe(purchaseKey('mlieko'))
+  })
+})
 
-    expect(texts(purchasedSuggestions(items, ' mli'))).toEqual(['  Mlieko '])
-    expect(purchasedSuggestions(items, 'lieko')).toEqual([])
+describe('purchaseMemoryEntryId', () => {
+  it('uses a plain key as is', () => {
+    expect(purchaseMemoryEntryId('mlieko 2x')).toBe('mlieko 2x')
   })
 
-  it('finds "Sójové mäso" from "soj"', () => {
-    const items = [makeItem({ text: 'Sójové mäso' })]
-
-    expect(texts(purchasedSuggestions(items, 'soj'))).toEqual(['Sójové mäso'])
+  it('escapes the characters Firestore forbids or reserves in ids', () => {
+    const forbidden = ['a/b', '.', '..', '__x__', '__']
+    for (const key of forbidden) {
+      const id = purchaseMemoryEntryId(key)
+      expect(id).not.toContain('/')
+      expect(id).not.toBe('.')
+      expect(id).not.toBe('..')
+      expect(id).not.toMatch(/^__.*__$/)
+    }
   })
+
+  it('maps different keys to different ids', () => {
+    const keys = ['a/b', 'a%2Fb', '.', '%2E', '..', '__x__', '%5F_x__', '%']
+    const ids = new Set(keys.map(purchaseMemoryEntryId))
+    expect(ids.size).toBe(keys.length)
+  })
+
+  it('caps very long keys within the document id size limit', () => {
+    const id = purchaseMemoryEntryId('ž'.repeat(2000))
+    expect(new TextEncoder().encode(id).length).toBeLessThanOrEqual(1500)
+  })
+})
+
+describe('purchaseSuggestions', () => {
+  function makeEntry(
+    text: string,
+    overrides: Partial<PurchaseMemoryEntry> = {},
+  ): PurchaseMemoryEntry {
+    return {
+      id: purchaseMemoryEntryId(purchaseKey(text)),
+      text,
+      purchaseCount: 1,
+      lastPurchasedAt: fakeTimestamp(0),
+      countByList: {},
+      ...overrides,
+    }
+  }
+  const texts = (entries: PurchaseMemoryEntry[]) =>
+    entries.map((entry) => entry.text)
+  const suggest = (
+    entries: PurchaseMemoryEntry[],
+    text: string,
+    activeItems: ShoppingItem[] = [],
+  ) => texts(purchaseSuggestions(entries, text, 'list-1', activeItems))
 
   it('suggests nothing until at least two characters are typed', () => {
-    const items = [makeItem({ text: 'mlieko' })]
+    const entries = [makeEntry('mlieko')]
 
-    expect(purchasedSuggestions(items, '   ')).toEqual([])
-    expect(purchasedSuggestions(items, ' m ')).toEqual([])
-    expect(texts(purchasedSuggestions(items, 'ml'))).toEqual(['mlieko'])
+    expect(suggest(entries, '   ')).toEqual([])
+    expect(suggest(entries, ' m ')).toEqual([])
+    expect(suggest(entries, 'ml')).toEqual(['mlieko'])
   })
 
-  it('treats names differing only in case or diacritics as one suggestion, keeping the first', () => {
-    const items = [
-      makeItem({ id: 'a', text: 'Šalát' }),
-      makeItem({ id: 'b', text: 'salat' }),
-      makeItem({ id: 'c', text: 'šalát ľadový' }),
+  it('matches at the start of any word, ignoring case and diacritics', () => {
+    const entries = [
+      makeEntry('Sójové mäso'),
+      makeEntry('Šalát'),
+      makeEntry('Čučoriedky'),
     ]
 
-    expect(texts(purchasedSuggestions(items, 'sal'))).toEqual([
-      'Šalát',
-      'šalát ľadový',
-    ])
+    expect(suggest(entries, 'maso')).toEqual(['Sójové mäso'])
+    expect(suggest(entries, 'SOJ')).toEqual(['Sójové mäso'])
+    expect(suggest(entries, 'salat')).toEqual(['Šalát'])
+    expect(suggest(entries, 'cuc')).toEqual(['Čučoriedky'])
+    expect(suggest(entries, 'oriedky')).toEqual([])
+  })
+
+  it('treats punctuation as a word boundary too', () => {
+    const entries = [makeEntry('Mlieko (polotučné)'), makeEntry('Sójové-mäso')]
+
+    expect(suggest(entries, 'polo')).toEqual(['Mlieko (polotučné)'])
+    expect(suggest(entries, 'maso')).toEqual(['Sójové-mäso'])
+    expect(suggest(entries, 'lieko')).toEqual([])
+  })
+
+  it('matches a typed phrase spanning several words', () => {
+    const entries = [makeEntry('Sójové mäso'), makeEntry('Sójové mlieko')]
+
+    expect(suggest(entries, 'sojove  ma')).toEqual(['Sójové mäso'])
+  })
+
+  it('leaves out names already active in the target list', () => {
+    const entries = [makeEntry('Mlieko'), makeEntry('Mlieko 2x')]
+    const active = [makeItem({ text: 'mlieko ', status: 'active' })]
+
+    expect(suggest(entries, 'ml', active)).toEqual(['Mlieko 2x'])
+  })
+
+  it('ranks a match at the start of the text before a later-word match', () => {
+    const entries = [
+      makeEntry('Kozie mlieko', { purchaseCount: 50 }),
+      makeEntry('Mlieko'),
+    ]
+
+    expect(suggest(entries, 'ml')).toEqual(['Mlieko', 'Kozie mlieko'])
+  })
+
+  it('then ranks by purchases in the target list, then in total, then by recency', () => {
+    const entries = [
+      makeEntry('maslo', {
+        purchaseCount: 9,
+        lastPurchasedAt: fakeTimestamp(9),
+      }),
+      makeEntry('mak', { purchaseCount: 2, lastPurchasedAt: fakeTimestamp(1) }),
+      makeEntry('mango', {
+        purchaseCount: 2,
+        lastPurchasedAt: fakeTimestamp(5),
+      }),
+      makeEntry('marhule', {
+        purchaseCount: 3,
+        countByList: { 'list-1': 3, 'list-2': 40 },
+      }),
+    ]
+
+    expect(suggest(entries, 'ma')).toEqual(['marhule', 'maslo', 'mango'])
+  })
+
+  it('treats an entry with a not-yet-known server time as just bought', () => {
+    const entries = [
+      makeEntry('mango', { lastPurchasedAt: fakeTimestamp(5) }),
+      makeEntry('mak', { lastPurchasedAt: null }),
+    ]
+
+    expect(suggest(entries, 'ma')).toEqual(['mak', 'mango'])
   })
 
   it('returns at most three suggestions', () => {
-    const items = ['maslo', 'mak', 'mango', 'marhule'].map((text, i) =>
-      makeItem({ id: String(i), text }),
+    const entries = ['maslo', 'mak', 'mango', 'marhule'].map((text) =>
+      makeEntry(text),
     )
 
-    expect(purchasedSuggestions(items, 'ma')).toHaveLength(3)
+    expect(suggest(entries, 'ma')).toHaveLength(3)
+  })
+})
+
+describe('purchasedItemFor', () => {
+  it('finds the done item with the same key as the entry text', () => {
+    const done = [
+      makeItem({ id: 'a', status: 'done', text: 'chlieb' }),
+      makeItem({ id: 'b', status: 'done', text: 'Šalát ' }),
+    ]
+
+    expect(purchasedItemFor(done, 'salat')?.id).toBe('b')
+    expect(purchasedItemFor(done, 'salat ladovy')).toBeUndefined()
   })
 })

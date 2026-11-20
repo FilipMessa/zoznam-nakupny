@@ -10,6 +10,8 @@ import {
   updateDoc,
   setDoc,
   deleteDoc,
+  deleteField,
+  increment,
   where,
   writeBatch,
   type Firestore,
@@ -17,17 +19,26 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { createSnapshotMapper } from '@/lib/snapshotMapper'
+import { chunk, MAX_BATCH_WRITES } from '@/lib/batchChunks'
 import {
   itemsCollectionPath,
   LISTS_COLLECTION_PATH,
+  PURCHASE_MEMORY_COLLECTION_PATH,
 } from '@/lib/firestorePaths'
 import {
   completeItemPatch,
   restoreItemPatch,
   nextActiveOrder,
+  purchaseKey,
+  purchaseMemoryEntryId,
   validateItemText,
 } from './itemService'
-import type { MoveItemResult, ShoppingItem } from './types'
+import type { MoveItemResult, PurchaseMemoryEntry, ShoppingItem } from './types'
+
+export interface ItemAuthor {
+  uid: string
+  displayName?: string | null
+}
 
 // Realtime subscription to a List's Items, oldest first. Calls `onNext` on
 // every snapshot (including metadata-only ones, hence
@@ -53,10 +64,29 @@ export function subscribeItems(
   )
 }
 
+// Realtime subscription to the whole Purchase Memory (ADR 0004), in no
+// particular order -- purchaseSuggestions ranks it. Same snapshot mapping as
+// subscribeItems: a pending check-off shows up at once, with a null
+// lastPurchasedAt until the server time is known.
+export function subscribePurchaseMemory(
+  onNext: (entries: PurchaseMemoryEntry[]) => void,
+  firestore: Firestore = db,
+): Unsubscribe {
+  const mapSnapshot = createSnapshotMapper<PurchaseMemoryEntry>()
+
+  return onSnapshot(
+    collection(firestore, PURCHASE_MEMORY_COLLECTION_PATH),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      onNext(mapSnapshot(snapshot))
+    },
+  )
+}
+
 export async function addItem(
   listId: string,
   text: string,
-  author: { uid: string; displayName?: string | null },
+  author: ItemAuthor,
   activeItems: ShoppingItem[],
   firestore: Firestore = db,
 ): Promise<string> {
@@ -83,14 +113,43 @@ export async function addItem(
   return itemRef.id
 }
 
+// Checks an Item off and counts the purchase in the Purchase Memory, in one
+// batch so the two can't diverge, and offline the batch simply queues
+// (ADR 0004). `text` is the Item's current text, which picks the entry and
+// becomes its displayed spelling. The counts are increment()s, so two
+// Members checking off the same name at once both count. Nothing ever
+// decrements them: unchecking, deleting and clearing leave the entry alone.
 export async function checkItem(
   listId: string,
   itemId: string,
+  text: string,
   completedBy: string,
   firestore: Firestore = db,
 ): Promise<void> {
-  const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
-  await updateDoc(itemRef, completeItemPatch(completedBy, serverTimestamp()))
+  const batch = writeBatch(firestore)
+  batch.update(
+    doc(firestore, itemsCollectionPath(listId), itemId),
+    completeItemPatch(completedBy, serverTimestamp()),
+  )
+  const key = purchaseKey(text)
+  // Only a hand-edited blank Item has no key; it isn't worth remembering.
+  if (key !== '') {
+    batch.set(
+      doc(
+        firestore,
+        PURCHASE_MEMORY_COLLECTION_PATH,
+        purchaseMemoryEntryId(key),
+      ),
+      {
+        text: text.trim(),
+        purchaseCount: increment(1),
+        lastPurchasedAt: serverTimestamp(),
+        countByList: { [listId]: increment(1) },
+      },
+      { merge: true },
+    )
+  }
+  await batch.commit()
 }
 
 export async function uncheckItem(
@@ -104,6 +163,24 @@ export async function uncheckItem(
     itemRef,
     restoreItemPatch(nextActiveOrder(activeItems), serverTimestamp()),
   )
+}
+
+// Brings a done Item back from the Done section because a Member picked its
+// suggestion: like uncheckItem, plus the Member who added it now becomes its
+// author (the avatar shows who asked for it this time).
+export async function readdPurchasedItem(
+  listId: string,
+  itemId: string,
+  author: ItemAuthor,
+  activeItems: ShoppingItem[],
+  firestore: Firestore = db,
+): Promise<void> {
+  const itemRef = doc(firestore, itemsCollectionPath(listId), itemId)
+  await updateDoc(itemRef, {
+    ...restoreItemPatch(nextActiveOrder(activeItems), serverTimestamp()),
+    createdBy: author.uid,
+    createdByName: author.displayName?.trim() || deleteField(),
+  })
 }
 
 export async function editItemText(
@@ -156,15 +233,15 @@ export async function clearDoneItems(
   )
   const snapshot = await getDocs(doneQuery)
 
-  if (snapshot.empty) {
-    return
+  // Chunked like deleteList: months of an uncleared Done section can exceed one
+  // batch's write limit.
+  for (const docs of chunk(snapshot.docs, MAX_BATCH_WRITES)) {
+    const batch = writeBatch(firestore)
+    for (const itemDoc of docs) {
+      batch.delete(itemDoc.ref)
+    }
+    await batch.commit()
   }
-
-  const batch = writeBatch(firestore)
-  for (const itemDoc of snapshot.docs) {
-    batch.delete(itemDoc.ref)
-  }
-  await batch.commit()
 }
 
 // Moves an Item to a different List, preserving its identity (same doc id,

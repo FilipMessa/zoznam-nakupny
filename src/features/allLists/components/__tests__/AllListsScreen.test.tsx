@@ -23,6 +23,7 @@ vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 // The screen subscribes to every list's items itself (useItemsByList).
 vi.mock('@/features/items/itemApi', () => ({
   subscribeItems: vi.fn(() => () => {}),
+  subscribePurchaseMemory: vi.fn(() => () => {}),
 }))
 vi.mock('@/features/lists/listApi', () => ({
   createList: vi.fn(),

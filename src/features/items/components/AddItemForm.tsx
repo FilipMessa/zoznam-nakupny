@@ -8,25 +8,25 @@ import {
   chakra,
 } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
-import { purchasedSuggestions } from '@/features/items/itemService'
 import { useAddItemForm } from '@/features/items/useAddItemForm'
-import type { AddItemError, ShoppingItem } from '@/features/items/types'
+import type { AddItemError, PurchaseMemoryEntry } from '@/features/items/types'
 
 export interface AddItemFormProps {
-  purchasedItems?: readonly ShoppingItem[]
-  onSubmit: (item: string | ShoppingItem) => void
+  /** Suggestions for the typed text (usePurchaseSuggestions). */
+  suggest: (text: string) => PurchaseMemoryEntry[]
+  onSubmit: (item: string | PurchaseMemoryEntry) => void
   error: AddItemError | null
 }
 
-export function AddItemForm({
-  onSubmit,
-  error,
-  purchasedItems = [],
-}: AddItemFormProps) {
-  const { text, handleTextChange, inputRef, handleSubmit, submitItem } =
-    useAddItemForm(onSubmit)
-
-  const suggestions = purchasedSuggestions(purchasedItems, text)
+export function AddItemForm({ suggest, onSubmit, error }: AddItemFormProps) {
+  const {
+    text,
+    suggestions,
+    handleTextChange,
+    inputRef,
+    handleSubmit,
+    submitItem,
+  } = useAddItemForm(onSubmit, suggest)
 
   return (
     <chakra.form
@@ -42,18 +42,18 @@ export function AddItemForm({
           overflowX="auto"
           pb="6px"
         >
-          {suggestions.map((item) => (
+          {suggestions.map((entry) => (
             <Button
-              key={item.id}
+              key={entry.id}
               type="button"
               variant="subtle"
               flexShrink="0"
               minH="touchTarget"
               onPointerDown={(event) => event.preventDefault()}
-              onClick={() => submitItem(item)}
+              onClick={() => submitItem(entry)}
             >
               <Plus size={16} aria-hidden="true" />
-              {item.text}
+              {entry.text}
             </Button>
           ))}
         </Flex>

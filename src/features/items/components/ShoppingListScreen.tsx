@@ -11,8 +11,17 @@ export interface ShoppingListScreenProps {
 }
 
 export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
-  const { itemsLoading, active, done, mainRef, swipe, editing, add, actions } =
-    useShoppingListScreen(listId)
+  const {
+    itemsLoading,
+    active,
+    done,
+    mainRef,
+    swipe,
+    editing,
+    add,
+    suggest,
+    actions,
+  } = useShoppingListScreen(listId)
 
   if (itemsLoading) {
     return <LoadingScreen />
@@ -80,7 +89,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         pb="env(safe-area-inset-bottom)"
       >
         <AddItemForm
-          purchasedItems={done}
+          suggest={suggest}
           onSubmit={add.handleAdd}
           error={add.addError}
         />

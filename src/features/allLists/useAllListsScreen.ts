@@ -41,6 +41,10 @@ export function useAllListsScreen(lists: ShoppingList[]) {
     (listId: string) => activeItemsByList.get(listId) ?? NO_ITEMS,
     [activeItemsByList],
   )
+  const doneItemsOf = useCallback(
+    (listId: string) => itemsByList.get(listId)?.done ?? NO_ITEMS,
+    [itemsByList],
+  )
 
   const { mainRef: mainScrollRef, requestScrollAfterAdd: requestScroll } =
     useScrollNewItemIntoView(activeItemsByList)
@@ -51,6 +55,7 @@ export function useAllListsScreen(lists: ShoppingList[]) {
   const addTarget = useAddTarget({
     uid,
     activeItemsOf,
+    doneItemsOf,
     requestScroll,
     expandIfCollapsed,
   })
@@ -72,7 +77,5 @@ export function useAllListsScreen(lists: ShoppingList[]) {
     drag,
     addTarget,
     doneActions,
-    purchasedItems:
-      itemsByList.get(addTarget.addTargetListId ?? '')?.done ?? NO_ITEMS,
   }
 }

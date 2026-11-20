@@ -185,7 +185,12 @@ describe('AllListsSection', () => {
 
     await user.click(screen.getByRole('checkbox', { name: 'mlieko' }))
 
-    expect(mockedCheckItem).toHaveBeenCalledWith('list-42', 'a', 'uid-1')
+    expect(mockedCheckItem).toHaveBeenCalledWith(
+      'list-42',
+      'a',
+      'mlieko',
+      'uid-1',
+    )
   })
 
   it("calls deleteItem with this section's listId when an item is deleted", async () => {

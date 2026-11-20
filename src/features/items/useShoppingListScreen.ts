@@ -7,6 +7,7 @@ import { useSwipeRowRegistry } from './useSwipeRowRegistry'
 import { useItemEditing } from './useItemEditing'
 import { useAddItemSubmit } from './useAddItemSubmit'
 import { useItemActions } from './useItemActions'
+import { usePurchaseSuggestions } from './usePurchaseSuggestions'
 
 export function useShoppingListScreen(listId: string) {
   const uid = useSignedInUid()
@@ -26,9 +27,21 @@ export function useShoppingListScreen(listId: string) {
     listId,
     uid,
     activeItems: active,
+    doneItems: done,
     onAddStart: requestScrollAfterAdd,
   })
+  const suggest = usePurchaseSuggestions(listId, active)
   const actions = useItemActions({ listId, uid, activeItems: active })
 
-  return { itemsLoading, active, done, mainRef, swipe, editing, add, actions }
+  return {
+    itemsLoading,
+    active,
+    done,
+    mainRef,
+    swipe,
+    editing,
+    add,
+    suggest,
+    actions,
+  }
 }

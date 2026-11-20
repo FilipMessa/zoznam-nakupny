@@ -23,6 +23,7 @@
     "check": "npm run lint && npm run lint:cycles && npm run format:check && npm run test && npm run build",
     "preview": "vite preview",
     "seed": "tsx scripts/seed.ts",
+    "migrate:purchase-memory": "tsx scripts/migrate-purchase-memory.ts",
     "prepare": "husky"
   },
   "dependencies": {

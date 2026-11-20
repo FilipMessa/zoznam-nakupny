@@ -6,13 +6,15 @@ import { ShoppingListScreen } from '@/features/items/components/ShoppingListScre
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from '@/features/items/useItems'
 import * as itemApi from '@/features/items/itemApi'
-import type { ShoppingItem } from '@/features/items/types'
+import type { PurchaseMemoryEntry, ShoppingItem } from '@/features/items/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
 // The screen imports the whole itemApi; mock every function it calls so no
-// test touches real Firestore. Only addItem matters here.
+// test touches real Firestore.
 vi.mock('@/features/items/itemApi', () => ({
+  subscribePurchaseMemory: vi.fn(),
+  readdPurchasedItem: vi.fn(),
   addItem: vi.fn(),
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),
@@ -25,6 +27,29 @@ vi.mock('@/features/items/itemApi', () => ({
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseItems = vi.mocked(useItems)
 const mockedAddItem = vi.mocked(itemApi.addItem)
+const mockedSubscribePurchaseMemory = vi.mocked(itemApi.subscribePurchaseMemory)
+
+// Plays the part of Firestore delivering the Purchase Memory snapshot.
+function givenPurchaseMemory(entries: PurchaseMemoryEntry[]) {
+  mockedSubscribePurchaseMemory.mockImplementation((onNext) => {
+    onNext(entries)
+    return () => {}
+  })
+}
+
+function makeEntry(
+  text: string,
+  overrides: Partial<PurchaseMemoryEntry> = {},
+): PurchaseMemoryEntry {
+  return {
+    id: text,
+    text,
+    purchaseCount: 1,
+    lastPurchasedAt: fakeTimestamp(0),
+    countByList: {},
+    ...overrides,
+  }
+}
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -55,61 +80,12 @@ describe('ShoppingListScreen — scroll new item into view', () => {
       authLoading: false,
     })
     mockedAddItem.mockResolvedValue('c')
+    givenPurchaseMemory([])
   })
 
   afterEach(() => {
     scrollIntoView.mockRestore()
     vi.clearAllMocks()
-  })
-
-  it('suggests a purchased name once while collapsed and preserves typed submissions', async () => {
-    mockedUseItems.mockReturnValue({
-      items: [
-        makeItem({
-          id: 'a',
-          status: 'done',
-          text: 'Mlieko',
-          completedAt: fakeTimestamp(2),
-        }),
-        makeItem({
-          id: 'b',
-          status: 'done',
-          text: 'mlieko',
-          completedAt: fakeTimestamp(1),
-        }),
-      ],
-      itemsLoading: false,
-    })
-    render(<ShoppingListScreen listId="list-1" />)
-    const user = userEvent.setup()
-    const toggle = screen.getByRole('button', { name: 'Kúpené · 2' })
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Mlieko')).toBeVisible()
-    await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Mlieko')).not.toBeInTheDocument()
-
-    const input = screen.getByRole('textbox', { name: /položka/i })
-    await user.type(input, 'ml')
-    await user.click(screen.getByRole('button', { name: /^mlieko$/i }))
-    expect(itemApi.uncheckItem).toHaveBeenCalledWith('list-1', 'a', [])
-    expect(mockedAddItem).not.toHaveBeenCalled()
-    expect(input).toHaveFocus()
-    expect(input).toHaveValue('')
-    await user.type(input, 'ml{Enter}')
-    expect(mockedAddItem).toHaveBeenLastCalledWith(
-      'list-1',
-      'ml',
-      { uid: 'uid-1', displayName: undefined },
-      [],
-    )
-    await user.type(input, 'mlieko bez laktózy{Enter}')
-    expect(mockedAddItem).toHaveBeenLastCalledWith(
-      'list-1',
-      'mlieko bez laktózy',
-      { uid: 'uid-1', displayName: undefined },
-      [],
-    )
   })
 
   it('scrolls the just-added item into view once it arrives in the snapshot', async () => {
@@ -164,6 +140,151 @@ describe('ShoppingListScreen — scroll new item into view', () => {
   })
 })
 
+describe('ShoppingListScreen — purchase suggestions', () => {
+  const author = { uid: 'uid-1', displayName: 'Jana' }
+
+  beforeEach(() => {
+    mockedUseAuth.mockReturnValue({
+      user: author as never,
+      authLoading: false,
+    })
+    mockedAddItem.mockResolvedValue('new')
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  function typeInto(text: string) {
+    const user = userEvent.setup()
+    const input = screen.getByRole('textbox', { name: /položka/i })
+    return { user, input, typed: user.type(input, text) }
+  }
+
+  it('suggests from the Purchase Memory with Kúpené empty, and adds a new item', async () => {
+    givenPurchaseMemory([makeEntry('Mlieko')])
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    const { user, input, typed } = typeInto('ml')
+    await typed
+    await user.click(screen.getByRole('button', { name: 'Mlieko' }))
+
+    expect(mockedAddItem).toHaveBeenCalledWith('list-1', 'Mlieko', author, [])
+    expect(itemApi.readdPurchasedItem).not.toHaveBeenCalled()
+    expect(input).toHaveFocus()
+    expect(input).toHaveValue('')
+  })
+
+  it('brings the done item back with the current member as author when it is still in Kúpené', async () => {
+    givenPurchaseMemory([makeEntry('Mlieko')])
+    mockedUseItems.mockReturnValue({
+      items: [
+        makeItem({ id: 'a', text: 'chlieb', activeOrder: 1 }),
+        makeItem({
+          id: 'b',
+          status: 'done',
+          activeOrder: null,
+          text: 'mlieko',
+          createdBy: 'someone-else',
+        }),
+      ],
+      itemsLoading: false,
+    })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    const { user, typed } = typeInto('mli')
+    await typed
+    await user.click(screen.getByRole('button', { name: 'Mlieko' }))
+
+    expect(itemApi.readdPurchasedItem).toHaveBeenCalledWith(
+      'list-1',
+      'b',
+      author,
+      [expect.objectContaining({ id: 'a' })],
+    )
+    expect(mockedAddItem).not.toHaveBeenCalled()
+  })
+
+  it('does not suggest a name that is already on the list to buy', async () => {
+    givenPurchaseMemory([makeEntry('Mlieko'), makeEntry('Mlieko 2x')])
+    mockedUseItems.mockReturnValue({
+      items: [makeItem({ id: 'a', text: 'mlieko' })],
+      itemsLoading: false,
+    })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    const { typed } = typeInto('ml')
+    await typed
+
+    const group = screen.getByRole('group', { name: /kúpených/i })
+    expect(
+      Array.from(group.querySelectorAll('button')).map((b) => b.textContent),
+    ).toEqual(['Mlieko 2x'])
+  })
+
+  it("ranks the list's own purchases first", async () => {
+    givenPurchaseMemory([
+      makeEntry('maslo', { purchaseCount: 30, countByList: { 'list-2': 30 } }),
+      makeEntry('mak', { purchaseCount: 2, countByList: { 'list-1': 2 } }),
+    ])
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    const { typed } = typeInto('ma')
+    await typed
+
+    const group = screen.getByRole('group', { name: /kúpených/i })
+    expect(
+      Array.from(group.querySelectorAll('button')).map((b) => b.textContent),
+    ).toEqual(['mak', 'maslo'])
+  })
+
+  it('submits typed text as is, not the suggestion', async () => {
+    givenPurchaseMemory([makeEntry('Mlieko')])
+    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    const { typed } = typeInto('ml{Enter}')
+    await typed
+
+    expect(mockedAddItem).toHaveBeenCalledWith('list-1', 'ml', author, [])
+  })
+
+  it('checks an item off under its text so the purchase is remembered', async () => {
+    givenPurchaseMemory([])
+    mockedUseItems.mockReturnValue({
+      items: [makeItem({ id: 'a', text: 'mlieko' })],
+      itemsLoading: false,
+    })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole('checkbox', { name: 'mlieko' }))
+
+    expect(itemApi.checkItem).toHaveBeenCalledWith(
+      'list-1',
+      'a',
+      'mlieko',
+      'uid-1',
+    )
+  })
+
+  it('names the clear button "Vyčistiť kúpené"', () => {
+    givenPurchaseMemory([])
+    mockedUseItems.mockReturnValue({
+      items: [makeItem({ id: 'b', status: 'done', activeOrder: null })],
+      itemsLoading: false,
+    })
+    render(<ShoppingListScreen listId="list-1" />)
+
+    expect(
+      screen.getByRole('button', { name: 'Vyčistiť kúpené' }),
+    ).toBeInTheDocument()
+  })
+})
+
 // Swipes a row's foreground left past the open threshold with touch input.
 function swipeOpen(itemId: string) {
   const content = screen.getByTestId(`active-item-content-${itemId}`)
@@ -198,6 +319,7 @@ function deleteActionOf(itemId: string) {
 
 describe('ShoppingListScreen — swipe actions', () => {
   beforeEach(() => {
+    givenPurchaseMemory([])
     mockedUseAuth.mockReturnValue({
       user: { uid: 'uid-1' } as never,
       authLoading: false,

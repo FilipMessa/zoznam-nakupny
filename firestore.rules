@@ -29,6 +29,11 @@ service cloud.firestore {
           allow read, create, update, delete: if isMember(familyId);
         }
       }
+
+      // Purchase Memory (docs/adr/0004-purchase-memory-catalog.md).
+      match /purchaseMemory/{entryId} {
+        allow read, create, update, delete: if isMember(familyId);
+      }
     }
 
     match /invites/{inviteCode} {

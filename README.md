@@ -56,6 +56,17 @@ Skript (`scripts/seed.ts`):
 
 Pre pouzitie oproti realnemu (nie emulovanemu) projektu treba `projectId` v skripte zmenit na svoje skutocne project ID a nastavit spravne prihlasovacie udaje pre Admin SDK (napr. `GOOGLE_APPLICATION_CREDENTIALS`).
 
+## Migracia Pamate nakupov (jednorazovo)
+
+Pamat nakupov (`families/{FAMILY_ID}/purchaseMemory`, ADR 0004) sa plni pri kazdom odskrtnuti Polozky. Existujuce kupene Polozky do nej raz prenesie skript:
+
+```bash
+npm run migrate:purchase-memory                                        # Firestore emulator (127.0.0.1:8080)
+GCLOUD_PROJECT=<project-id> npm run migrate:purchase-memory -- --production   # realny projekt, Admin SDK prihlasovacie udaje (napr. GOOGLE_APPLICATION_CREDENTIALS)
+```
+
+Pre kazdy normalizovany nazov nastavi pocet (pocet kupenych dokumentov, aj po Zoznamoch), cas posledneho kupenia (najnovsie `completedAt`) a text (z najnovsieho dokumentu). Hodnoty nastavuje, nepriratava, takze opakovane spustenie da rovnaky vysledok; prepise vsak, co sa medzitym naratalo odskrtnutim. Poradie nasadenia: `firebase deploy --only firestore:rules`, potom skript, potom hosting. Clen so starou verziou PWA (kym neklikne na "Obnovit") odskrtava bez zapisu do Pamate; ak sa to stane, staci skript spustit znova, kym nikto nevycisti Kupene — tie odskrtnutia su este medzi kupenymi Polozkami a zapocitaju sa.
+
 ## Testy
 
 - **`npm run test`** — unit testy (Vitest). Nepotrebuju ziadny emulator.

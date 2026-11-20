@@ -24,6 +24,7 @@ import {
   type QuerySnapshot,
   setDoc,
   Timestamp,
+  writeBatch,
 } from 'firebase/firestore'
 import {
   beforeAll,
@@ -43,7 +44,13 @@ import {
   editItemText,
   clearDoneItems,
   moveItemToList,
+  readdPurchasedItem,
 } from '@/features/items/itemApi'
+import { deleteList } from '@/features/lists/listApi'
+import {
+  purchaseKey,
+  purchaseMemoryEntryId,
+} from '@/features/items/itemService'
 import type { ShoppingItem } from '@/features/items/types'
 
 // Exercises itemApi's addItem/checkItem/uncheckItem/deleteItem/clearDoneItems
@@ -169,6 +176,58 @@ async function getItemDocsAsAdmin(listId: string) {
   return snapshots
 }
 
+async function getMemoryEntryAsAdmin(text: string) {
+  let snapshot: DocumentSnapshot<DocumentData> | undefined
+  await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
+    snapshot = await getDoc(
+      doc(
+        context.firestore(),
+        `families/${FAMILY_ID}/purchaseMemory`,
+        purchaseMemoryEntryId(purchaseKey(text)),
+      ),
+    )
+  })
+  if (!snapshot) {
+    throw new Error('expected withSecurityRulesDisabled to run its callback')
+  }
+  return snapshot
+}
+
+async function getMemoryEntriesAsAdmin() {
+  let snapshots: QuerySnapshot<DocumentData> | undefined
+  await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
+    snapshots = await getDocs(
+      collection(context.firestore(), `families/${FAMILY_ID}/purchaseMemory`),
+    )
+  })
+  if (!snapshots) {
+    throw new Error('expected withSecurityRulesDisabled to run its callback')
+  }
+  return snapshots
+}
+
+function activeItemData(text: string, uid: string, activeOrder = 1) {
+  return {
+    text,
+    status: 'active',
+    activeOrder,
+    completedAt: null,
+    completedBy: null,
+    createdBy: uid,
+  }
+}
+
+function doneItemData(text: string, uid: string) {
+  return {
+    text,
+    status: 'done',
+    activeOrder: null,
+    completedAt: Timestamp.now(),
+    completedBy: uid,
+    createdBy: uid,
+  }
+}
+
 // itemApi's checkItem/uncheckItem take the caller's currently-known
 // active items (the same shape useItems() would hand them from its
 // onSnapshot listener) so they can compute completeItemPatch/restoreItemPatch
@@ -267,7 +326,7 @@ describe('itemApi (emulator)', () => {
         createdBy: uid,
       })
 
-      await checkItem('list-1', 'item-1', uid, db)
+      await checkItem('list-1', 'item-1', 'mlieko', uid, db)
 
       const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
       expect(itemDoc.data()?.status).toBe('done')
@@ -512,6 +571,244 @@ describe('itemApi (emulator)', () => {
       expect(result).toEqual({ ok: false, reason: 'dest-list-missing' })
       const sourceDoc = await getItemDocAsAdmin('list-1', 'item-1')
       expect(sourceDoc.exists()).toBe(true)
+    })
+  })
+
+  describe('Purchase Memory', () => {
+    it('checking an item off creates its entry with counts, time and text', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('Mlieko', uid))
+
+      await checkItem('list-1', 'item-1', 'Mlieko', uid, db)
+
+      const entry = await getMemoryEntryAsAdmin('Mlieko')
+      expect(entry.id).toBe('mlieko')
+      expect(entry.data()).toMatchObject({
+        text: 'Mlieko',
+        purchaseCount: 1,
+        countByList: { 'list-1': 1 },
+      })
+      expect(entry.data()?.lastPurchasedAt).toBeInstanceOf(Timestamp)
+      const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
+      expect(itemDoc.data()?.status).toBe('done')
+    })
+
+    it('two check-offs of the same name count twice, per list and in total', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedListAsAdmin('list-2', { name: 'Household' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('mlieko', uid))
+      await seedItemAsAdmin('list-1', 'item-2', activeItemData('mlieko', uid))
+      await seedItemAsAdmin('list-2', 'item-3', activeItemData('mlieko', uid))
+
+      await checkItem('list-1', 'item-1', 'mlieko', uid, db)
+      await checkItem('list-1', 'item-2', 'mlieko', uid, db)
+      await checkItem('list-2', 'item-3', 'mlieko', uid, db)
+
+      const entry = await getMemoryEntryAsAdmin('mlieko')
+      expect(entry.data()?.purchaseCount).toBe(3)
+      expect(entry.data()?.countByList).toEqual({ 'list-1': 2, 'list-2': 1 })
+    })
+
+    it('different spellings of one key share an entry showing the latest spelling', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('salat', uid))
+      await seedItemAsAdmin('list-1', 'item-2', activeItemData('Šalát', uid))
+
+      await checkItem('list-1', 'item-1', 'salat', uid, db)
+      await checkItem('list-1', 'item-2', 'Šalát', uid, db)
+
+      const entries = await getMemoryEntriesAsAdmin()
+      expect(entries.size).toBe(1)
+      expect(entries.docs[0].data()).toMatchObject({
+        text: 'Šalát',
+        purchaseCount: 2,
+      })
+    })
+
+    it('keeps "Mlieko 2x" apart from "mlieko"', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('mlieko', uid))
+      await seedItemAsAdmin(
+        'list-1',
+        'item-2',
+        activeItemData('Mlieko 2x', uid),
+      )
+
+      await checkItem('list-1', 'item-1', 'mlieko', uid, db)
+      await checkItem('list-1', 'item-2', 'Mlieko 2x', uid, db)
+
+      const entries = await getMemoryEntriesAsAdmin()
+      expect(entries.docs.map((d) => d.data().text).sort()).toEqual([
+        'Mlieko 2x',
+        'mlieko',
+      ])
+    })
+
+    it('stores a name with a slash under an escaped id', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin(
+        'list-1',
+        'item-1',
+        activeItemData('1/2 chleba', uid),
+      )
+
+      await checkItem('list-1', 'item-1', '1/2 chleba', uid, db)
+
+      const entry = await getMemoryEntryAsAdmin('1/2 chleba')
+      expect(entry.data()?.text).toBe('1/2 chleba')
+    })
+
+    it('check-offs from two members at once add up', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('chlieb', uid))
+      await seedItemAsAdmin('list-1', 'item-2', activeItemData('chlieb', uid))
+
+      const otherApp = initializeApp(
+        { apiKey: 'test-api-key', projectId: 'zoznam-nakupny-rules-test' },
+        'purchase-memory-other-member',
+      )
+      try {
+        const otherAuth = getAuth(otherApp)
+        const otherDb = getFirestore(otherApp)
+        connectAuthEmulator(otherAuth, 'http://127.0.0.1:9099', {
+          disableWarnings: true,
+        })
+        connectFirestoreEmulator(otherDb, '127.0.0.1', 8080)
+        const otherUid = (await signInAnonymously(otherAuth)).user.uid
+        await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
+          await setDoc(
+            doc(context.firestore(), `families/${FAMILY_ID}/members`, otherUid),
+            { uid: otherUid },
+          )
+        })
+
+        await Promise.all([
+          checkItem('list-1', 'item-1', 'chlieb', uid, db),
+          checkItem('list-1', 'item-2', 'chlieb', otherUid, otherDb),
+        ])
+      } finally {
+        await deleteApp(otherApp)
+      }
+
+      const entry = await getMemoryEntryAsAdmin('chlieb')
+      expect(entry.data()?.purchaseCount).toBe(2)
+      expect(entry.data()?.countByList).toEqual({ 'list-1': 2 })
+    })
+
+    it('unchecking, moving, deleting, clearing the Done section and deleting the list leave the entry alone', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedListAsAdmin('list-2', { name: 'Household' })
+      await seedItemAsAdmin('list-1', 'item-1', activeItemData('mlieko', uid))
+      await seedItemAsAdmin(
+        'list-1',
+        'item-2',
+        activeItemData('mlieko', uid, 2),
+      )
+      await seedItemAsAdmin(
+        'list-1',
+        'item-3',
+        activeItemData('mlieko', uid, 3),
+      )
+      await checkItem('list-1', 'item-1', 'mlieko', uid, db)
+      await checkItem('list-1', 'item-2', 'mlieko', uid, db)
+      await checkItem('list-1', 'item-3', 'mlieko', uid, db)
+      const before = (await getMemoryEntryAsAdmin('mlieko')).data()
+
+      await uncheckItem('list-1', 'item-1', [], db)
+      const moved = await moveItemToList(
+        'list-1',
+        'list-2',
+        makeShoppingItem('item-1', { createdBy: uid }),
+        1,
+        db,
+      )
+      expect(moved).toEqual({ ok: true })
+      await deleteItem('list-1', 'item-2', db)
+      await clearDoneItems('list-1', db)
+      await deleteList('list-1', db)
+
+      const after = await getMemoryEntryAsAdmin('mlieko')
+      expect(after.data()).toEqual(before)
+    })
+
+    it('readdPurchasedItem brings a done item back at the end with the new author', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin(
+        'list-1',
+        'item-1',
+        activeItemData('chlieb', uid, 4),
+      )
+      await seedItemAsAdmin('list-1', 'item-2', {
+        ...doneItemData('mlieko', 'someone-else'),
+        createdBy: 'someone-else',
+        createdByName: 'Peter',
+      })
+
+      await readdPurchasedItem(
+        'list-1',
+        'item-2',
+        { uid, displayName: 'Jana' },
+        [toActiveItem('item-1', { text: 'chlieb', activeOrder: 4 })],
+        db,
+      )
+
+      const itemDoc = await getItemDocAsAdmin('list-1', 'item-2')
+      expect(itemDoc.data()).toMatchObject({
+        status: 'active',
+        activeOrder: 5,
+        completedAt: null,
+        completedBy: null,
+        createdBy: uid,
+        createdByName: 'Jana',
+      })
+    })
+
+    it('readdPurchasedItem drops the previous author name when the member has none', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await seedItemAsAdmin('list-1', 'item-1', {
+        ...doneItemData('mlieko', 'someone-else'),
+        createdBy: 'someone-else',
+        createdByName: 'Peter',
+      })
+
+      await readdPurchasedItem('list-1', 'item-1', { uid }, [], db)
+
+      const itemDoc = await getItemDocAsAdmin('list-1', 'item-1')
+      expect(itemDoc.data()?.createdBy).toBe(uid)
+      expect(itemDoc.data()).not.toHaveProperty('createdByName')
+    })
+
+    it('clearDoneItems clears more done items than fit in one batch', async () => {
+      const uid = await signInAsMember()
+      await seedListAsAdmin('list-1', { name: 'Groceries' })
+      await rulesTestEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore()
+        for (let start = 0; start < 501; start += 250) {
+          const batch = writeBatch(adminDb)
+          for (let i = start; i < Math.min(start + 250, 501); i += 1) {
+            batch.set(
+              doc(adminDb, `families/${FAMILY_ID}/lists/list-1/items`, `d${i}`),
+              doneItemData(`vec ${i}`, uid),
+            )
+          }
+          await batch.commit()
+        }
+      })
+      await seedItemAsAdmin('list-1', 'active', activeItemData('chlieb', uid))
+
+      await clearDoneItems('list-1', db)
+
+      const itemSnapshots = await getItemDocsAsAdmin('list-1')
+      expect(itemSnapshots.docs.map((d) => d.id)).toEqual(['active'])
     })
   })
 

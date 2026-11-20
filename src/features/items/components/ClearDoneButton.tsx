@@ -20,7 +20,7 @@ export function ClearDoneButton({ doneCount, onClear }: ClearDoneButtonProps) {
       minW="0"
       _disabled={{ color: 'fg.subtle' }}
     >
-      Vymazať hotové
+      Vyčistiť kúpené
     </Button>
   )
 }

@@ -16,6 +16,9 @@ export const FAMILY_DOC_PATH = `families/${FAMILY_ID}`
 export const INVITES_COLLECTION_PATH = 'invites'
 export const MEMBERS_COLLECTION_PATH = `${FAMILY_DOC_PATH}/members`
 export const LISTS_COLLECTION_PATH = `${FAMILY_DOC_PATH}/lists`
+// The Purchase Memory (ADR 0004); entry ids come from
+// purchaseMemoryEntryId in src/features/items/itemService.ts.
+export const PURCHASE_MEMORY_COLLECTION_PATH = `${FAMILY_DOC_PATH}/purchaseMemory`
 
 export function itemsCollectionPath(listId: string): string {
   return `${LISTS_COLLECTION_PATH}/${listId}/items`
