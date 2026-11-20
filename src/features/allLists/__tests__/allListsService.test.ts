@@ -12,7 +12,7 @@ import {
   LIST_HEADER_DROPPABLE_PREFIX,
   LIST_BODY_DROPPABLE_PREFIX,
 } from '@/features/allLists/allListsService'
-import type { ShoppingItem } from '@/features/items/types'
+import type { ActiveItem, ShoppingItem } from '@/features/items/types'
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -31,6 +31,10 @@ function makeItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
     updatedAt: fakeTimestamp(0),
     ...overrides,
   }
+}
+
+function makeActiveItem(overrides: Partial<ActiveItem> = {}): ActiveItem {
+  return { ...makeItem({ status: 'active' }), activeOrder: 1, ...overrides }
 }
 
 function done(items: ShoppingItem[]) {
@@ -145,7 +149,7 @@ describe('toggleCollapsed / expandListId', () => {
 
 describe('resolveDrop', () => {
   const items = new Map([
-    ['list-2', [makeItem({ id: 'x' }), makeItem({ id: 'y' })]],
+    ['list-2', [makeActiveItem({ id: 'x' }), makeActiveItem({ id: 'y' })]],
   ])
 
   it('resolves a header drop target to an append on that list', () => {
@@ -181,10 +185,10 @@ describe('resolveDrop', () => {
 })
 
 describe('planDragEnd', () => {
-  const a = makeItem({ id: 'a', status: 'active', activeOrder: 1 })
-  const b = makeItem({ id: 'b', status: 'active', activeOrder: 2 })
-  const c = makeItem({ id: 'c', status: 'active', activeOrder: 3 })
-  const x = makeItem({ id: 'x', status: 'active', activeOrder: 10 })
+  const a = makeActiveItem({ id: 'a', status: 'active', activeOrder: 1 })
+  const b = makeActiveItem({ id: 'b', status: 'active', activeOrder: 2 })
+  const c = makeActiveItem({ id: 'c', status: 'active', activeOrder: 3 })
+  const x = makeActiveItem({ id: 'x', status: 'active', activeOrder: 10 })
   const byList = new Map([
     ['list-1', [a, b, c]],
     ['list-2', [x]],

@@ -178,7 +178,7 @@ function toActiveItem(id: string, data: Record<string, unknown>): ShoppingItem {
     id,
     text: data.text as string,
     status: 'active',
-    activeOrder: data.activeOrder as number,
+    activeOrder: Number(data.activeOrder),
     completedAt: null,
     completedBy: null,
     createdAt: data.createdAt as ShoppingItem['createdAt'],

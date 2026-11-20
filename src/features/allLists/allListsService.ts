@@ -3,7 +3,11 @@ import {
   planReorder,
   type SortedItems,
 } from '@/features/items/itemService'
-import type { MoveItemResult, ShoppingItem } from '@/features/items/types'
+import type {
+  ActiveItem,
+  MoveItemResult,
+  ShoppingItem,
+} from '@/features/items/types'
 
 export interface DoneItemWithOrigin {
   item: ShoppingItem
@@ -111,7 +115,7 @@ export function expandListId(
 // item).
 export function resolveDrop(
   overId: string | number,
-  destItemsByListId: ReadonlyMap<string, ShoppingItem[]>,
+  destItemsByListId: ReadonlyMap<string, ActiveItem[]>,
   overData: Record<string, unknown> | undefined,
 ): { destListId: string; toIndex: number | undefined } | null {
   const overIdStr = String(overId)
@@ -158,7 +162,7 @@ export interface DragEndInput {
     id: string | number
     data: Record<string, unknown> | undefined
   } | null
-  activeItemsByListId: ReadonlyMap<string, ShoppingItem[]>
+  activeItemsByListId: ReadonlyMap<string, ActiveItem[]>
 }
 
 // Decides what write (if any) a finished drag should produce -- pure, so the

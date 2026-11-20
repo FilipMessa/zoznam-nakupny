@@ -6,7 +6,7 @@ import {
   type ActiveItemsListProps,
 } from '@/features/items/components/ActiveItemsList'
 import { useSwipeActions } from '@/features/items/useSwipeActions'
-import type { ShoppingItem } from '@/features/items/types'
+import type { ActiveItem, ShoppingItem } from '@/features/items/types'
 
 // Wrapped (not replaced) so tests can count row renders: every
 // ActiveItemRow render calls it exactly once.
@@ -18,7 +18,7 @@ vi.mock('@/features/items/useSwipeActions', async (importOriginal) => {
 
 const mockedUseSwipeActions = vi.mocked(useSwipeActions)
 
-function makeActiveItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
+function makeActiveItem(overrides: Partial<ActiveItem> = {}): ActiveItem {
   return {
     id: 'item-1',
     text: 'mlieko',

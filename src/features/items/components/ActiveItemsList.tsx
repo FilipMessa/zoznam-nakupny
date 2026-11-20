@@ -1,12 +1,12 @@
 import { Box, Text } from '@chakra-ui/react'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { ShoppingItem } from '@/features/items/types'
+import type { ActiveItem } from '@/features/items/types'
 import { useActiveItemsReorder } from '@/features/items/useActiveItemsReorder'
 import { ActiveItemRow } from './ActiveItemRow'
 
 export interface ActiveItemsListProps {
-  items: ShoppingItem[]
+  items: ActiveItem[]
   onCheck: (id: string) => void
   onDelete: (id: string) => void
   onReorder?: (itemId: string, activeOrder: number) => void

@@ -2,13 +2,13 @@ import { useMemo } from 'react'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { useShoppingListDndSensors } from './dndSensors'
 import { planReorder } from './itemService'
-import type { ShoppingItem } from './types'
+import type { ActiveItem } from './types'
 
 // Drag-to-reorder for one list's active items: dnd-kit sensors, the sortable
 // ids, and a drag-end handler that turns the drop into a fractional
 // activeOrder (ADR 0002) for `onReorder`.
 export function useActiveItemsReorder(
-  items: ShoppingItem[],
+  items: ActiveItem[],
   onReorder?: (itemId: string, activeOrder: number) => void,
 ) {
   const sensors = useShoppingListDndSensors()

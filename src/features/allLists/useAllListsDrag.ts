@@ -8,14 +8,14 @@ import {
   moveConflictMessage,
   planDragEnd,
 } from './allListsService'
-import type { ShoppingItem } from '@/features/items/types'
+import type { ActiveItem, ShoppingItem } from '@/features/items/types'
 
 // Drag-and-drop orchestration for the shared DndContext: tracks the dragged
 // item for <DragOverlay> and turns a finished drag into the right write
 // (single-document fractional reorder within a list, or the transactional
 // cross-list move -- ADR 0003).
 export function useAllListsDrag(
-  activeItemsByList: ReadonlyMap<string, ShoppingItem[]>,
+  activeItemsByList: ReadonlyMap<string, ActiveItem[]>,
 ) {
   // The item currently being dragged, for <DragOverlay> to render a
   // floating clone of -- needed because a dragged row's own useSortable

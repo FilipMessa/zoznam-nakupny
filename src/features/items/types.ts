@@ -19,3 +19,6 @@ export interface ShoppingItem {
    * server yet. Never persisted to Firestore. */
   pendingSync?: boolean
 }
+
+/** A ShoppingItem in the active section, which always has a position. */
+export type ActiveItem = ShoppingItem & { activeOrder: number }

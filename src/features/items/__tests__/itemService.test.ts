@@ -11,7 +11,7 @@ import {
   planReorder,
   latestNewActiveId,
 } from '@/features/items/itemService'
-import type { ShoppingItem } from '@/features/items/types'
+import type { ActiveItem, ShoppingItem } from '@/features/items/types'
 
 // Fabricates a Timestamp-shaped value (only the `toMillis()` member that
 // itemService actually relies on) without pulling in the firebase/firestore
@@ -35,6 +35,10 @@ function makeItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
     updatedAt: fakeTimestamp(0),
     ...overrides,
   }
+}
+
+function makeActiveItem(overrides: Partial<ActiveItem> = {}): ActiveItem {
+  return { ...makeItem(), activeOrder: 1, ...overrides }
 }
 
 describe('sortItems', () => {
@@ -245,10 +249,10 @@ describe('reorderActiveItems', () => {
     // -- toIndex is a position in the array-with-'d'-removed ([a, b, c]),
     // so toIndex=1 picks out prev=a (toIndex-1=0) and next=b (toIndex=1).
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 3 }),
-      makeItem({ id: 'd', activeOrder: 4 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 3 }),
+      makeActiveItem({ id: 'd', activeOrder: 4 }),
     ]
 
     const result = reorderActiveItems(active, 3, 1)
@@ -259,9 +263,9 @@ describe('reorderActiveItems', () => {
 
   it('moving to the top of the list halves the next item activeOrder', () => {
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 3 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 3 }),
     ]
 
     // Move 'c' (index 2) to the very top (index 0).
@@ -272,9 +276,9 @@ describe('reorderActiveItems', () => {
 
   it('moving to the top when the current top activeOrder is 0 uses -1 instead of 0', () => {
     const active = [
-      makeItem({ id: 'a', activeOrder: 0 }),
-      makeItem({ id: 'b', activeOrder: 1 }),
-      makeItem({ id: 'c', activeOrder: 2 }),
+      makeActiveItem({ id: 'a', activeOrder: 0 }),
+      makeActiveItem({ id: 'b', activeOrder: 1 }),
+      makeActiveItem({ id: 'c', activeOrder: 2 }),
     ]
 
     const result = reorderActiveItems(active, 2, 0)
@@ -284,9 +288,9 @@ describe('reorderActiveItems', () => {
 
   it('moving to the top when the current top activeOrder is negative doubles it', () => {
     const active = [
-      makeItem({ id: 'a', activeOrder: -2 }),
-      makeItem({ id: 'b', activeOrder: 1 }),
-      makeItem({ id: 'c', activeOrder: 2 }),
+      makeActiveItem({ id: 'a', activeOrder: -2 }),
+      makeActiveItem({ id: 'b', activeOrder: 1 }),
+      makeActiveItem({ id: 'c', activeOrder: 2 }),
     ]
 
     const result = reorderActiveItems(active, 2, 0)
@@ -296,9 +300,9 @@ describe('reorderActiveItems', () => {
 
   it('moving to the bottom of the list produces max(activeOrder) + 1, equivalent to nextActiveOrder', () => {
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 5 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 5 }),
     ]
 
     // Move 'a' (index 0) to the very bottom -- toIndex is the last valid
@@ -320,10 +324,10 @@ describe('reorderActiveItems', () => {
     // still behaves purely as an index/activeOrder calculation, the same way
     // nextActiveOrder's tests document their own contracts.
     const active = [
-      makeItem({ id: 'a', status: 'active', activeOrder: 1 }),
-      makeItem({ id: 'b', status: 'active', activeOrder: 2 }),
-      makeItem({ id: 'c', status: 'active', activeOrder: 3 }),
-      makeItem({ id: 'd', status: 'active', activeOrder: 4 }),
+      makeActiveItem({ id: 'a', status: 'active', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', status: 'active', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', status: 'active', activeOrder: 3 }),
+      makeActiveItem({ id: 'd', status: 'active', activeOrder: 4 }),
     ]
 
     const result = reorderActiveItems(active, 3, 1)
@@ -334,9 +338,9 @@ describe('reorderActiveItems', () => {
 
   it('returns the unchanged current activeOrder when fromIndex equals toIndex (no-op)', () => {
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 3 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 3 }),
     ]
 
     const result = reorderActiveItems(active, 1, 1)
@@ -350,10 +354,10 @@ describe('reorderActiveItems', () => {
     // (prev.activeOrder + Number.EPSILON) must kick in to avoid an exact
     // collision with prev/next.
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 2 }),
-      makeItem({ id: 'd', activeOrder: 3 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 2 }),
+      makeActiveItem({ id: 'd', activeOrder: 3 }),
     ]
 
     // Move 'd' (index 3) so it lands between 'b' and 'c': removing 'd' leaves
@@ -373,9 +377,9 @@ describe('reorderActiveItems', () => {
   it('falls back to prev + Number.EPSILON when neighbors are already at the minimum float distance', () => {
     const tiny = Number.EPSILON
     const active = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 1 + tiny }),
-      makeItem({ id: 'c', activeOrder: 5 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 1 + tiny }),
+      makeActiveItem({ id: 'c', activeOrder: 5 }),
     ]
 
     // Move 'c' (index 2) to between 'a' and 'b' (index 1 in the original array).
@@ -394,23 +398,23 @@ describe('insertActiveOrder', () => {
 
   it('halves the top item activeOrder when inserting at the very top', () => {
     const dest = [
-      makeItem({ id: 'a', activeOrder: 2 }),
-      makeItem({ id: 'b', activeOrder: 4 }),
+      makeActiveItem({ id: 'a', activeOrder: 2 }),
+      makeActiveItem({ id: 'b', activeOrder: 4 }),
     ]
 
     expect(insertActiveOrder(dest, 0)).toBe(1)
   })
 
   it('uses -1 when inserting at the top and the current top activeOrder is 0', () => {
-    const dest = [makeItem({ id: 'a', activeOrder: 0 })]
+    const dest = [makeActiveItem({ id: 'a', activeOrder: 0 })]
 
     expect(insertActiveOrder(dest, 0)).toBe(-1)
   })
 
   it('computes the midpoint when inserting in the middle', () => {
     const dest = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 3 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 3 }),
     ]
 
     expect(insertActiveOrder(dest, 1)).toBe(2)
@@ -418,8 +422,8 @@ describe('insertActiveOrder', () => {
 
   it('produces nextActiveOrder when inserting past the last item (append to bottom)', () => {
     const dest = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 5 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 5 }),
     ]
 
     expect(insertActiveOrder(dest, 2)).toBe(nextActiveOrder(dest))
@@ -428,8 +432,8 @@ describe('insertActiveOrder', () => {
 
   it('falls back to a safe finite value instead of NaN/Infinity when neighbors collide', () => {
     const dest = [
-      makeItem({ id: 'a', activeOrder: 2 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'a', activeOrder: 2 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
     ]
 
     const result = insertActiveOrder(dest, 1)
@@ -443,9 +447,9 @@ describe('insertActiveOrder', () => {
     // item is NOT a member of destActiveItems, so no fromIndex/filtering step
     // exists here -- toIndex is a position in destActiveItems as-is.
     const dest = [
-      makeItem({ id: 'a', activeOrder: 1 }),
-      makeItem({ id: 'b', activeOrder: 2 }),
-      makeItem({ id: 'c', activeOrder: 3 }),
+      makeActiveItem({ id: 'a', activeOrder: 1 }),
+      makeActiveItem({ id: 'b', activeOrder: 2 }),
+      makeActiveItem({ id: 'c', activeOrder: 3 }),
     ]
 
     const result = insertActiveOrder(dest, 3)
@@ -457,9 +461,9 @@ describe('insertActiveOrder', () => {
 
 describe('planReorder', () => {
   const items = [
-    makeItem({ id: 'a', activeOrder: 1 }),
-    makeItem({ id: 'b', activeOrder: 2 }),
-    makeItem({ id: 'c', activeOrder: 3 }),
+    makeActiveItem({ id: 'a', activeOrder: 1 }),
+    makeActiveItem({ id: 'b', activeOrder: 2 }),
+    makeActiveItem({ id: 'c', activeOrder: 3 }),
   ]
 
   it('returns the midpoint order when dropped on an item above', () => {

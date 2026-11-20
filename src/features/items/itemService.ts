@@ -1,7 +1,7 @@
-import type { ShoppingItem } from './types'
+import type { ActiveItem, ShoppingItem } from './types'
 
 export interface SortedItems {
-  active: ShoppingItem[]
+  active: ActiveItem[]
   done: ShoppingItem[]
 }
 
@@ -17,8 +17,11 @@ export function validateItemText(text: string): ValidateItemTextResult {
 
 export function sortItems(items: ShoppingItem[]): SortedItems {
   const active = items
-    .filter((item) => item.status === 'active')
-    .sort((a, b) => (a.activeOrder ?? 0) - (b.activeOrder ?? 0))
+    .filter(
+      (item): item is ActiveItem =>
+        item.status === 'active' && item.activeOrder !== null,
+    )
+    .sort((a, b) => a.activeOrder - b.activeOrder)
 
   const done = items
     .filter((item) => item.status === 'done')
@@ -107,7 +110,7 @@ export function nextActiveOrder(items: ShoppingItem[]): number {
 // destination array to filter out) and by `reorderActiveItems` for moves
 // within one list.
 export function insertActiveOrder(
-  items: ShoppingItem[],
+  items: ActiveItem[],
   toIndex: number,
 ): number {
   if (items.length === 0) {
@@ -119,7 +122,7 @@ export function insertActiveOrder(
 
   if (!prev) {
     // Inserting at the very top of the list.
-    const nextOrder = next.activeOrder as number
+    const nextOrder = next.activeOrder
     if (nextOrder === 0) {
       return -1
     }
@@ -134,8 +137,8 @@ export function insertActiveOrder(
     return nextActiveOrder(items)
   }
 
-  const prevOrder = prev.activeOrder as number
-  const nextOrder = next.activeOrder as number
+  const prevOrder = prev.activeOrder
+  const nextOrder = next.activeOrder
   const midpoint = (prevOrder + nextOrder) / 2
 
   if (
@@ -156,12 +159,12 @@ export function insertActiveOrder(
 // to the destination position in the array with the moved item removed, per
 // ADR 0002 (fractional-index reordering).
 export function reorderActiveItems(
-  activeItems: ShoppingItem[],
+  activeItems: ActiveItem[],
   fromIndex: number,
   toIndex: number,
 ): number {
   if (fromIndex === toIndex) {
-    return activeItems[fromIndex].activeOrder as number
+    return activeItems[fromIndex].activeOrder
   }
 
   const withoutMoved = activeItems.filter((_, index) => index !== fromIndex)
@@ -178,7 +181,7 @@ export function reorderActiveItems(
 // `toIndex` of the array-with-moved-item-removed; this mirrors
 // @dnd-kit/sortable's own `arrayMove(array, from, to)`.
 export function planReorder(
-  items: ShoppingItem[],
+  items: ActiveItem[],
   activeId: string,
   overId?: string,
 ): number | null {
