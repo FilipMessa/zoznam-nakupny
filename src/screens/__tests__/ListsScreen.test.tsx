@@ -16,6 +16,7 @@ vi.mock('@/features/lists/useSelectedListId', () => ({
 }))
 vi.mock('@/features/lists/listApi', () => ({
   createList: vi.fn(),
+  generateListId: vi.fn(),
   renameList: vi.fn(),
   deleteList: vi.fn(),
 }))
@@ -43,6 +44,7 @@ const mockedUseAuth = vi.mocked(useAuth)
 const mockedUseLists = vi.mocked(useLists)
 const mockedUseSelectedListId = vi.mocked(useSelectedListId)
 const mockedCreateList = vi.mocked(listApi.createList)
+const mockedGenerateListId = vi.mocked(listApi.generateListId)
 const mockedRenameList = vi.mocked(listApi.renameList)
 const mockedDeleteList = vi.mocked(listApi.deleteList)
 
@@ -112,14 +114,15 @@ describe('ListsScreen — create list', () => {
   }
 
   it('creates a list, selects it, and closes the form', async () => {
-    mockedCreateList.mockResolvedValue('list-new')
+    mockedGenerateListId.mockReturnValue('list-new')
+    mockedCreateList.mockResolvedValue()
     render(<ListsScreen />)
 
     const user = await openCreateForm()
     await user.type(screen.getByLabelText('Názov zoznamu'), 'Víkend')
     await user.click(screen.getByRole('button', { name: 'Vytvoriť' }))
 
-    expect(mockedCreateList).toHaveBeenCalledWith('Víkend', 'uid-1')
+    expect(mockedCreateList).toHaveBeenCalledWith('Víkend', 'uid-1', 'list-new')
     expect(selectList).toHaveBeenCalledWith('list-new')
     await waitFor(() =>
       expect(screen.queryByText('Nový zoznam')).not.toBeInTheDocument(),
@@ -127,6 +130,7 @@ describe('ListsScreen — create list', () => {
   })
 
   it('shows an error and keeps the form open when creating fails', async () => {
+    mockedGenerateListId.mockReturnValue('list-new')
     mockedCreateList.mockRejectedValue(new Error('boom'))
     render(<ListsScreen />)
 
@@ -284,7 +288,7 @@ describe('ListsScreen — all lists screen', () => {
     expect(screen.getByText('Zatiaľ žiadne zoznamy')).toBeInTheDocument()
 
     const newList = makeList({ id: 'list-new' })
-    mockedCreateList.mockResolvedValue(newList.id)
+    mockedCreateList.mockResolvedValue()
     mockedUseLists.mockReturnValue({ lists: [newList], listsLoading: false })
     mockedUseSelectedListId.mockReturnValue({
       selectedListId: newList.id,

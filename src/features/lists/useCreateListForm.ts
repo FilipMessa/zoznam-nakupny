@@ -7,10 +7,10 @@ import type { CreateListError } from './types'
 export interface UseCreateListFormParams {
   uid: string
   // Called with the new list's id once it's known -- callers that navigate
-  // to the new list pass their selectList; AllListsScreen's caller passes a
-  // no-op since staying put and letting the new section auto-expand is the
-  // desired behaviour there (see docs/feature-all-lists-add-list.md).
-  onCreated: (listId: string) => void
+  // to the new list pass their selectList. Omitted where staying put and
+  // letting the new section auto-expand is the desired behaviour (the All
+  // Lists screen, see docs/feature-all-lists-add-list.md).
+  onCreated?: (listId: string) => void
 }
 
 export interface UseCreateListFormResult {
@@ -41,39 +41,40 @@ export function useCreateListForm({
   }
 
   const handleCreate = async (name: string) => {
-    setCreatePending(true)
     setCreateError(null)
+    const result = validateListName(name)
+    if (!result.ok) {
+      setCreateError('invalid-name')
+      return
+    }
+
+    // The id is minted up front (no round trip) so the new list can be
+    // selected without waiting for the write.
+    const listId = generateListId()
+    const write = createList(result.name, uid, listId)
+    const finish = () => {
+      onCreated?.(listId)
+      setShowCreateForm(false)
+    }
 
     if (!isOnline) {
-      // createList's write promise won't resolve until reconnect, even
-      // though the local cache updates immediately (the same Firestore
-      // quirk useAddItemSubmit is structured around for adding items) --
-      // unlike an add, selecting the new list needs its id up front, so
-      // mint one, validate synchronously, and act on it without waiting
-      // for the round trip. The write itself still happens in the
-      // background; there's nothing meaningful left to surface if it
-      // eventually fails once the form is already closed and the offline
-      // banner already communicates the pending-sync state.
-      const result = validateListName(name)
-      if (!result.ok) {
-        setCreateError('invalid-name')
-        setCreatePending(false)
-        return
-      }
-      const listId = generateListId()
-      onCreated(listId)
-      setShowCreateForm(false)
-      setCreatePending(false)
-      void createList(result.name, uid, listId).catch((error: unknown) => {
+      // The write promise won't resolve until reconnect, even though the
+      // local cache updates immediately (the same Firestore quirk
+      // useAddItemSubmit is structured around), so act on it without
+      // waiting. If it eventually fails there's nothing meaningful left to
+      // surface: the form is closed and the offline banner already
+      // communicates the pending-sync state.
+      finish()
+      write.catch((error: unknown) => {
         console.error('Failed to create list', error)
       })
       return
     }
 
+    setCreatePending(true)
     try {
-      const listId = await createList(name, uid)
-      onCreated(listId)
-      setShowCreateForm(false)
+      await write
+      finish()
     } catch {
       setCreateError('unknown')
     } finally {

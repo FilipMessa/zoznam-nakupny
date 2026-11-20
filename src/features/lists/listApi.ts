@@ -57,9 +57,9 @@ export function subscribeLists(
 }
 
 // Mints a list ID without writing anything -- a plain client-side ref id,
-// no network round-trip. Lets a caller that already knows it can't wait for
-// createList's write to be acknowledged (see useCreateListForm) select and
-// display the list immediately, then pass the same id back into createList.
+// no network round-trip. Lets useCreateListForm select and display the new
+// list immediately, even offline when createList's write isn't acknowledged
+// until reconnect, then pass the same id into createList.
 export function generateListId(firestore: Firestore = db): string {
   return doc(collection(firestore, listsCollectionPath())).id
 }
@@ -67,24 +67,20 @@ export function generateListId(firestore: Firestore = db): string {
 export async function createList(
   name: string,
   createdBy: string,
-  listId?: string,
+  listId: string,
   firestore: Firestore = db,
-): Promise<string> {
+): Promise<void> {
   const result = validateListName(name)
   if (!result.ok) {
     throw new Error('invalid-list-name')
   }
 
-  const listRef = listId
-    ? doc(firestore, listsCollectionPath(), listId)
-    : doc(collection(firestore, listsCollectionPath()))
+  const listRef = doc(firestore, listsCollectionPath(), listId)
   await setDoc(listRef, {
     name: result.name,
     createdBy,
     createdAt: serverTimestamp(),
   })
-
-  return listRef.id
 }
 
 export async function renameList(

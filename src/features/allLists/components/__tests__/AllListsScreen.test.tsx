@@ -31,6 +31,7 @@ vi.mock('@/features/lists/listApi', () => ({
 
 const mockedUseAuth = vi.mocked(useAuth)
 const mockedCreateList = vi.mocked(listApi.createList)
+const mockedGenerateListId = vi.mocked(listApi.generateListId)
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -105,7 +106,8 @@ describe('AllListsScreen', () => {
     })
 
     it('creates the list, closes the form, and stays on the All Lists screen', async () => {
-      mockedCreateList.mockResolvedValue('list-new')
+      mockedGenerateListId.mockReturnValue('list-new')
+      mockedCreateList.mockResolvedValue()
       const onClose = vi.fn()
       const user = userEvent.setup()
       render(<AllListsScreen lists={[makeList()]} onClose={onClose} />)
@@ -114,7 +116,11 @@ describe('AllListsScreen', () => {
       await user.type(screen.getByLabelText('Názov zoznamu'), 'Víkend')
       await user.click(screen.getByRole('button', { name: 'Vytvoriť' }))
 
-      expect(mockedCreateList).toHaveBeenCalledWith('Víkend', 'uid-1')
+      expect(mockedCreateList).toHaveBeenCalledWith(
+        'Víkend',
+        'uid-1',
+        'list-new',
+      )
       await waitFor(() =>
         expect(screen.queryByText('Nový zoznam')).not.toBeInTheDocument(),
       )
@@ -122,6 +128,7 @@ describe('AllListsScreen', () => {
     })
 
     it('shows an error and keeps the form open when creating fails', async () => {
+      mockedGenerateListId.mockReturnValue('list-new')
       mockedCreateList.mockRejectedValue(new Error('boom'))
       const user = userEvent.setup()
       render(<AllListsScreen lists={[makeList()]} onClose={vi.fn()} />)

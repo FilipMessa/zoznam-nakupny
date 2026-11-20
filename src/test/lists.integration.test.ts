@@ -34,7 +34,12 @@ import {
   expect,
 } from 'vitest'
 import { FAMILY_ID } from '@/constants/family'
-import { createList, renameList, deleteList } from '@/features/lists/listApi'
+import {
+  createList,
+  generateListId,
+  renameList,
+  deleteList,
+} from '@/features/lists/listApi'
 
 // Exercises listApi's createList/renameList/deleteList against the real
 // Auth + Firestore emulators using a genuine signed-in member client (not an
@@ -158,7 +163,9 @@ describe('listApi (emulator)', () => {
     it('creates a list doc with the given name and createdBy uid', async () => {
       const uid = await signInAsMember()
 
-      const listId = await createList('Groceries', uid, undefined, db)
+      const listId = generateListId(db)
+
+      await createList('Groceries', uid, listId, db)
 
       const listDoc = await getListDocAsAdmin(listId)
       expect(listDoc.exists()).toBe(true)

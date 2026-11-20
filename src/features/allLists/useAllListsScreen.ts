@@ -84,7 +84,7 @@ export function useAllListsScreen(
     handleCreate,
     createPending,
     createError,
-  } = useCreateListForm({ uid, onCreated: () => {} })
+  } = useCreateListForm({ uid })
 
   const drag = useAllListsDrag(activeItemsByList)
   const addTarget = useAddTarget({
