@@ -4,6 +4,7 @@ import App from './App.tsx'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { Provider } from '@/components/ui/provider'
 import { Toaster } from '@/components/ui/toaster'
+import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')!).render(
         <App />
       </AuthProvider>
       <Toaster />
+      <ServiceWorkerUpdatePrompt />
     </Provider>
   </StrictMode>,
 )

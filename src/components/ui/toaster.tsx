@@ -3,6 +3,7 @@ import {
   ToastRoot,
   ToastTitle,
   ToastDescription,
+  ToastActionTrigger,
   ToastCloseTrigger,
   Portal,
 } from '@chakra-ui/react'
@@ -17,6 +18,9 @@ export function Toaster() {
             {toast.title && <ToastTitle>{toast.title}</ToastTitle>}
             {toast.description && (
               <ToastDescription>{toast.description}</ToastDescription>
+            )}
+            {toast.action && (
+              <ToastActionTrigger>{toast.action.label}</ToastActionTrigger>
             )}
             <ToastCloseTrigger />
           </ToastRoot>
