@@ -20,42 +20,15 @@ export function useShoppingListScreen(listId: string) {
 
   const { mainRef, requestScrollAfterAdd } =
     useScrollNewItemIntoView(activeItemsByList)
-  const { openSwipeItemId, handleSwipeOpenChange, handleListScroll } =
-    useSwipeRowRegistry()
-  const { editingItemId, handleStartEdit, handleSubmitEdit, handleCancelEdit } =
-    useItemEditing(listId)
-  const { addError, handleAdd } = useAddItemSubmit({
+  const swipe = useSwipeRowRegistry()
+  const editing = useItemEditing(listId)
+  const add = useAddItemSubmit({
     listId,
     uid,
     activeItems: active,
     onAddStart: requestScrollAfterAdd,
   })
-  const {
-    handleCheck,
-    handleUncheck,
-    handleReorder,
-    handleDelete,
-    handleClearDone,
-  } = useItemActions({ listId, uid, activeItems: active })
+  const actions = useItemActions({ listId, uid, activeItems: active })
 
-  return {
-    itemsLoading,
-    active,
-    done,
-    mainRef,
-    addError,
-    handleAdd,
-    handleCheck,
-    handleUncheck,
-    handleReorder,
-    handleDelete,
-    handleClearDone,
-    editingItemId,
-    handleStartEdit,
-    handleSubmitEdit,
-    handleCancelEdit,
-    openSwipeItemId,
-    handleSwipeOpenChange,
-    handleListScroll,
-  }
+  return { itemsLoading, active, done, mainRef, swipe, editing, add, actions }
 }

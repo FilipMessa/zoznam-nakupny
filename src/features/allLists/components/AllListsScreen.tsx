@@ -21,25 +21,11 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     toggleSection,
     activeItemsOf,
     mainScrollRef,
-    draggedItem,
-    handleDragStart,
-    handleDragEnd,
-    handleDragCancel,
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
-    addTargetListId,
-    isAddTarget,
-    selectAddTarget,
-    addItemError,
-    handleAddItem,
     doneItems,
-    handleUncheckDone,
-    handleDeleteDone,
-    handleClearAllDone,
+    createForm,
+    drag,
+    addTarget,
+    doneActions,
   } = useAllListsScreen(lists)
   const sensors = useShoppingListDndSensors()
 
@@ -82,7 +68,7 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           type="button"
           className="icon-btn"
           aria-label="Pridať zoznam"
-          onClick={openCreateForm}
+          onClick={createForm.openCreateForm}
           variant="ghost"
           minW="touchTarget"
           minH="touchTarget"
@@ -98,9 +84,9 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
+        onDragStart={drag.handleDragStart}
+        onDragEnd={drag.handleDragEnd}
+        onDragCancel={drag.handleDragCancel}
       >
         <Box
           as="main"
@@ -116,23 +102,25 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
               activeItems={activeItemsOf(list.id)}
               expanded={isExpanded(list.id)}
               onToggle={toggleSection}
-              isAddTarget={isAddTarget(list.id)}
-              onSelectAddTarget={selectAddTarget}
+              isAddTarget={addTarget.isAddTarget(list.id)}
+              onSelectAddTarget={addTarget.selectAddTarget}
             />
           ))}
           <AllListsDoneSection
             items={doneItems}
-            onUncheck={handleUncheckDone}
-            onDelete={handleDeleteDone}
-            onClearAll={handleClearAllDone}
+            onUncheck={doneActions.handleUncheckDone}
+            onDelete={doneActions.handleDeleteDone}
+            onClearAll={doneActions.handleClearAllDone}
           />
         </Box>
         <DragOverlay>
-          {draggedItem ? <DraggedItemPreview item={draggedItem} /> : null}
+          {drag.draggedItem ? (
+            <DraggedItemPreview item={drag.draggedItem} />
+          ) : null}
         </DragOverlay>
       </DndContext>
 
-      {addTargetListId && (
+      {addTarget.addTargetListId && (
         <Box
           flex="0 0 auto"
           bg="bg"
@@ -140,16 +128,19 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           borderColor="border"
           pb="env(safe-area-inset-bottom)"
         >
-          <AddItemForm onSubmit={handleAddItem} error={addItemError} />
+          <AddItemForm
+            onSubmit={addTarget.handleAdd}
+            error={addTarget.addError}
+          />
         </Box>
       )}
 
-      {showCreateForm && (
+      {createForm.showCreateForm && (
         <CreateListForm
-          onSubmit={handleCreate}
-          onCancel={handleCancelCreate}
-          pending={createPending}
-          error={createError}
+          onSubmit={createForm.handleCreate}
+          onCancel={createForm.handleCancelCreate}
+          pending={createForm.createPending}
+          error={createForm.createError}
         />
       )}
     </Flex>

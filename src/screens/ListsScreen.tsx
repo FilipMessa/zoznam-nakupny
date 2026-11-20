@@ -17,21 +17,9 @@ export function ListsScreen() {
     selectedListId,
     selectList,
     selectedList,
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
-    showRenameForm,
-    openRenameForm,
-    handleRename,
-    renamePending,
-    renameError,
-    showDeleteConfirm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    createForm,
+    renameForm,
+    deleteFlow,
     switcherOpen,
     openSwitcher,
     closeSwitcher,
@@ -49,13 +37,13 @@ export function ListsScreen() {
   if (lists.length === 0) {
     return (
       <div>
-        <EmptyListsState onCreateClick={openCreateForm} />
-        {showCreateForm && (
+        <EmptyListsState onCreateClick={createForm.openCreateForm} />
+        {createForm.showCreateForm && (
           <CreateListForm
-            onSubmit={handleCreate}
-            onCancel={handleCancelCreate}
-            pending={createPending}
-            error={createError}
+            onSubmit={createForm.handleCreate}
+            onCancel={createForm.handleCancelCreate}
+            pending={createForm.createPending}
+            error={createForm.createError}
           />
         )}
       </div>
@@ -75,37 +63,37 @@ export function ListsScreen() {
             pendingSync={selectedList.pendingSync}
             onOpenSwitcher={openSwitcher}
             onOpenAllLists={openAllLists}
-            onRenameClick={openRenameForm}
-            onDeleteClick={openDeleteConfirm}
+            onRenameClick={renameForm.openRenameForm}
+            onDeleteClick={deleteFlow.openDeleteConfirm}
             onSignOut={onSignOut}
           />
           <ShoppingListScreen listId={selectedList.id} />
         </Flex>
       )}
 
-      {showRenameForm && selectedList && (
+      {renameForm.showRenameForm && selectedList && (
         <RenameListForm
           initialName={selectedList.name}
-          onSubmit={handleRename}
-          pending={renamePending}
-          error={renameError}
+          onSubmit={renameForm.handleRename}
+          pending={renameForm.renamePending}
+          error={renameForm.renameError}
         />
       )}
 
-      {showCreateForm && (
+      {createForm.showCreateForm && (
         <CreateListForm
-          onSubmit={handleCreate}
-          onCancel={handleCancelCreate}
-          pending={createPending}
-          error={createError}
+          onSubmit={createForm.handleCreate}
+          onCancel={createForm.handleCancelCreate}
+          pending={createForm.createPending}
+          error={createForm.createError}
         />
       )}
 
       <DeleteListConfirmDialog
-        open={showDeleteConfirm}
+        open={deleteFlow.showDeleteConfirm}
         listName={selectedList?.name ?? ''}
-        onConfirm={() => void handleDelete()}
-        onCancel={closeDeleteConfirm}
+        onConfirm={() => void deleteFlow.handleDelete()}
+        onCancel={deleteFlow.closeDeleteConfirm}
       />
 
       <ListSwitcherOverlay

@@ -14,30 +14,9 @@ export function useListsScreen() {
 
   const selectedList = lists.find((list) => list.id === selectedListId) ?? null
 
-  const {
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
-  } = useCreateListForm({
-    uid,
-    onCreated: selectList,
-  })
-  const {
-    showRenameForm,
-    openRenameForm,
-    handleRename,
-    renamePending,
-    renameError,
-  } = useRenameListForm(selectedList)
-  const {
-    showDeleteConfirm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
-  } = useDeleteListFlow(selectedList)
+  const createForm = useCreateListForm({ uid, onCreated: selectList })
+  const renameForm = useRenameListForm(selectedList)
+  const deleteFlow = useDeleteListFlow(selectedList)
 
   // The switcher overlay's open state lives here (not in a single-intent
   // hook) because its create action coordinates with the create form:
@@ -54,7 +33,7 @@ export function useListsScreen() {
 
   const handleCreateFromSwitcher = () => {
     setSwitcherOpen(false)
-    openCreateForm()
+    createForm.openCreateForm()
   }
 
   const onSignOut = () => {
@@ -97,21 +76,9 @@ export function useListsScreen() {
     selectedListId,
     selectList,
     selectedList,
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
-    showRenameForm,
-    openRenameForm,
-    handleRename,
-    renamePending,
-    renameError,
-    showDeleteConfirm,
-    openDeleteConfirm,
-    closeDeleteConfirm,
-    handleDelete,
+    createForm,
+    renameForm,
+    deleteFlow,
     switcherOpen,
     openSwitcher,
     closeSwitcher,

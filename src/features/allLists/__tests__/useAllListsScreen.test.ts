@@ -236,7 +236,7 @@ describe('useAllListsScreen', () => {
     it('is null before any drag starts', () => {
       const { result } = renderScreen()
 
-      expect(result.current.draggedItem).toBeNull()
+      expect(result.current.drag.draggedItem).toBeNull()
     })
 
     it('is set to the dragged item on drag start', () => {
@@ -245,10 +245,10 @@ describe('useAllListsScreen', () => {
       emit('list-1', [item])
 
       act(() =>
-        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+        result.current.drag.handleDragStart(makeDragStartEvent('a', 'list-1')),
       )
 
-      expect(result.current.draggedItem).toBe(item)
+      expect(result.current.drag.draggedItem).toBe(item)
     })
 
     it('is cleared on drag end', () => {
@@ -256,15 +256,17 @@ describe('useAllListsScreen', () => {
       const item = makeItem({ id: 'a', text: 'mlieko' })
       emit('list-1', [item])
       act(() =>
-        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+        result.current.drag.handleDragStart(makeDragStartEvent('a', 'list-1')),
       )
-      expect(result.current.draggedItem).toBe(item)
+      expect(result.current.drag.draggedItem).toBe(item)
 
       act(() =>
-        result.current.handleDragEnd(makeDragEndEvent('a', 'list-1', null)),
+        result.current.drag.handleDragEnd(
+          makeDragEndEvent('a', 'list-1', null),
+        ),
       )
 
-      expect(result.current.draggedItem).toBeNull()
+      expect(result.current.drag.draggedItem).toBeNull()
     })
 
     it('is cleared on drag cancel', () => {
@@ -272,13 +274,13 @@ describe('useAllListsScreen', () => {
       const item = makeItem({ id: 'a', text: 'mlieko' })
       emit('list-1', [item])
       act(() =>
-        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+        result.current.drag.handleDragStart(makeDragStartEvent('a', 'list-1')),
       )
-      expect(result.current.draggedItem).toBe(item)
+      expect(result.current.drag.draggedItem).toBe(item)
 
-      act(() => result.current.handleDragCancel())
+      act(() => result.current.drag.handleDragCancel())
 
-      expect(result.current.draggedItem).toBeNull()
+      expect(result.current.drag.draggedItem).toBeNull()
     })
 
     it('stays null when the dragged item is not found in the registered list', () => {
@@ -286,10 +288,10 @@ describe('useAllListsScreen', () => {
       emit('list-1', [makeItem({ id: 'b' })])
 
       act(() =>
-        result.current.handleDragStart(makeDragStartEvent('a', 'list-1')),
+        result.current.drag.handleDragStart(makeDragStartEvent('a', 'list-1')),
       )
 
-      expect(result.current.draggedItem).toBeNull()
+      expect(result.current.drag.draggedItem).toBeNull()
     })
   })
 
@@ -304,7 +306,7 @@ describe('useAllListsScreen', () => {
       emit('list-1', items)
 
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('c', 'list-1', 'a', 'list-1'),
         ),
       )
@@ -322,7 +324,7 @@ describe('useAllListsScreen', () => {
       emit('list-1', [makeItem({ id: 'a' })])
 
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'a', 'list-1'),
         ),
       )
@@ -337,7 +339,7 @@ describe('useAllListsScreen', () => {
 
       // 'a' was checked off or deleted mid-drag -- no longer registered.
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'b', 'list-1'),
         ),
       )
@@ -358,7 +360,7 @@ describe('useAllListsScreen', () => {
       ])
 
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'y', 'list-2'),
         ),
       )
@@ -382,7 +384,7 @@ describe('useAllListsScreen', () => {
       ])
 
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'list-header-list-2'),
         ),
       )
@@ -399,7 +401,7 @@ describe('useAllListsScreen', () => {
       emit('list-3', [])
 
       act(() =>
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'list-body-list-3'),
         ),
       )
@@ -420,7 +422,7 @@ describe('useAllListsScreen', () => {
       emit('list-2', [])
 
       await act(async () => {
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'list-body-list-2'),
         )
         await Promise.resolve()
@@ -442,7 +444,7 @@ describe('useAllListsScreen', () => {
       emit('list-2', [])
 
       await act(async () => {
-        result.current.handleDragEnd(
+        result.current.drag.handleDragEnd(
           makeDragEndEvent('a', 'list-1', 'list-body-list-2'),
         )
         await Promise.resolve()
@@ -461,8 +463,8 @@ describe('useAllListsScreen', () => {
     it('starts with no add target selected', () => {
       const { result } = renderScreen()
 
-      expect(result.current.addTargetListId).toBeNull()
-      expect(result.current.isAddTarget('list-1')).toBe(false)
+      expect(result.current.addTarget.addTargetListId).toBeNull()
+      expect(result.current.addTarget.isAddTarget('list-1')).toBe(false)
     })
 
     it('selectAddTarget sets the target and expands a collapsed section', () => {
@@ -470,40 +472,40 @@ describe('useAllListsScreen', () => {
       act(() => result.current.toggleSection('list-1'))
       expect(result.current.isExpanded('list-1')).toBe(false)
 
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
 
-      expect(result.current.addTargetListId).toBe('list-1')
-      expect(result.current.isAddTarget('list-1')).toBe(true)
+      expect(result.current.addTarget.addTargetListId).toBe('list-1')
+      expect(result.current.addTarget.isAddTarget('list-1')).toBe(true)
       expect(result.current.isExpanded('list-1')).toBe(true)
     })
 
     it('does not collapse an already-expanded section when selected as target', () => {
       const { result } = renderScreen()
 
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
 
       expect(result.current.isExpanded('list-1')).toBe(true)
     })
 
     it('keeps the add target selected after manually collapsing it via its chevron', () => {
       const { result } = renderScreen()
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
 
       act(() => result.current.toggleSection('list-1'))
 
       expect(result.current.isExpanded('list-1')).toBe(false)
-      expect(result.current.addTargetListId).toBe('list-1')
-      expect(result.current.isAddTarget('list-1')).toBe(true)
+      expect(result.current.addTarget.addTargetListId).toBe('list-1')
+      expect(result.current.addTarget.isAddTarget('list-1')).toBe(true)
     })
 
     it("calls itemApi.addItem with the target list and that list's active items", async () => {
       const { result } = renderScreen()
       const items = [makeItem({ id: 'a' })]
       emit('list-1', items)
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
 
       await act(async () => {
-        await result.current.handleAddItem('chlieb')
+        await result.current.addTarget.handleAdd('chlieb')
       })
 
       expect(mockedAddItem).toHaveBeenCalledWith(
@@ -518,7 +520,7 @@ describe('useAllListsScreen', () => {
       const { result } = renderScreen()
 
       await act(async () => {
-        await result.current.handleAddItem('chlieb')
+        await result.current.addTarget.handleAdd('chlieb')
       })
 
       expect(mockedAddItem).not.toHaveBeenCalled()
@@ -528,10 +530,10 @@ describe('useAllListsScreen', () => {
       const { result } = renderScreen()
       emit('list-1', [])
       const main = mountRows(result.current.mainScrollRef, ['item-new'])
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
 
       await act(async () => {
-        await result.current.handleAddItem('chlieb')
+        await result.current.addTarget.handleAdd('chlieb')
       })
       // The write has been requested but the new row hasn't arrived yet.
       expect(scrollIntoView).not.toHaveBeenCalled()
@@ -559,9 +561,9 @@ describe('useAllListsScreen', () => {
       emit('list-1', [])
       emit('list-2', [])
       mountRows(result.current.mainScrollRef, ['remote', 'item-new'])
-      act(() => result.current.selectAddTarget('list-1'))
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
       await act(async () => {
-        await result.current.handleAddItem('chlieb')
+        await result.current.addTarget.handleAdd('chlieb')
       })
 
       emit('list-2', [makeItem({ id: 'remote' })])
@@ -574,13 +576,13 @@ describe('useAllListsScreen', () => {
     it('re-expands the target on add if it had been manually collapsed since selection', async () => {
       const { result } = renderScreen()
       act(() => {
-        result.current.selectAddTarget('list-1')
+        result.current.addTarget.selectAddTarget('list-1')
         result.current.toggleSection('list-1')
       })
       expect(result.current.isExpanded('list-1')).toBe(false)
 
       await act(async () => {
-        await result.current.handleAddItem('chlieb')
+        await result.current.addTarget.handleAdd('chlieb')
       })
 
       expect(result.current.isExpanded('list-1')).toBe(true)
@@ -628,7 +630,7 @@ describe('useAllListsScreen', () => {
       emit('list-1', [...activeItems, done])
 
       await act(async () => {
-        await result.current.handleUncheckDone('done-1')
+        await result.current.doneActions.handleUncheckDone('done-1')
       })
 
       expect(mockedUncheckItem).toHaveBeenCalledWith(
@@ -652,7 +654,7 @@ describe('useAllListsScreen', () => {
       expect(result.current.isExpanded('list-1')).toBe(false)
 
       await act(async () => {
-        await result.current.handleUncheckDone('done-1')
+        await result.current.doneActions.handleUncheckDone('done-1')
       })
 
       expect(result.current.isExpanded('list-1')).toBe(true)
@@ -678,7 +680,7 @@ describe('useAllListsScreen', () => {
       ])
 
       await act(async () => {
-        await result.current.handleDeleteDone('done-1')
+        await result.current.doneActions.handleDeleteDone('done-1')
       })
 
       expect(mockedDeleteItem).toHaveBeenCalledWith('list-2', 'done-1')
@@ -688,7 +690,7 @@ describe('useAllListsScreen', () => {
       const { result } = renderScreen()
 
       await act(async () => {
-        await result.current.handleClearAllDone()
+        await result.current.doneActions.handleClearAllDone()
       })
 
       expect(mockedClearDoneItems).toHaveBeenCalledTimes(TEST_LISTS.length)
@@ -708,7 +710,7 @@ describe('useAllListsScreen', () => {
       const { result } = renderScreen()
 
       await act(async () => {
-        await result.current.handleClearAllDone()
+        await result.current.doneActions.handleClearAllDone()
       })
 
       expect(mockedNotify).toHaveBeenCalledWith(

@@ -11,26 +11,8 @@ export interface ShoppingListScreenProps {
 }
 
 export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
-  const {
-    itemsLoading,
-    active,
-    done,
-    mainRef,
-    addError,
-    handleAdd,
-    handleCheck,
-    handleUncheck,
-    handleReorder,
-    handleDelete,
-    handleClearDone,
-    editingItemId,
-    handleStartEdit,
-    handleSubmitEdit,
-    handleCancelEdit,
-    openSwipeItemId,
-    handleSwipeOpenChange,
-    handleListScroll,
-  } = useShoppingListScreen(listId)
+  const { itemsLoading, active, done, mainRef, swipe, editing, add, actions } =
+    useShoppingListScreen(listId)
 
   if (itemsLoading) {
     return <LoadingScreen />
@@ -53,7 +35,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         flex="1 1 auto"
         minH="0"
         overflowY="auto"
-        onScroll={handleListScroll}
+        onScroll={swipe.handleListScroll}
       >
         <Box as="section">
           <Flex align="center" justify="space-between" padding="14px 16px 6px">
@@ -63,15 +45,15 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           </Flex>
           <ActiveItemsList
             items={active}
-            onCheck={handleCheck}
-            onDelete={handleDelete}
-            onReorder={handleReorder}
-            editingItemId={editingItemId}
-            onStartEdit={handleStartEdit}
-            onSubmitEdit={handleSubmitEdit}
-            onCancelEdit={handleCancelEdit}
-            openSwipeItemId={openSwipeItemId}
-            onSwipeOpenChange={handleSwipeOpenChange}
+            onCheck={actions.handleCheck}
+            onDelete={actions.handleDelete}
+            onReorder={actions.handleReorder}
+            editingItemId={editing.editingItemId}
+            onStartEdit={editing.handleStartEdit}
+            onSubmitEdit={editing.handleSubmitEdit}
+            onCancelEdit={editing.handleCancelEdit}
+            openSwipeItemId={swipe.openSwipeItemId}
+            onSwipeOpenChange={swipe.handleSwipeOpenChange}
           />
         </Box>
 
@@ -82,15 +64,15 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
             </Heading>
             <ClearDoneButton
               doneCount={done.length}
-              onClear={handleClearDone}
+              onClear={actions.handleClearDone}
             />
           </Flex>
           <DoneItemsList
             items={done}
-            onUncheck={handleUncheck}
-            onDelete={handleDelete}
-            openSwipeItemId={openSwipeItemId}
-            onSwipeOpenChange={handleSwipeOpenChange}
+            onUncheck={actions.handleUncheck}
+            onDelete={actions.handleDelete}
+            openSwipeItemId={swipe.openSwipeItemId}
+            onSwipeOpenChange={swipe.handleSwipeOpenChange}
           />
         </Box>
       </Box>
@@ -102,7 +84,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         borderColor="border"
         pb="env(safe-area-inset-bottom)"
       >
-        <AddItemForm onSubmit={handleAdd} error={addError} />
+        <AddItemForm onSubmit={add.handleAdd} error={add.addError} />
       </Box>
     </Flex>
   )

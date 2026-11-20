@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type RefObject } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useCreateListForm } from '@/features/lists/useCreateListForm'
 import { useItemsByList } from '@/features/items/useItemsByList'
@@ -7,58 +7,26 @@ import { useCollapsedSections } from './useCollapsedSections'
 import { useAllListsDrag } from './useAllListsDrag'
 import { useAddTarget } from './useAddTarget'
 import { useDoneItemsActions } from './useDoneItemsActions'
-import { mergeDoneItems, type DoneItemWithOrigin } from './allListsService'
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
-import type { AddItemError, ShoppingItem } from '@/features/items/types'
-import type { CreateListError } from '@/features/lists/types'
+import { mergeDoneItems } from './allListsService'
+import type { ActiveItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
-export interface UseAllListsScreenResult {
-  isExpanded: (listId: string) => boolean
-  toggleSection: (listId: string) => void
-  // A list's active items, sorted -- what its AllListsSection renders.
-  activeItemsOf: (listId: string) => ShoppingItem[]
-  // The screen's one scroll container (all sections share it), where an
-  // item the user just added or unchecked is scrolled into view.
-  mainScrollRef: RefObject<HTMLElement | null>
-  // Add-list sheet -- creating here deliberately does not navigate away
-  // (see docs/feature-all-lists-add-list.md); the new list's section just
-  // appears already expanded since nothing marks it collapsed (see
-  // useCollapsedSections).
-  showCreateForm: boolean
-  openCreateForm: () => void
-  handleCancelCreate: () => void
-  handleCreate: (name: string) => Promise<void>
-  createPending: boolean
-  createError: CreateListError | null
-  // Deliberately separate from the collapsed-sections state -- collapsing
-  // the target via its chevron must not clear the selection.
-  addTargetListId: string | null
-  isAddTarget: (listId: string) => boolean
-  selectAddTarget: (listId: string) => void
-  addItemError: AddItemError | null
-  handleAddItem: (text: string) => Promise<void>
-  // Combined Done section (docs/feature-all-lists-done-items.md).
-  doneItems: DoneItemWithOrigin[]
-  handleUncheckDone: (itemId: string) => Promise<void>
-  handleDeleteDone: (itemId: string) => Promise<void>
-  handleClearAllDone: () => Promise<void>
-  // Dragged item for <DragOverlay> (see useAllListsDrag).
-  draggedItem: ShoppingItem | null
-  handleDragStart: (event: DragStartEvent) => void
-  handleDragEnd: (event: DragEndEvent) => void
-  handleDragCancel: () => void
-}
-
-const NO_ITEMS: ShoppingItem[] = []
+const NO_ITEMS: ActiveItem[] = []
 
 // Screen-level composer: subscribes to every list's items once, here, and
-// hands each concern (collapsed sections, drag, add target, done actions)
-// its own single-intent hook; this just wires them together into the flat
-// shape AllListsScreen renders.
-export function useAllListsScreen(
-  lists: ShoppingList[],
-): UseAllListsScreenResult {
+// hands each concern (collapsed sections, drag, add target, done actions,
+// create form) its own single-intent hook; this wires them together and
+// returns each concern's own result as a group for AllListsScreen to render.
+//
+// - `activeItemsOf`: a list's active items, sorted -- what its section
+//   renders. `mainScrollRef`: the screen's one scroll container (all
+//   sections share it), where an item the user just added or unchecked is
+//   scrolled into view. `doneItems`: the combined Done section's rows
+//   (docs/feature-all-lists-done-items.md).
+// - `createForm`: add-list sheet -- creating here deliberately does not
+//   navigate away (docs/feature-all-lists-add-list.md); the new list's
+//   section just appears already expanded since nothing marks it collapsed.
+export function useAllListsScreen(lists: ShoppingList[]) {
   const uid = useSignedInUid()
   const { isExpanded, toggleSection, expandIfCollapsed } =
     useCollapsedSections()
@@ -77,14 +45,7 @@ export function useAllListsScreen(
   const { mainRef: mainScrollRef, requestScrollAfterAdd: requestScroll } =
     useScrollNewItemIntoView(activeItemsByList)
 
-  const {
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
-  } = useCreateListForm({ uid })
+  const createForm = useCreateListForm({ uid })
 
   const drag = useAllListsDrag(activeItemsByList)
   const addTarget = useAddTarget({
@@ -106,15 +67,10 @@ export function useAllListsScreen(
     toggleSection,
     activeItemsOf,
     mainScrollRef,
-    showCreateForm,
-    openCreateForm,
-    handleCancelCreate,
-    handleCreate,
-    createPending,
-    createError,
     doneItems,
-    ...drag,
-    ...addTarget,
-    ...doneActions,
+    createForm,
+    drag,
+    addTarget,
+    doneActions,
   }
 }

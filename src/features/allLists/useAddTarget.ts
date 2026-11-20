@@ -47,7 +47,7 @@ export function useAddTarget({
     addTargetListId,
     isAddTarget,
     selectAddTarget,
-    addItemError: addError,
-    handleAddItem: handleAdd,
+    addError,
+    handleAdd,
   }
 }
