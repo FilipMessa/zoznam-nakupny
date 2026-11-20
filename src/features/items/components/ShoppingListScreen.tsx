@@ -65,9 +65,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
             items={active}
             onCheck={handleCheck}
             onDelete={handleDelete}
-            onReorder={(itemId, activeOrder) =>
-              void handleReorder(itemId, activeOrder)
-            }
+            onReorder={handleReorder}
             editingItemId={editingItemId}
             onStartEdit={handleStartEdit}
             onSubmitEdit={handleSubmitEdit}
@@ -84,7 +82,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
             </Heading>
             <ClearDoneButton
               doneCount={done.length}
-              onClear={() => void handleClearDone()}
+              onClear={handleClearDone}
             />
           </Flex>
           <DoneItemsList
@@ -104,10 +102,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         borderColor="border"
         pb="env(safe-area-inset-bottom)"
       >
-        <AddItemForm
-          onSubmit={(text) => void handleAdd(text)}
-          error={addError}
-        />
+        <AddItemForm onSubmit={handleAdd} error={addError} />
       </Box>
     </Flex>
   )

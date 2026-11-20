@@ -39,6 +39,7 @@ export function ListsScreen() {
     allListsOpen,
     openAllLists,
     closeAllLists,
+    onSignOut,
   } = useListsScreen()
 
   if (listsLoading) {
@@ -76,6 +77,7 @@ export function ListsScreen() {
             onOpenAllLists={openAllLists}
             onRenameClick={openRenameForm}
             onDeleteClick={openDeleteConfirm}
+            onSignOut={onSignOut}
           />
           <ShoppingListScreen listId={selectedList.id} />
         </Flex>

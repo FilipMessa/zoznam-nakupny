@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { signOutUser } from '@/features/auth/authApi'
 import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useLists } from '@/features/lists/useLists'
 import { useSelectedListId } from '@/features/lists/useSelectedListId'
@@ -54,6 +55,10 @@ export function useListsScreen() {
   const handleCreateFromSwitcher = () => {
     setSwitcherOpen(false)
     openCreateForm()
+  }
+
+  const onSignOut = () => {
+    void signOutUser()
   }
 
   const [allListsOpen, setAllListsOpen] = useState(false)
@@ -114,5 +119,6 @@ export function useListsScreen() {
     allListsOpen,
     openAllLists,
     closeAllLists,
+    onSignOut,
   }
 }

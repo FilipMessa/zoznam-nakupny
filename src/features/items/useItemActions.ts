@@ -14,50 +14,35 @@ export interface UseItemActionsParams {
   activeItems: ShoppingItem[]
 }
 
-export interface UseItemActionsResult {
-  handleCheck: (itemId: string) => Promise<void>
-  handleUncheck: (itemId: string) => Promise<void>
-  handleReorder: (itemId: string, activeOrder: number) => Promise<void>
-  handleDelete: (itemId: string) => Promise<void>
-  handleClearDone: () => Promise<void>
-}
-
+// The single-list screen's item writes, bound to its list (and member) so
+// rows receive stable id-addressed callbacks.
 export function useItemActions({
   listId,
   uid,
   activeItems,
-}: UseItemActionsParams): UseItemActionsResult {
+}: UseItemActionsParams) {
   const handleCheck = useCallback(
-    async (itemId: string) => {
-      await checkItem(listId, itemId, uid)
-    },
+    (itemId: string) => checkItem(listId, itemId, uid),
     [listId, uid],
   )
 
   const handleUncheck = useCallback(
-    async (itemId: string) => {
-      await uncheckItem(listId, itemId, activeItems)
-    },
+    (itemId: string) => uncheckItem(listId, itemId, activeItems),
     [listId, activeItems],
   )
 
   const handleReorder = useCallback(
-    async (itemId: string, activeOrder: number) => {
-      await reorderItem(listId, itemId, activeOrder)
-    },
+    (itemId: string, activeOrder: number) =>
+      reorderItem(listId, itemId, activeOrder),
     [listId],
   )
 
   const handleDelete = useCallback(
-    async (itemId: string) => {
-      await deleteItem(listId, itemId)
-    },
+    (itemId: string) => deleteItem(listId, itemId),
     [listId],
   )
 
-  const handleClearDone = useCallback(async () => {
-    await clearDoneItems(listId)
-  }, [listId])
+  const handleClearDone = useCallback(() => clearDoneItems(listId), [listId])
 
   return {
     handleCheck,

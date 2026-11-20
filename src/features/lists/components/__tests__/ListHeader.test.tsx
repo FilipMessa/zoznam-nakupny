@@ -1,22 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import { act } from '@testing-library/react'
 import { ListHeader } from '@/features/lists/components/ListHeader'
-import { signOutUser } from '@/features/auth/authApi'
-
-vi.mock('@/features/auth/authApi', () => ({
-  signOutUser: vi.fn(),
-}))
-
-const mockedSignOutUser = vi.mocked(signOutUser)
 
 describe('ListHeader', () => {
-  beforeEach(() => {
-    mockedSignOutUser.mockReset()
-    mockedSignOutUser.mockResolvedValue(undefined)
-  })
-
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -29,6 +17,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -45,6 +34,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -63,6 +53,7 @@ describe('ListHeader', () => {
         onOpenAllLists={onOpenAllLists}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -81,6 +72,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={onRenameClick}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -99,6 +91,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={onDeleteClick}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -107,7 +100,8 @@ describe('ListHeader', () => {
     expect(onDeleteClick).toHaveBeenCalledTimes(1)
   })
 
-  it('calls signOutUser when the sign-out button is clicked', async () => {
+  it('calls onSignOut when the sign-out button is clicked', async () => {
+    const onSignOut = vi.fn()
     const user = userEvent.setup()
     render(
       <ListHeader
@@ -116,12 +110,13 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={onSignOut}
       />,
     )
 
     await user.click(screen.getByRole('button', { name: /odhlásiť sa/i }))
 
-    expect(mockedSignOutUser).toHaveBeenCalledTimes(1)
+    expect(onSignOut).toHaveBeenCalledTimes(1)
   })
 
   // Touch-target polish (Phase 7): every icon action in the header (switcher
@@ -137,6 +132,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -167,6 +163,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -183,6 +180,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -202,6 +200,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
@@ -217,6 +216,7 @@ describe('ListHeader', () => {
         onOpenAllLists={vi.fn()}
         onRenameClick={vi.fn()}
         onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
       />,
     )
 
