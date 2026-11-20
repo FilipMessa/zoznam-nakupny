@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { ShoppingItem } from '@/features/items/types'
 import { useSwipeActions } from '@/features/items/useSwipeActions'
 import { useItemEditForm } from '@/features/items/useItemEditForm'
+import { useRowTap } from '@/features/items/useRowTap'
 import {
   ActiveItemSwipeActions,
   SWIPE_ACTIONS_WIDTH,
@@ -78,6 +79,8 @@ function ActiveItemRowImpl({
       onCancelEdit,
     })
 
+  const handleForegroundTap = useRowTap(() => onCheck(item.id))
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -143,6 +146,7 @@ function ActiveItemRowImpl({
             ...listeners,
             ...swipeHandlers,
             onClickCapture: onForegroundClickCapture,
+            onClick: handleForegroundTap,
           }}
           onCheck={onCheck}
           onStartEdit={onStartEdit}

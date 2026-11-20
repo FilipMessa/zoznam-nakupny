@@ -69,7 +69,111 @@ describe('DoneItemRow', () => {
 
     await user.click(screen.getByRole('checkbox'))
 
+    expect(onUncheck).toHaveBeenCalledTimes(1)
     expect(onUncheck).toHaveBeenCalledWith('item-7')
+  })
+
+  it('calls onUncheck exactly once when the visible checkbox control is tapped', async () => {
+    const onUncheck = vi.fn()
+    const user = userEvent.setup()
+    const { container } = render(<DoneItemRow {...makeProps({ onUncheck })} />)
+
+    await user.click(
+      container.querySelector<HTMLElement>('[data-part="control"]')!,
+    )
+
+    expect(onUncheck).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onUncheck with the item id when the item text is tapped', async () => {
+    const onUncheck = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <DoneItemRow
+        {...makeProps({
+          item: makeDoneItem({ id: 'item-7', text: 'mlieko' }),
+          onUncheck,
+        })}
+      />,
+    )
+
+    await user.click(screen.getByText('mlieko'))
+
+    expect(onUncheck).toHaveBeenCalledTimes(1)
+    expect(onUncheck).toHaveBeenCalledWith('item-7')
+  })
+
+  it('does not uncheck the item on the click that ends a swipe', () => {
+    const onUncheck = vi.fn()
+    render(<DoneItemRow {...makeProps({ onUncheck })} />)
+    const rowContent = screen.getByTestId('done-item-content-item-1')
+    rowContent.setPointerCapture = vi.fn()
+
+    fireEvent.pointerDown(rowContent, {
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.pointerMove(rowContent, {
+      pointerType: 'touch',
+      clientX: 80,
+      clientY: 24,
+    })
+    fireEvent.pointerUp(rowContent, {
+      pointerType: 'touch',
+      clientX: 80,
+      clientY: 24,
+    })
+    fireEvent.click(screen.getByText('mlieko'))
+
+    expect(onUncheck).not.toHaveBeenCalled()
+  })
+
+  it('only closes an open row on a tap, without unchecking the item', () => {
+    const onUncheck = vi.fn()
+    const onSwipeOpenChange = vi.fn()
+    render(
+      <DoneItemRow
+        {...makeProps({ isSwipeOpen: true, onUncheck, onSwipeOpenChange })}
+      />,
+    )
+    const rowContent = screen.getByTestId('done-item-content-item-1')
+
+    fireEvent.pointerDown(rowContent, {
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.pointerUp(rowContent, {
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 20,
+    })
+    fireEvent.click(screen.getByText('mlieko'))
+
+    expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)
+    expect(onUncheck).not.toHaveBeenCalled()
+  })
+
+  it('does not uncheck the item when a delete button is clicked', async () => {
+    const onUncheck = vi.fn()
+    const user = userEvent.setup()
+    const { container } = render(
+      <DoneItemRow {...makeProps({ isSwipeOpen: true, onUncheck })} />,
+    )
+
+    await user.click(
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label="Vymazať položku"]',
+      )!,
+    )
+    await user.click(
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label="Zmazať"]',
+      )!,
+    )
+
+    expect(onUncheck).not.toHaveBeenCalled()
   })
 
   it('does not expose a persistent delete button by default', () => {

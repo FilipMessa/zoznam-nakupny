@@ -79,21 +79,36 @@ describe('ActiveItemRow', () => {
     expect(screen.getByRole('checkbox', { name: 'mlieko' })).toBeInTheDocument()
   })
 
-  it('does not toggle the checkbox when the item text is clicked', async () => {
+  it('calls onCheck with the item id when the item text is tapped', async () => {
     const onCheck = vi.fn()
     const user = userEvent.setup()
     render(
       <ActiveItemRow
-        {...makeProps({ item: makeActiveItem({ text: 'mlieko' }), onCheck })}
+        {...makeProps({
+          item: makeActiveItem({ id: 'item-42', text: 'mlieko' }),
+          onCheck,
+        })}
       />,
     )
 
     await user.click(screen.getByText('mlieko'))
 
-    expect(onCheck).not.toHaveBeenCalled()
+    expect(onCheck).toHaveBeenCalledTimes(1)
+    expect(onCheck).toHaveBeenCalledWith('item-42')
   })
 
-  it('calls onCheck with the item id when the checkbox is clicked', async () => {
+  it('calls onCheck when the empty space of the row foreground is tapped', async () => {
+    const onCheck = vi.fn()
+    const user = userEvent.setup()
+    render(<ActiveItemRow {...makeProps({ onCheck })} />)
+
+    await user.click(screen.getByTestId('active-item-content-item-1'))
+
+    expect(onCheck).toHaveBeenCalledTimes(1)
+    expect(onCheck).toHaveBeenCalledWith('item-1')
+  })
+
+  it('calls onCheck exactly once when the checkbox is clicked', async () => {
     const onCheck = vi.fn()
     const user = userEvent.setup()
     render(
@@ -104,7 +119,23 @@ describe('ActiveItemRow', () => {
 
     await user.click(screen.getByRole('checkbox'))
 
+    expect(onCheck).toHaveBeenCalledTimes(1)
     expect(onCheck).toHaveBeenCalledWith('item-42')
+  })
+
+  it('calls onCheck exactly once when the visible checkbox control is tapped', async () => {
+    // The visible control sits inside the Checkbox.Root <label>, which
+    // forwards the click to the hidden input -- two clicks bubble up to the
+    // row for one tap.
+    const onCheck = vi.fn()
+    const user = userEvent.setup()
+    const { container } = render(<ActiveItemRow {...makeProps({ onCheck })} />)
+
+    await user.click(
+      container.querySelector<HTMLElement>('[data-part="control"]')!,
+    )
+
+    expect(onCheck).toHaveBeenCalledTimes(1)
   })
 
   it('calls onDelete with the item id when the desktop delete button is clicked', async () => {
@@ -501,6 +532,170 @@ describe('ActiveItemRow', () => {
     )
 
     expect(screen.queryByTitle('Čaká na odoslanie')).not.toBeInTheDocument()
+  })
+
+  describe('tap to check', () => {
+    // A touch gesture on the row foreground: pointerdown at (200, 100),
+    // moves to each x in `moveXs`, pointerup at the last one.
+    function touchGesture(content: HTMLElement, moveXs: number[]) {
+      content.setPointerCapture = vi.fn()
+      fireEvent.pointerDown(content, {
+        pointerType: 'touch',
+        clientX: 200,
+        clientY: 100,
+      })
+      for (const clientX of moveXs) {
+        fireEvent.pointerMove(content, {
+          pointerType: 'touch',
+          clientX,
+          clientY: 101,
+        })
+      }
+      fireEvent.pointerUp(content, {
+        pointerType: 'touch',
+        clientX: moveXs.at(-1) ?? 200,
+        clientY: 101,
+      })
+    }
+
+    it('checks the item on a touch tap that never starts swiping', () => {
+      const onCheck = vi.fn()
+      render(<ActiveItemRow {...makeProps({ onCheck })} />)
+      const content = screen.getByTestId('active-item-content-item-1')
+
+      touchGesture(content, [203])
+      fireEvent.click(screen.getByText('mlieko'))
+
+      expect(onCheck).toHaveBeenCalledTimes(1)
+      expect(onCheck).toHaveBeenCalledWith('item-1')
+    })
+
+    it('does not check the item on the click that ends a swipe opening the row', () => {
+      const onCheck = vi.fn()
+      render(<ActiveItemRow {...makeProps({ onCheck })} />)
+      const content = screen.getByTestId('active-item-content-item-1')
+
+      touchGesture(content, [150, 50])
+      fireEvent.click(screen.getByText('mlieko'))
+
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('does not check the item on the click that ends a swipe snapping back shut', () => {
+      const onCheck = vi.fn()
+      const onSwipeOpenChange = vi.fn()
+      render(<ActiveItemRow {...makeProps({ onCheck, onSwipeOpenChange })} />)
+      const content = screen.getByTestId('active-item-content-item-1')
+
+      // Past the 8px dead zone, short of the open threshold.
+      touchGesture(content, [185])
+      fireEvent.click(screen.getByText('mlieko'))
+
+      expect(onSwipeOpenChange).not.toHaveBeenCalled()
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('only closes an open row on a touch tap, without checking the item', () => {
+      const onCheck = vi.fn()
+      const onSwipeOpenChange = vi.fn()
+      const { container } = render(
+        <ActiveItemRow
+          {...makeProps({ isSwipeOpen: true, onCheck, onSwipeOpenChange })}
+        />,
+      )
+      const content = screen.getByTestId('active-item-content-item-1')
+
+      touchGesture(content, [])
+      fireEvent.click(screen.getByText('mlieko'))
+
+      expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)
+      expect(
+        container.querySelector('button[aria-label="Vymazať položku"]'),
+      ).toHaveAttribute('aria-hidden', 'true')
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('only closes an open row on a mouse click, without checking the item', async () => {
+      const onCheck = vi.fn()
+      const onSwipeOpenChange = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <ActiveItemRow
+          {...makeProps({ isSwipeOpen: true, onCheck, onSwipeOpenChange })}
+        />,
+      )
+
+      await user.click(screen.getByText('mlieko'))
+
+      expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('checks the item on the next tap when a swipe produced no click', () => {
+      // Browsers usually send no click at all after a swipe; that swipe
+      // must not swallow the following tap's click.
+      const onCheck = vi.fn()
+      render(<ActiveItemRow {...makeProps({ onCheck })} />)
+      const content = screen.getByTestId('active-item-content-item-1')
+
+      touchGesture(content, [185])
+      touchGesture(content, [])
+      fireEvent.click(screen.getByText('mlieko'))
+
+      expect(onCheck).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not check the item when a revealed swipe action is tapped', async () => {
+      const onCheck = vi.fn()
+      const user = userEvent.setup()
+      const { container } = render(
+        <ActiveItemRow {...makeProps({ isSwipeOpen: true, onCheck })} />,
+      )
+
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Vymazať položku"]',
+        )!,
+      )
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Upraviť položku"]',
+        )!,
+      )
+
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('does not check the item when a desktop edit or delete button is clicked', async () => {
+      const onCheck = vi.fn()
+      const user = userEvent.setup()
+      const { container } = render(
+        <ActiveItemRow {...makeProps({ onCheck })} />,
+      )
+
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Upraviť"]',
+        )!,
+      )
+      await user.click(
+        container.querySelector<HTMLButtonElement>(
+          'button[aria-label="Zmazať"]',
+        )!,
+      )
+
+      expect(onCheck).not.toHaveBeenCalled()
+    })
+
+    it('does not check the item when the row is clicked in edit mode', async () => {
+      const onCheck = vi.fn()
+      const user = userEvent.setup()
+      render(<ActiveItemRow {...makeProps({ isEditing: true, onCheck })} />)
+
+      await user.click(screen.getByRole('textbox'))
+
+      expect(onCheck).not.toHaveBeenCalled()
+    })
   })
 
   describe('inline edit', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@/test/render'
+import { fireEvent, render, screen } from '@/test/render'
 import userEvent from '@testing-library/user-event'
 import {
   ActiveItemsList,
@@ -94,6 +94,47 @@ describe('ActiveItemsList', () => {
     await user.click(checkboxes[1])
 
     expect(onCheck).toHaveBeenCalledWith('b')
+  })
+
+  it('calls onCheck with the id of the item whose row text is tapped', async () => {
+    const onCheck = vi.fn()
+    const user = userEvent.setup()
+    const items = [
+      makeActiveItem({ id: 'a', text: 'mlieko' }),
+      makeActiveItem({ id: 'b', text: 'vajcia' }),
+    ]
+    render(<ActiveItemsList {...makeProps({ items, onCheck })} />)
+
+    await user.click(screen.getByText('vajcia'))
+
+    expect(onCheck).toHaveBeenCalledTimes(1)
+    expect(onCheck).toHaveBeenCalledWith('b')
+  })
+
+  it('does not check an item on the click that ends a drag of its row', async () => {
+    const onCheck = vi.fn()
+    render(
+      <ActiveItemsList
+        {...makeProps({
+          items: [makeActiveItem({ id: 'a', text: 'mlieko' })],
+          onCheck,
+        })}
+      />,
+    )
+    const content = screen.getByTestId('active-item-content-a')
+
+    // Past the MouseSensor's 8px activation distance, so a drag starts;
+    // dnd-kit then stops the click that the mouseup produces.
+    fireEvent.mouseDown(content, { button: 0, clientX: 100, clientY: 100 })
+    fireEvent.mouseMove(document, { clientX: 100, clientY: 130 })
+    expect(content).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.mouseUp(document, { clientX: 100, clientY: 130 })
+    fireEvent.click(screen.getByText('mlieko'))
+
+    expect(onCheck).not.toHaveBeenCalled()
+    // dnd-kit keeps that click guard on the document for 50ms after the
+    // drop; let it lapse so it can't swallow a later test's clicks.
+    await new Promise((resolve) => setTimeout(resolve, 60))
   })
 
   it('calls onDelete with the id of the item whose delete action is clicked', async () => {

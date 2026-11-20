@@ -40,8 +40,14 @@ export function useSwipeActions({
     offset: number
     swiping: boolean
   } | null>(null)
+  // Set when a touch gesture ends as a swipe, or as a tap that closed an open
+  // row, so the click the browser may still send for it doesn't reach the
+  // row (where a tap toggles the item). Reset on every pointerdown, so a
+  // gesture that never produced a click can't swallow the next tap's.
+  const suppressClickRef = useRef(false)
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
+    suppressClickRef.current = false
     if (event.pointerType !== 'touch') {
       return
     }
@@ -101,6 +107,8 @@ export function useSwipeActions({
     }
 
     touchStartRef.current = null
+    suppressClickRef.current =
+      touchStart.swiping || touchStart.startOffset !== 0
     const shouldOpen =
       touchStart.swiping && touchStart.offset <= -swipeOpenThreshold
     setDragOffset(null)
@@ -110,8 +118,16 @@ export function useSwipeActions({
   }
 
   // A click on an open row's foreground (e.g. a mouse click on a row opened
-  // by touch) only closes it.
+  // by touch) only closes it; the click ending a swipe, or a touch tap that
+  // already closed the row on pointerup, does nothing.
   const handleForegroundClickCapture = (event: MouseEvent<HTMLElement>) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
+
     if (swipeOffset === 0) {
       return
     }

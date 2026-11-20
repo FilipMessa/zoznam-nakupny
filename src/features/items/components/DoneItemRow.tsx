@@ -4,6 +4,7 @@ import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '@/features/items/types'
 import { useSwipeActions } from '@/features/items/useSwipeActions'
+import { useRowTap } from '@/features/items/useRowTap'
 
 // Done items only ever reveal a single "Zmazať" action -- editing a
 // checked-off item's text isn't supported (see ActiveItemRow for the
@@ -37,6 +38,8 @@ function DoneItemRowImpl({
       isOpen: isSwipeOpen,
       onOpenChange: (open) => onSwipeOpenChange(item.id, open),
     })
+
+  const handleForegroundTap = useRowTap(() => onUncheck(item.id))
 
   const handleDelete = () => {
     onSwipeOpenChange(item.id, false)
@@ -90,10 +93,12 @@ function DoneItemRowImpl({
         css={{ touchAction: 'pan-y' }}
         {...swipeHandlers}
         onClickCapture={onForegroundClickCapture}
+        onClick={handleForegroundTap}
       >
         {/* Checkbox.Root renders as a <label>, so only the control (not
-            the item text) lives inside it -- otherwise tapping anywhere on
-            the row's text would also toggle it. */}
+            the item text) lives inside it -- a tap on the rest of the row
+            unchecks via handleForegroundTap, which leaves the label's own
+            clicks alone so one tap never toggles twice. */}
         <Checkbox.Root
           checked={true}
           onCheckedChange={() => onUncheck(item.id)}
