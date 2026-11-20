@@ -1,26 +1,49 @@
-# Rodinny Nakupny Zoznam
+<p align="center">
+  <img src="docs/screenshots/hero.png" alt="Zoznam nákupný: the All Lists screen, add-item suggestions and the list switcher" width="100%">
+</p>
 
-Mobile-first webova appka pre rodinu na spravu spolocnych nakupnych zoznamov. Prihlasenie cez Google, pripojenie k rodine cez invite kod, realtime synchronizacia poloziek medzi vsetkymi clenmi. Postavene na Vite + React + TypeScript, backend je Firebase (Auth, Firestore, Hosting).
+# Zoznam nákupný
 
-Detaily o domenovom modeli a terminologii su v [`CONTEXT.md`](./CONTEXT.md), architektonicke rozhodnutia v [`docs/adr/`](./docs/adr), povodny implementacny plan v [`PLAN.md`](./PLAN.md), konvencie struktury kodu v [`docs/conventions.md`](./docs/conventions.md).
+A mobile-first web app for a family's shared shopping lists. Members sign in with Google, join the family with an invite code, and every change syncs to everyone in real time. Built with Vite, React 19, TypeScript and Chakra UI on Firebase (Auth, Firestore, Hosting). The UI is in Slovak.
 
-## Predpoklady
+## Features
 
-- **Node.js** — aktualna LTS verzia (projekt je vyvijany a testovany na Node 22; v repozitari nie je `.nvmrc` ani `engines` pole, takze staci akakolvek relativne cerstva LTS verzia).
-- **JDK 21+** — potrebny pre prikazy, ktore spustaju Firebase emulatory (`test:rules`, `test:integration`, `test:e2e`). Bez neho `firebase emulators:exec` zlyha.
-- **Firebase CLI** — bud globalne (`npm install -g firebase-tools`), alebo bez instalacie cez `npx firebase <prikaz>` (balik `firebase-tools` je aj v `devDependencies`, takze `npx firebase` funguje hned po `npm install`).
+- **Shared lists, live.** Every family member sees every list, and items appear, move and get checked off on all devices at once.
+- **Works offline.** It is an installable PWA with Firestore's persistent cache, so you can keep checking items off in a store with no signal. Changes sync when you're back online.
+- **Purchase Memory.** The app remembers what the family buys and how often. Typing two letters suggests the most likely item, ranked by the list you're adding to. Clearing the purchased section doesn't lose the suggestions.
+- **All Lists view.** Every list on one screen, with drag and drop between lists and a single add-item bar that targets the list you pick.
+- **Mobile-first details.** Swipe to reveal actions, drag to reorder, tap a row to check it off, and each item shows who added it.
 
-## Nastavenie Firebase projektu
+| Shopping list | Suggestions | All Lists | List switcher | Sign-in |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/list.png" alt="A shopping list with items to buy and a purchased section" width="160"> | <img src="docs/screenshots/suggestions.png" alt="Add-item suggestions after typing two letters" width="160"> | <img src="docs/screenshots/all-lists.png" alt="All lists on one screen with an add target selected" width="160"> | <img src="docs/screenshots/list-switcher.png" alt="The list switcher bottom sheet" width="160"> | <img src="docs/screenshots/sign-in.png" alt="Sign-in screen" width="160"> |
 
-1. V [Firebase Console](https://console.firebase.google.com/) vytvor novy projekt.
-2. V sekcii **Authentication** zapni **Google** ako sign-in provider.
-3. V sekcii **Firestore Database** vytvor databazu (produkcny alebo test mode podla potreby — bezpecnostne pravidla su definovane v `firestore.rules`).
-4. V nastaveniach projektu zaregistruj novu **Web App** a skopiruj si jej konfiguracne hodnoty (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) — budes ich potrebovat v `.env`.
-5. Priprav lokalny alias na projekt: `firebase use --add` (alebo priamo uprav `.firebaserc`), aby `firebase deploy` mieril na tvoj realny projekt. `.firebaserc` v repozitari obsahuje iba placeholder `zoznam-nakupny-dev` — je zamerne neuplny a ma sa nahradit tvojim vlastnym project ID.
+The screenshots use demo data in the local Firebase emulators.
 
-## Premenne prostredia
+## Documentation
 
-Skopiruj `.env.example` do `.env` a vyplň hodnoty z Firebase Console:
+- [`CONTEXT.md`](./CONTEXT.md): the domain glossary (Family, Member, List, Add Target, Purchase Memory, ...)
+- [`docs/adr/`](./docs/adr): architecture decisions and the alternatives they rejected
+- [`docs/conventions.md`](./docs/conventions.md): code structure and layering rules (in Slovak)
+- [`PLAN.md`](./PLAN.md): the original implementation plan (in Slovak)
+
+## Prerequisites
+
+- **Node.js 24**, pinned in `.nvmrc` (`nvm use`) and required by `engines` in `package.json`.
+- **JDK 21+** for anything that starts the Firebase emulators (`test:rules`, `test:integration`, `test:emulators`, and e2e tests with a signed-in member). Without it, `firebase emulators:exec` fails.
+- **Firebase CLI**, either installed globally (`npm install -g firebase-tools`) or through `npx firebase <command>`. `firebase-tools` is in `devDependencies`, so `npx firebase` works right after `npm install`.
+
+## Firebase project setup
+
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Under **Authentication**, enable **Google** as a sign-in provider.
+3. Under **Firestore Database**, create a database. Production or test mode doesn't matter, because access is defined by `firestore.rules`.
+4. In the project settings, register a **Web App** and copy its config values (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`). They go into `.env`.
+5. Point the CLI at your project with `firebase use --add`, or edit `.firebaserc` directly.
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in the values from the Firebase Console:
 
 ```bash
 cp .env.example .env
@@ -36,56 +59,59 @@ VITE_FIREBASE_APP_ID=
 VITE_USE_FIREBASE_EMULATOR=false
 ```
 
-`VITE_USE_FIREBASE_EMULATOR=true` prepne appku na lokalne Firebase emulatory (Auth + Firestore) — vhodne pre lokalny vyvoj bez dotykania sa produkcnych dat. `false` znamena pripojenie na realny Firebase backend podla ostatnych `VITE_FIREBASE_*` hodnot.
+`VITE_USE_FIREBASE_EMULATOR=true` points the app at the local Auth and Firestore emulators, so local development never touches production data. `false` uses the real Firebase backend from the other `VITE_FIREBASE_*` values.
 
-## Seed skript (invite kod)
+## Invite code (seed script)
 
-Invite kod nie je nikde v UI generovany — vytvara sa jednorazovo skriptom:
+The app never generates invite codes in the UI. A one-time script creates one:
 
 ```bash
 npm run seed
 ```
 
-Skript (`scripts/seed.ts`):
+`scripts/seed.ts`:
 
-- pripoji sa na Firestore emulator na `127.0.0.1:8080` (pokial nie je nastavena premenna `FIRESTORE_EMULATOR_HOST`, doplni si ju sam) — pred spustenim teda musi byt Firestore emulator zapnuty (`firebase emulators:start` alebo `emulators:exec`),
-- inicializuje Firebase Admin SDK s natvrdo zapisanym `projectId: 'zoznam-nakupny-dev'`,
-- vygeneruje nahodny invite kod (32 hex znakov),
-- zapise/mergne dokument `families/{FAMILY_ID}` a vytvori dokument `invites/{inviteCode}` odkazujuci na tuto rodinu,
-- vypise vygenerovany invite kod do konzoly — ten sa potom zada v appke pri onboardingu noveho clena.
+- connects to the Firestore emulator at `127.0.0.1:8080` (it sets `FIRESTORE_EMULATOR_HOST` itself if unset), so the emulator must already be running (`firebase emulators:start` or inside `emulators:exec`),
+- initializes the Firebase Admin SDK with the hard-coded `projectId: 'zoznam-nakupny-dev'`,
+- generates a random 32-character hex invite code,
+- creates or merges `families/{FAMILY_ID}` and creates `invites/{inviteCode}` pointing at that family,
+- prints the invite code, which a new member enters in the app when joining.
 
-Pre pouzitie oproti realnemu (nie emulovanemu) projektu treba `projectId` v skripte zmenit na svoje skutocne project ID a nastavit spravne prihlasovacie udaje pre Admin SDK (napr. `GOOGLE_APPLICATION_CREDENTIALS`).
+To use it against a real project, change `projectId` in the script to your project ID and provide Admin SDK credentials (for example `GOOGLE_APPLICATION_CREDENTIALS`).
 
-## Migracia Pamate nakupov (jednorazovo)
+## Purchase Memory back-fill (one-time)
 
-Pamat nakupov (`families/{FAMILY_ID}/purchaseMemory`, ADR 0004) sa plni pri kazdom odskrtnuti Polozky. Existujuce kupene Polozky do nej raz prenesie skript:
+The Purchase Memory (`families/{FAMILY_ID}/purchaseMemory`, see [ADR 0004](./docs/adr/0004-purchase-memory-catalog.md)) is written every time an item is checked off. A script copies the existing purchased items into it once:
 
 ```bash
-npm run migrate:purchase-memory                                        # Firestore emulator (127.0.0.1:8080)
-GCLOUD_PROJECT=<project-id> npm run migrate:purchase-memory -- --production   # realny projekt, Admin SDK prihlasovacie udaje (napr. GOOGLE_APPLICATION_CREDENTIALS)
+npm run migrate:purchase-memory                                               # Firestore emulator (127.0.0.1:8080)
+GCLOUD_PROJECT=<project-id> npm run migrate:purchase-memory -- --production   # real project, needs Admin SDK credentials (e.g. GOOGLE_APPLICATION_CREDENTIALS)
 ```
 
-Pre kazdy normalizovany nazov nastavi pocet (pocet kupenych dokumentov, aj po Zoznamoch), cas posledneho kupenia (najnovsie `completedAt`) a text (z najnovsieho dokumentu). Hodnoty nastavuje, nepriratava, takze opakovane spustenie da rovnaky vysledok; prepise vsak, co sa medzitym naratalo odskrtnutim. Poradie nasadenia: `firebase deploy --only firestore:rules`, potom skript, potom hosting. Clen so starou verziou PWA (kym neklikne na "Obnovit") odskrtava bez zapisu do Pamate; ak sa to stane, staci skript spustit znova, kym nikto nevycisti Kupene — tie odskrtnutia su este medzi kupenymi Polozkami a zapocitaju sa.
+For each normalized item name it sets the purchase count (total and per list), the last purchase time (the newest `completedAt`) and the text (from the newest item). It sets values instead of adding to them, so running it again gives the same result. It does, however, overwrite anything counted by check-offs in the meantime.
 
-## Testy
+Deploy in this order: `firebase deploy --only firestore:rules`, then the script, then hosting. A member still on the old PWA version (until they tap "Obnoviť") checks items off without writing to the Purchase Memory. If that happens, run the script again before anyone clears the purchased section; those check-offs are still among the purchased items and will be counted.
 
-- **`npm run test`** — unit testy (Vitest). Nepotrebuju ziadny emulator.
-- **`npm run test:rules`** a **`npm run test:integration`** — vyzaduju JDK 21+. Firebase emulatory sa nespustaju manualne — oba prikazy si ich sami zabalia cez `firebase emulators:exec` (spustia potrebne emulatory, pockaju kym su ready, spustia testy, a na konci emulatory ukoncia).
-- **`npm run test:e2e`** — Playwright testy. Na rozdiel od predoslych dvoch, tento prikaz **nie je** zabaleny do `emulators:exec` v `package.json` skripte — `playwright.config.ts` si sam spusti dev server (`npm run dev`) ako svoj `webServer`. Firestore/Auth emulatory pre testy vyzadujuce prihlaseneho clena (`e2e/mobile-smoke.spec.ts`) treba mat spustene bokom, inak taky test zlyha. Odporucany sposob spustenia celej e2e sady je obalit ju rovnako cez emulatory:
-
-  ```bash
-  firebase emulators:exec --only firestore,auth "npm run test:e2e"
-  ```
-
-  Nepodmienene (unauthenticated) testy ako `e2e/smoke.spec.ts` by fungovali aj bez emulatorov, kedze sa vobec nedotykaju Auth/Firestore.
-
-## Vyvoj
+## Development
 
 ```bash
 npm run dev
 ```
 
-Spusti Vite dev server na `http://localhost:5173`.
+Starts the Vite dev server at `http://localhost:5173`.
+
+## Tests
+
+- **`npm run check`** is the single quality gate: lint, circular-import check, Prettier check, unit tests and the production build (which typechecks). This is what CI runs first.
+- **`npm run test`** runs the Vitest unit tests. No emulator needed.
+- **`npm run test:rules`** and **`npm run test:integration`** need JDK 21+. You don't start the emulators by hand: both commands wrap themselves in `firebase emulators:exec`, which starts the emulators, waits until they're ready, runs the tests and shuts them down. **`npm run test:emulators`** runs both suites inside one emulator session, as CI does.
+- **`npm run test:e2e`** runs the Playwright tests. Unlike the commands above, it is **not** wrapped in `emulators:exec`. `playwright.config.ts` starts its own dev server (`npm run dev`) as its `webServer`, but tests that need a signed-in member (`e2e/mobile-smoke.spec.ts`, `e2e/offline-sync.spec.ts`) also need the Auth and Firestore emulators running. The recommended way to run the whole e2e suite is:
+
+  ```bash
+  firebase emulators:exec --only firestore,auth "npm run test:e2e"
+  ```
+
+  Unauthenticated tests such as `e2e/smoke.spec.ts` work without the emulators, because they never touch Auth or Firestore.
 
 ## Build
 
@@ -93,13 +119,13 @@ Spusti Vite dev server na `http://localhost:5173`.
 npm run build
 ```
 
-Spusti typecheck (`tsc -b`) a Vite produkcny build do priecinku `dist/`.
+Typechecks (`tsc -b`) and builds the production bundle into `dist/`.
 
 ## PWA
 
-Aplikacia je instalovatelna PWA (`vite-plugin-pwa`, konfiguracia vo `vite.config.ts`): web manifest + Workbox service worker, ktory precachuje app shell, takze sa appka otvori aj offline (data drzi Firestore persistent cache). Service worker sa generuje len v produkcnom builde; lokalne sa da vyskusat cez `npm run build && npm run preview`. Nova verzia sa neaktivuje sama: appka ukaze toast „Je dostupna nova verzia“ s tlacidlom „Obnovit“.
+The app is an installable PWA (`vite-plugin-pwa`, configured in `vite.config.ts`): a web manifest plus a Workbox service worker that precaches the app shell, so the app opens offline while Firestore's persistent cache holds the data. The service worker is generated only in production builds; try it locally with `npm run build && npm run preview`. A new version never activates on its own: the app shows a "new version available" toast with an "Obnoviť" (reload) button.
 
-Ikony v `public/` (`pwa-*.png`, `maskable-icon-512x512.png`, `apple-touch-icon-180x180.png`, `favicon.ico`) su generovane z `public/logo.svg` a commitnute; po zmene loga ich pregeneruj cez `npx pwa-assets-generator` (konfiguracia v `pwa-assets.config.ts`).
+The icons in `public/` (`pwa-*.png`, `maskable-icon-512x512.png`, `apple-touch-icon-180x180.png`, `favicon.ico`) are generated from `public/logo.svg` and committed. After changing the logo, regenerate them with `npx pwa-assets-generator` (configured in `pwa-assets.config.ts`).
 
 ## Deploy
 
@@ -108,13 +134,13 @@ npm run build
 firebase deploy
 ```
 
-(prip. `npx firebase deploy`, ak nemas `firebase-tools` nainstalovane globalne)
+(or `npx firebase deploy` if `firebase-tools` isn't installed globally)
 
-`firebase.json` ma `hosting.public` nastavene na `dist`, co zodpoveda skutocnemu Vite build outputu (v `vite.config.ts` nie je ziadny custom `build.outDir`).
+`firebase.json` sets `hosting.public` to `dist`, which is Vite's default build output (`vite.config.ts` sets no custom `build.outDir`).
 
-Predtym, nez `firebase deploy` zafunguje, je potrebne:
+Before `firebase deploy` works you need to:
 
-1. **`firebase login`** — interaktivne prihlasenie cez tvoj Google ucet. Toto je manualny krok, ktory nevie zabezpecit ziadna automatizacia v tomto repozitari.
-2. Mat nastaveny **realny Firebase projekt** namiesto placeholder hodnoty v `.firebaserc` (`zoznam-nakupny-dev`) — bud cez `firebase use <project-id>`, alebo priamou upravou `.firebaserc`. Toto zamerne robi vlastnik projektu, nie automatizovany proces.
+1. **`firebase login`**: sign in interactively with your Google account. Nothing in this repository can automate this step.
+2. Have `.firebaserc` (or `firebase use <project-id>`) point at the Firebase project you want to deploy to.
 
-`firebase deploy` (bez `--only`) nasadi Hosting (build z `dist/`), Firestore rules (`firestore.rules`) aj Firestore indexy (`firestore.indexes.json`).
+`firebase deploy` without `--only` deploys Hosting (the build from `dist/`), the Firestore rules (`firestore.rules`) and the Firestore indexes (`firestore.indexes.json`).

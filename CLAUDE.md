@@ -76,7 +76,7 @@ Security is entirely rule-based (`firestore.rules`), not enforced by the client:
 
 ## Language
 
-UI copy, code comments in some files, and docs (`README.md`, `PLAN.md`) are in Slovak; identifiers and most in-code comments are in English. Match the existing convention of whichever file you're editing.
+UI copy, code comments in some files, and docs (`PLAN.md`, `docs/conventions.md`) are in Slovak; `README.md` is in English (its screenshots in `docs/screenshots/` show demo data from the emulators); identifiers and most in-code comments are in English. Match the existing convention of whichever file you're editing.
 
 ## Agent skills
 
