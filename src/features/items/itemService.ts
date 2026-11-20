@@ -46,18 +46,18 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
 export function purchasedSuggestions(
   items: readonly ShoppingItem[],
   text: string,
-): string[] {
+): ShoppingItem[] {
   const prefix = text.trim().toLocaleLowerCase('sk')
   if (!prefix) {
     return []
   }
 
-  const matches = new Map<string, string>()
+  const matches = new Map<string, ShoppingItem>()
   for (const item of items) {
     const name = item.text.trim()
     const key = name.toLocaleLowerCase('sk')
     if (key.startsWith(prefix) && !matches.has(key)) {
-      matches.set(key, name)
+      matches.set(key, item)
       if (matches.size === 3) {
         break
       }

@@ -126,6 +126,12 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     await expect(addInput).toHaveValue('')
     await expect(page.getByText('mlieko', { exact: true })).toBeVisible()
 
+    await expect(doneSection).toHaveText(/Kúpené · 0/i)
+    await itemCheckbox.click({ force: true })
+    await expect(doneSection).toHaveText(/Kúpené · 1/i)
+    await doneSection.getByRole('button').click()
+    await expect(page.getByText('mlieko', { exact: true })).toHaveCount(1)
+
     // --- Open the list switcher and confirm it renders as a bottom sheet ---
     const switcherTrigger = page.getByRole('button', {
       name: /prepnúť zoznam/i,

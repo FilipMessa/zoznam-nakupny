@@ -92,12 +92,8 @@ describe('ShoppingListScreen — scroll new item into view', () => {
     const input = screen.getByRole('textbox', { name: /položka/i })
     await user.type(input, 'ml')
     await user.click(screen.getByRole('button', { name: /^mlieko$/i }))
-    expect(mockedAddItem).toHaveBeenLastCalledWith(
-      'list-1',
-      'Mlieko',
-      { uid: 'uid-1', displayName: undefined },
-      [],
-    )
+    expect(itemApi.uncheckItem).toHaveBeenCalledWith('list-1', 'a', [])
+    expect(mockedAddItem).not.toHaveBeenCalled()
     expect(input).toHaveFocus()
     expect(input).toHaveValue('')
     await user.type(input, 'ml{Enter}')

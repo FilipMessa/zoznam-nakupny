@@ -14,7 +14,7 @@ import type { AddItemError, ShoppingItem } from '@/features/items/types'
 
 export interface AddItemFormProps {
   purchasedItems?: readonly ShoppingItem[]
-  onSubmit: (text: string) => void
+  onSubmit: (item: string | ShoppingItem) => void
   error: AddItemError | null
 }
 
@@ -23,7 +23,7 @@ export function AddItemForm({
   error,
   purchasedItems = [],
 }: AddItemFormProps) {
-  const { text, handleTextChange, inputRef, handleSubmit, submitText } =
+  const { text, handleTextChange, inputRef, handleSubmit, submitItem } =
     useAddItemForm(onSubmit)
 
   const suggestions = purchasedSuggestions(purchasedItems, text)
@@ -42,18 +42,18 @@ export function AddItemForm({
           overflowX="auto"
           pb="6px"
         >
-          {suggestions.map((name) => (
+          {suggestions.map((item) => (
             <Button
-              key={name}
+              key={item.id}
               type="button"
               variant="subtle"
               flexShrink="0"
               minH="touchTarget"
               onPointerDown={(event) => event.preventDefault()}
-              onClick={() => submitText(name)}
+              onClick={() => submitItem(item)}
             >
               <Plus size={16} aria-hidden="true" />
-              {name}
+              {item.text}
             </Button>
           ))}
         </Flex>

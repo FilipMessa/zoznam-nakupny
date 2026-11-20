@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/useAuth'
-import { addItem } from './itemApi'
+import { addItem, uncheckItem } from './itemApi'
 import type { AddItemError, ShoppingItem } from './types'
 
 export interface UseAddItemSubmitParams {
@@ -14,7 +14,7 @@ export interface UseAddItemSubmitParams {
 
 export interface UseAddItemSubmitResult {
   addError: AddItemError | null
-  handleAdd: (text: string) => Promise<void>
+  handleAdd: (item: string | ShoppingItem) => Promise<void>
 }
 
 export function useAddItemSubmit({
@@ -26,16 +26,20 @@ export function useAddItemSubmit({
   const { user } = useAuth()
   const [addError, setAddError] = useState<AddItemError | null>(null)
 
-  const handleAdd = async (text: string) => {
+  const handleAdd = async (item: string | ShoppingItem) => {
     if (!listId) {
       return
     }
     onAddStart(listId)
     setAddError(null)
     try {
+      if (typeof item !== 'string') {
+        await uncheckItem(listId, item.id, activeItems)
+        return
+      }
       await addItem(
         listId,
-        text,
+        item,
         { uid, displayName: user?.displayName },
         activeItems,
       )
