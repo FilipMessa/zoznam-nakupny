@@ -1,12 +1,13 @@
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useListNameField } from '@/features/lists/useListNameField'
+import type { CreateListError } from '@/features/lists/types'
 
 export interface CreateListFormProps {
   onSubmit: (name: string) => void
   onCancel: () => void
   pending: boolean
-  error: string | null
+  error: CreateListError | null
 }
 
 export function CreateListForm({

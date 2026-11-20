@@ -2,6 +2,9 @@ import type { Timestamp } from 'firebase/firestore'
 
 export type ShoppingItemStatus = 'active' | 'done'
 
+/** Why adding an item failed (shown by AddItemForm). */
+export type AddItemError = 'unknown'
+
 export type MoveItemResult =
   { ok: true } | { ok: false; reason: 'source-missing' | 'dest-list-missing' }
 

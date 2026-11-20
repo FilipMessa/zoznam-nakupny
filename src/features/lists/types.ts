@@ -9,3 +9,9 @@ export interface ShoppingList {
    * server yet. Never persisted to Firestore. */
   pendingSync?: boolean
 }
+
+/** Why creating a list failed (shown by CreateListForm). */
+export type CreateListError = 'invalid-name' | 'unknown'
+
+/** Why renaming a list failed (shown by RenameListForm). */
+export type RenameListError = 'unknown'

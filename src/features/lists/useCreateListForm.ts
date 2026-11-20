@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useOnlineStatus } from '@/lib/useOnlineStatus'
 import { validateListName } from './listService'
 import { createList, generateListId } from './listApi'
+import type { CreateListError } from './types'
 
 export interface UseCreateListFormParams {
   uid: string
@@ -18,7 +19,7 @@ export interface UseCreateListFormResult {
   handleCancelCreate: () => void
   handleCreate: (name: string) => Promise<void>
   createPending: boolean
-  createError: string | null
+  createError: CreateListError | null
 }
 
 export function useCreateListForm({
@@ -27,7 +28,7 @@ export function useCreateListForm({
 }: UseCreateListFormParams): UseCreateListFormResult {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createPending, setCreatePending] = useState(false)
-  const [createError, setCreateError] = useState<string | null>(null)
+  const [createError, setCreateError] = useState<CreateListError | null>(null)
   const isOnline = useOnlineStatus()
 
   const openCreateForm = () => {
@@ -55,7 +56,7 @@ export function useCreateListForm({
       // banner already communicates the pending-sync state.
       const result = validateListName(name)
       if (!result.ok) {
-        setCreateError('unknown')
+        setCreateError('invalid-name')
         setCreatePending(false)
         return
       }

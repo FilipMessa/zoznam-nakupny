@@ -9,7 +9,8 @@ import { useAddTarget } from './useAddTarget'
 import { useDoneItemsActions } from './useDoneItemsActions'
 import { mergeDoneItems, type DoneItemWithOrigin } from './allListsService'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
-import type { ShoppingItem } from '@/features/items/types'
+import type { AddItemError, ShoppingItem } from '@/features/items/types'
+import type { CreateListError } from '@/features/lists/types'
 import type { ShoppingList } from '@/features/lists/types'
 
 export interface UseAllListsScreenResult {
@@ -29,13 +30,13 @@ export interface UseAllListsScreenResult {
   handleCancelCreate: () => void
   handleCreate: (name: string) => Promise<void>
   createPending: boolean
-  createError: string | null
+  createError: CreateListError | null
   // Deliberately separate from the collapsed-sections state -- collapsing
   // the target via its chevron must not clear the selection.
   addTargetListId: string | null
   isAddTarget: (listId: string) => boolean
   selectAddTarget: (listId: string) => void
-  addItemError: string | null
+  addItemError: AddItemError | null
   handleAddItem: (text: string) => Promise<void>
   // Combined Done section (docs/feature-all-lists-done-items.md).
   doneItems: DoneItemWithOrigin[]

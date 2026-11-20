@@ -7,10 +7,11 @@ import {
 } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
 import { useAddItemForm } from '@/features/items/useAddItemForm'
+import type { AddItemError } from '@/features/items/types'
 
 export interface AddItemFormProps {
   onSubmit: (text: string) => void
-  error: string | null
+  error: AddItemError | null
 }
 
 export function AddItemForm({ onSubmit, error }: AddItemFormProps) {

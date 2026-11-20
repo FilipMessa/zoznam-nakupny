@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { renameList } from './listApi'
-import type { ShoppingList } from './types'
+import type { RenameListError, ShoppingList } from './types'
 
 export interface UseRenameListFormResult {
   showRenameForm: boolean
   openRenameForm: () => void
   handleRename: (name: string) => Promise<void>
   renamePending: boolean
-  renameError: string | null
+  renameError: RenameListError | null
 }
 
 export function useRenameListForm(
@@ -15,7 +15,7 @@ export function useRenameListForm(
 ): UseRenameListFormResult {
   const [showRenameForm, setShowRenameForm] = useState(false)
   const [renamePending, setRenamePending] = useState(false)
-  const [renameError, setRenameError] = useState<string | null>(null)
+  const [renameError, setRenameError] = useState<RenameListError | null>(null)
 
   const openRenameForm = () => {
     setShowRenameForm(true)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { addItem } from './itemApi'
-import type { ShoppingItem } from './types'
+import type { AddItemError, ShoppingItem } from './types'
 
 export interface UseAddItemSubmitParams {
   // null while there's nowhere to add to yet (the All Lists screen before a
@@ -12,7 +12,7 @@ export interface UseAddItemSubmitParams {
 }
 
 export interface UseAddItemSubmitResult {
-  addError: string | null
+  addError: AddItemError | null
   handleAdd: (text: string) => Promise<void>
 }
 
@@ -22,7 +22,7 @@ export function useAddItemSubmit({
   activeItems,
   onAddStart,
 }: UseAddItemSubmitParams): UseAddItemSubmitResult {
-  const [addError, setAddError] = useState<string | null>(null)
+  const [addError, setAddError] = useState<AddItemError | null>(null)
 
   const handleAdd = async (text: string) => {
     if (!listId) {

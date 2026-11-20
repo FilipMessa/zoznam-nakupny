@@ -1,11 +1,12 @@
 import { Box, Button, Input, Text, chakra } from '@chakra-ui/react'
 import { useListNameField } from '@/features/lists/useListNameField'
+import type { RenameListError } from '@/features/lists/types'
 
 export interface RenameListFormProps {
   initialName: string
   onSubmit: (name: string) => void
   pending: boolean
-  error: string | null
+  error: RenameListError | null
 }
 
 export function RenameListForm({
