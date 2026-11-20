@@ -15,12 +15,22 @@ export function validateItemText(text: string): ValidateItemTextResult {
   return { ok: true, text: trimmed }
 }
 
+function hasActiveOrder(item: ShoppingItem): item is ActiveItem {
+  return item.activeOrder !== null
+}
+
+// The one place an active item's position is narrowed. firestore.rules don't
+// forbid an active item without activeOrder (e.g. a hand-edited doc), and
+// hiding it would be worse than showing it, so it sorts as order 0. Items
+// that have an order are returned as is, keeping their object identity.
+function toActiveItem(item: ShoppingItem): ActiveItem {
+  return hasActiveOrder(item) ? item : { ...item, activeOrder: 0 }
+}
+
 export function sortItems(items: ShoppingItem[]): SortedItems {
   const active = items
-    .filter(
-      (item): item is ActiveItem =>
-        item.status === 'active' && item.activeOrder !== null,
-    )
+    .filter((item) => item.status === 'active')
+    .map(toActiveItem)
     .sort((a, b) => a.activeOrder - b.activeOrder)
 
   const done = items

@@ -52,6 +52,23 @@ describe('sortItems', () => {
     expect(active.map((item) => item.id)).toEqual(['b', 'c', 'a'])
   })
 
+  it('keeps an active item without an activeOrder, sorted as order 0', () => {
+    const a = makeItem({ id: 'a', status: 'active', activeOrder: 2 })
+    const b = makeItem({ id: 'b', status: 'active', activeOrder: null })
+    const c = makeItem({ id: 'c', status: 'active', activeOrder: -1 })
+
+    const { active } = sortItems([a, b, c])
+
+    expect(active.map((item) => item.id)).toEqual(['c', 'b', 'a'])
+    expect(active[1].activeOrder).toBe(0)
+  })
+
+  it('keeps object identity for active items that have an activeOrder', () => {
+    const a = makeItem({ id: 'a', status: 'active', activeOrder: 1 })
+
+    expect(sortItems([a]).active[0]).toBe(a)
+  })
+
   it('sorts done items by completedAt descending', () => {
     const a = makeItem({
       id: 'a',
