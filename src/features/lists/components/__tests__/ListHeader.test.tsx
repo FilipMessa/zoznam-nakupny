@@ -76,7 +76,8 @@ describe('ListHeader', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /premenovať/i }))
+    await user.click(screen.getByRole('button', { name: /ďalšie možnosti/i }))
+    await user.click(screen.getByRole('menuitem', { name: /premenovať/i }))
 
     expect(onRenameClick).toHaveBeenCalledTimes(1)
   })
@@ -95,7 +96,8 @@ describe('ListHeader', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /zmazať zoznam/i }))
+    await user.click(screen.getByRole('button', { name: /ďalšie možnosti/i }))
+    await user.click(screen.getByRole('menuitem', { name: /zmazať zoznam/i }))
 
     expect(onDeleteClick).toHaveBeenCalledTimes(1)
   })
@@ -114,9 +116,32 @@ describe('ListHeader', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /odhlásiť sa/i }))
+    await user.click(screen.getByRole('button', { name: /ďalšie možnosti/i }))
+    await user.click(screen.getByRole('menuitem', { name: /odhlásiť sa/i }))
 
     expect(onSignOut).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps rename, delete and sign-out out of the header until the menu opens', async () => {
+    const user = userEvent.setup()
+    render(
+      <ListHeader
+        listName="Groceries"
+        onOpenSwitcher={vi.fn()}
+        onOpenAllLists={vi.fn()}
+        onRenameClick={vi.fn()}
+        onDeleteClick={vi.fn()}
+        onSignOut={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /ďalšie možnosti/i }))
+
+    expect(screen.getAllByRole('menuitem').map((el) => el.textContent)).toEqual(
+      ['Premenovať', 'Odhlásiť sa', 'Zmazať zoznam'],
+    )
   })
 
   // Touch-target polish (Phase 7): every icon action in the header (switcher
@@ -142,15 +167,9 @@ describe('ListHeader', () => {
     expect(screen.getByRole('button', { name: /všetky zoznamy/i })).toHaveClass(
       'icon-btn',
     )
-    expect(screen.getByRole('button', { name: /premenovať/i })).toHaveClass(
-      'icon-btn',
-    )
-    expect(screen.getByRole('button', { name: /zmazať zoznam/i })).toHaveClass(
-      'icon-btn',
-    )
-    expect(screen.getByRole('button', { name: /odhlásiť sa/i })).toHaveClass(
-      'icon-btn',
-    )
+    expect(
+      screen.getByRole('button', { name: /ďalšie možnosti/i }),
+    ).toHaveClass('icon-btn')
   })
 
   it('shows the connection dot as live when online', () => {
