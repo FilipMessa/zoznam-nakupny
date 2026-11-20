@@ -619,10 +619,16 @@ describe('useAllListsScreen', () => {
     it("handleUncheckDone calls uncheckItem with the origin list and that list's active items", async () => {
       const { result } = renderScreen()
       const activeItems = [makeItem({ id: 'x' })]
-      emit('list-1', activeItems)
+      const done = makeItem({
+        id: 'done-1',
+        status: 'done',
+        activeOrder: null,
+        completedAt: fakeTimestamp(100),
+      })
+      emit('list-1', [...activeItems, done])
 
       await act(async () => {
-        await result.current.handleUncheckDone('list-1', 'done-1')
+        await result.current.handleUncheckDone('done-1')
       })
 
       expect(mockedUncheckItem).toHaveBeenCalledWith(
@@ -646,7 +652,7 @@ describe('useAllListsScreen', () => {
       expect(result.current.isExpanded('list-1')).toBe(false)
 
       await act(async () => {
-        await result.current.handleUncheckDone('list-1', 'done-1')
+        await result.current.handleUncheckDone('done-1')
       })
 
       expect(result.current.isExpanded('list-1')).toBe(true)
@@ -662,9 +668,17 @@ describe('useAllListsScreen', () => {
 
     it('handleDeleteDone calls itemApi.deleteItem with the origin list and item id', async () => {
       const { result } = renderScreen()
+      emit('list-2', [
+        makeItem({
+          id: 'done-1',
+          status: 'done',
+          activeOrder: null,
+          completedAt: fakeTimestamp(100),
+        }),
+      ])
 
       await act(async () => {
-        await result.current.handleDeleteDone('list-2', 'done-1')
+        await result.current.handleDeleteDone('done-1')
       })
 
       expect(mockedDeleteItem).toHaveBeenCalledWith('list-2', 'done-1')

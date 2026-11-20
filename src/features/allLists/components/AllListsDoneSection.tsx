@@ -10,8 +10,8 @@ import {
 
 export interface AllListsDoneSectionProps {
   items: DoneItemWithOrigin[]
-  onUncheck: (listId: string, itemId: string) => void
-  onDelete: (listId: string, itemId: string) => void
+  onUncheck: (itemId: string) => void
+  onDelete: (itemId: string) => void
   onClearAll: () => void
 }
 
@@ -57,8 +57,8 @@ function AllListsDoneSectionImpl({
               key={item.id}
               item={item}
               originColor={listColorFor(listId).solid}
-              onUncheck={(itemId) => onUncheck(listId, itemId)}
-              onDelete={(itemId) => onDelete(listId, itemId)}
+              onUncheck={onUncheck}
+              onDelete={onDelete}
               isSwipeOpen={openSwipeItemId === item.id}
               onSwipeOpenChange={handleSwipeOpenChange}
             />

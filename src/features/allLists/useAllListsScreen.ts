@@ -40,8 +40,8 @@ export interface UseAllListsScreenResult {
   handleAddItem: (text: string) => Promise<void>
   // Combined Done section (docs/feature-all-lists-done-items.md).
   doneItems: DoneItemWithOrigin[]
-  handleUncheckDone: (listId: string, itemId: string) => Promise<void>
-  handleDeleteDone: (listId: string, itemId: string) => Promise<void>
+  handleUncheckDone: (itemId: string) => Promise<void>
+  handleDeleteDone: (itemId: string) => Promise<void>
   handleClearAllDone: () => Promise<void>
   // Dragged item for <DragOverlay> (see useAllListsDrag).
   draggedItem: ShoppingItem | null
@@ -95,6 +95,7 @@ export function useAllListsScreen(
   })
   const doneActions = useDoneItemsActions({
     lists,
+    doneItems,
     activeItemsOf,
     requestScroll,
     expandIfCollapsed,
