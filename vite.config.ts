@@ -46,29 +46,16 @@ export default defineConfig({
       },
       workbox: {
         // Manifest icons and the manifest itself are added automatically.
-        globPatterns: ['**/*.{js,css,html,svg,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
+        // Nunito is self-hosted (@fontsource-variable/nunito); Slovak text only
+        // ever needs its latin + latin-ext subsets, so skip precaching the rest.
+        globIgnores: ['**/*-{cyrillic,cyrillic-ext,vietnamese}-*.woff2'],
         navigateFallback: 'index.html',
         // Firebase Hosting's reserved URLs: /__/auth/handler finishes the
         // Google redirect sign-in (authDomain is this same origin) and must
         // reach the network, never the cached app shell.
         navigateFallbackDenylist: [/^\/__\//],
         cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts-stylesheets' },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-        ],
       },
     }),
   ],

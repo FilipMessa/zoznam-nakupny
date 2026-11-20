@@ -84,6 +84,12 @@ npm run build
 
 Spusti typecheck (`tsc -b`) a Vite produkcny build do priecinku `dist/`.
 
+## PWA
+
+Aplikacia je instalovatelna PWA (`vite-plugin-pwa`, konfiguracia vo `vite.config.ts`): web manifest + Workbox service worker, ktory precachuje app shell, takze sa appka otvori aj offline (data drzi Firestore persistent cache). Service worker sa generuje len v produkcnom builde; lokalne sa da vyskusat cez `npm run build && npm run preview`. Nova verzia sa neaktivuje sama: appka ukaze toast „Je dostupna nova verzia“ s tlacidlom „Obnovit“.
+
+Ikony v `public/` (`pwa-*.png`, `maskable-icon-512x512.png`, `apple-touch-icon-180x180.png`, `favicon.ico`) su generovane z `public/logo.svg` a commitnute; po zmene loga ich pregeneruj cez `npx pwa-assets-generator` (konfiguracia v `pwa-assets.config.ts`).
+
 ## Deploy
 
 ```bash

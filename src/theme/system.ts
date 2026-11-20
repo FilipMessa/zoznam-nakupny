@@ -49,9 +49,11 @@ const config = defineConfig({
         },
       },
       fonts: {
-        body: { value: "'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif" },
+        body: {
+          value: "'Nunito Variable', system-ui, 'Segoe UI', Roboto, sans-serif",
+        },
         heading: {
-          value: "'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif",
+          value: "'Nunito Variable', system-ui, 'Segoe UI', Roboto, sans-serif",
         },
       },
       sizes: {
