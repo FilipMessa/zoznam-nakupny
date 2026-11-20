@@ -14,7 +14,10 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { createSnapshotMapper } from '@/lib/snapshotMapper'
-import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
+import {
+  itemsCollectionPath,
+  LISTS_COLLECTION_PATH,
+} from '@/lib/firestorePaths'
 import { validateListName } from './listService'
 import type { ShoppingList } from './types'
 
@@ -42,7 +45,7 @@ export function subscribeLists(
   firestore: Firestore = db,
 ): Unsubscribe {
   const listsQuery = query(
-    collection(firestore, listsCollectionPath()),
+    collection(firestore, LISTS_COLLECTION_PATH),
     orderBy('createdAt', 'asc'),
   )
   const mapSnapshot = createSnapshotMapper<ShoppingList>()
@@ -61,7 +64,7 @@ export function subscribeLists(
 // list immediately, even offline when createList's write isn't acknowledged
 // until reconnect, then pass the same id into createList.
 export function generateListId(firestore: Firestore = db): string {
-  return doc(collection(firestore, listsCollectionPath())).id
+  return doc(collection(firestore, LISTS_COLLECTION_PATH)).id
 }
 
 export async function createList(
@@ -75,7 +78,7 @@ export async function createList(
     throw new Error('invalid-list-name')
   }
 
-  const listRef = doc(firestore, listsCollectionPath(), listId)
+  const listRef = doc(firestore, LISTS_COLLECTION_PATH, listId)
   await setDoc(listRef, {
     name: result.name,
     createdBy,
@@ -93,7 +96,7 @@ export async function renameList(
     throw new Error('invalid-list-name')
   }
 
-  const listRef = doc(firestore, listsCollectionPath(), listId)
+  const listRef = doc(firestore, LISTS_COLLECTION_PATH, listId)
   await updateDoc(listRef, { name: result.name })
 }
 
@@ -101,7 +104,7 @@ export async function deleteList(
   listId: string,
   firestore: Firestore = db,
 ): Promise<void> {
-  const listRef = doc(firestore, listsCollectionPath(), listId)
+  const listRef = doc(firestore, LISTS_COLLECTION_PATH, listId)
   const itemsSnapshot = await getDocs(
     collection(firestore, itemsCollectionPath(listId)),
   )

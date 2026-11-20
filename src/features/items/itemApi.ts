@@ -17,7 +17,10 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { createSnapshotMapper } from '@/lib/snapshotMapper'
-import { itemsCollectionPath, listsCollectionPath } from '@/lib/firestorePaths'
+import {
+  itemsCollectionPath,
+  LISTS_COLLECTION_PATH,
+} from '@/lib/firestorePaths'
 import {
   completeItemPatch,
   restoreItemPatch,
@@ -194,7 +197,7 @@ export async function moveItemToList(
     itemsCollectionPath(sourceListId),
     item.id,
   )
-  const destListRef = doc(firestore, listsCollectionPath(), destListId)
+  const destListRef = doc(firestore, LISTS_COLLECTION_PATH, destListId)
   const destItemRef = doc(firestore, itemsCollectionPath(destListId), item.id)
 
   return runTransaction(firestore, async (transaction) => {

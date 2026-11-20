@@ -5,7 +5,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { membersCollectionPath } from '@/lib/firestorePaths'
+import { MEMBERS_COLLECTION_PATH } from '@/lib/firestorePaths'
 
 // Realtime "am I a Member?" check: `onNext(true)` while members/{uid} exists,
 // `onNext(false)` while it doesn't.
@@ -14,7 +14,7 @@ export function subscribeMembership(
   onNext: (isMember: boolean) => void,
   firestore: Firestore = db,
 ): Unsubscribe {
-  const memberRef = doc(firestore, membersCollectionPath(), uid)
+  const memberRef = doc(firestore, MEMBERS_COLLECTION_PATH, uid)
 
   return onSnapshot(
     memberRef,

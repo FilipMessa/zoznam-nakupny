@@ -3,43 +3,20 @@
 // fixtures, which run under tsx/Playwright without the `@/` alias.
 import { FAMILY_ID } from '../constants/family'
 
-// Single source of truth for Firestore collection and document paths (see
-// the data model in CLAUDE.md). Client code builds refs from these inside
-// *Api.ts modules; scripts/seed.ts and e2e/fixtures.ts use them with
-// firebase-admin.
+// Single source of truth for Firestore collection paths (see the data model
+// in CLAUDE.md). One style throughout: a constant where the path is fixed, a
+// function only where it takes a parent id, and no *DocPath helpers -- a
+// document is addressed as its collection path plus an id, e.g.
+// `doc(firestore, LISTS_COLLECTION_PATH, listId)` in *Api.ts modules and
+// `db.collection(LISTS_COLLECTION_PATH).doc(listId)` with firebase-admin in
+// scripts/seed.ts and e2e/fixtures.ts. The family document is the one fixed
+// document path.
 
-export function familyDocPath(): string {
-  return `families/${FAMILY_ID}`
-}
-
-export function invitesCollectionPath(): string {
-  return 'invites'
-}
-
-export function inviteDocPath(code: string): string {
-  return `${invitesCollectionPath()}/${code}`
-}
-
-export function membersCollectionPath(): string {
-  return `${familyDocPath()}/members`
-}
-
-export function memberDocPath(uid: string): string {
-  return `${membersCollectionPath()}/${uid}`
-}
-
-export function listsCollectionPath(): string {
-  return `${familyDocPath()}/lists`
-}
-
-export function listDocPath(listId: string): string {
-  return `${listsCollectionPath()}/${listId}`
-}
+export const FAMILY_DOC_PATH = `families/${FAMILY_ID}`
+export const INVITES_COLLECTION_PATH = 'invites'
+export const MEMBERS_COLLECTION_PATH = `${FAMILY_DOC_PATH}/members`
+export const LISTS_COLLECTION_PATH = `${FAMILY_DOC_PATH}/lists`
 
 export function itemsCollectionPath(listId: string): string {
-  return `${listDocPath(listId)}/items`
-}
-
-export function itemDocPath(listId: string, itemId: string): string {
-  return `${itemsCollectionPath(listId)}/${itemId}`
+  return `${LISTS_COLLECTION_PATH}/${listId}/items`
 }

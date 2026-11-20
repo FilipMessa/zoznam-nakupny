@@ -5,9 +5,9 @@ import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { SELECTED_LIST_STORAGE_KEY } from '../src/constants/storage'
 import {
-  itemDocPath,
-  listDocPath,
-  memberDocPath,
+  itemsCollectionPath,
+  LISTS_COLLECTION_PATH,
+  MEMBERS_COLLECTION_PATH,
 } from '../src/lib/firestorePaths'
 
 // Shared admin-seeding helpers for e2e specs that need a signed-in member
@@ -54,8 +54,8 @@ export async function seedSignedInMemberWithList(
   const listName = 'Nákupný zoznam'
 
   const db = getFirestore(adminApp)
-  await db.doc(memberDocPath(uid)).set({ uid })
-  await db.doc(listDocPath(listId)).set({
+  await db.collection(MEMBERS_COLLECTION_PATH).doc(uid).set({ uid })
+  await db.collection(LISTS_COLLECTION_PATH).doc(listId).set({
     name: listName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
@@ -100,18 +100,18 @@ export async function seedSignedInMemberWithTwoLists(
   const itemText = `mlieko-${randomBytes(3).toString('hex')}`
 
   const db = getFirestore(adminApp)
-  await db.doc(memberDocPath(uid)).set({ uid })
-  await db.doc(listDocPath(listAId)).set({
+  await db.collection(MEMBERS_COLLECTION_PATH).doc(uid).set({ uid })
+  await db.collection(LISTS_COLLECTION_PATH).doc(listAId).set({
     name: listAName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
   })
-  await db.doc(listDocPath(listBId)).set({
+  await db.collection(LISTS_COLLECTION_PATH).doc(listBId).set({
     name: listBName,
     createdAt: FieldValue.serverTimestamp(),
     createdBy: uid,
   })
-  await db.doc(itemDocPath(listAId, itemId)).set({
+  await db.collection(itemsCollectionPath(listAId)).doc(itemId).set({
     text: itemText,
     status: 'active',
     activeOrder: 1,
