@@ -31,12 +31,12 @@ function DoneItemRowImpl({
   onSwipeOpenChange,
   originColor,
 }: DoneItemRowProps) {
-  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
-    useSwipeActions({
-      actionsWidth: swipeActionWidth,
-      isOpen: isSwipeOpen,
-      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
-    })
+  const { swipeOffset, isSwiping, foregroundHandlers } = useSwipeActions({
+    actionsWidth: swipeActionWidth,
+    isOpen: isSwipeOpen,
+    onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    onTap: () => onUncheck(item.id),
+  })
 
   const handleDelete = () => {
     onSwipeOpenChange(item.id, false)
@@ -88,12 +88,12 @@ function DoneItemRowImpl({
         transform={`translateX(${swipeOffset}px)`}
         transition={isSwiping ? 'none' : 'transform 160ms ease'}
         css={{ touchAction: 'pan-y' }}
-        {...swipeHandlers}
-        onClickCapture={onForegroundClickCapture}
+        {...foregroundHandlers}
       >
         {/* Checkbox.Root renders as a <label>, so only the control (not
-            the item text) lives inside it -- otherwise tapping anywhere on
-            the row's text would also toggle it. */}
+            the item text) lives inside it -- a tap on the rest of the row
+            unchecks via useSwipeActions' onTap, which leaves the label's
+            own clicks alone so one tap never toggles twice. */}
         <Checkbox.Root
           checked={true}
           onCheckedChange={() => onUncheck(item.id)}

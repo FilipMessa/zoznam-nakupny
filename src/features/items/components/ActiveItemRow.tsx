@@ -62,14 +62,14 @@ function ActiveItemRowImpl({
     isDragging,
   } = useSortable({ id: item.id, disabled: isEditing, data: sortableData })
 
-  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
-    useSwipeActions({
-      actionsWidth: SWIPE_ACTIONS_WIDTH,
-      // The edit form doesn't apply the swipe transform, so an editing row
-      // always rests closed.
-      isOpen: isSwipeOpen && !isEditing,
-      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
-    })
+  const { swipeOffset, isSwiping, foregroundHandlers } = useSwipeActions({
+    actionsWidth: SWIPE_ACTIONS_WIDTH,
+    // The edit form doesn't apply the swipe transform, so an editing row
+    // always rests closed.
+    isOpen: isSwipeOpen && !isEditing,
+    onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    onTap: () => onCheck(item.id),
+  })
 
   const { inputRef, handleEditKeyDown, handleEditBlur, handleEditSubmit } =
     useItemEditForm({
@@ -141,8 +141,7 @@ function ActiveItemRowImpl({
           gestureProps={{
             ...attributes,
             ...listeners,
-            ...swipeHandlers,
-            onClickCapture: onForegroundClickCapture,
+            ...foregroundHandlers,
           }}
           onCheck={onCheck}
           onStartEdit={onStartEdit}

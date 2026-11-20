@@ -10,7 +10,8 @@ export interface ActiveItemContentProps {
   swipeOffset: number
   isSwiping: boolean
   // dnd-kit's drag activator ref, plus the attributes/listeners and the
-  // swipe pointer handlers that go on the same element -- spread opaquely.
+  // swipe/tap handlers (useSwipeActions) that go on the same element --
+  // spread opaquely.
   activatorRef: Ref<HTMLDivElement>
   gestureProps: ComponentProps<typeof Box>
   onCheck: (id: string) => void
@@ -60,9 +61,10 @@ export function ActiveItemContent({
         <GripVertical size={20} />
       </Box>
       {/* Checkbox.Root renders as a <label>, so only the control (not
-          the item text) lives inside it -- otherwise tapping anywhere
-          on the row's text would also toggle it, on top of already
-          being the drag activator. */}
+          the item text) lives inside it. A tap on the rest of the row
+          checks it via useSwipeActions' onTap in gestureProps, which
+          leaves the label's own clicks alone so one tap never toggles
+          twice. */}
       <Checkbox.Root
         checked={false}
         onCheckedChange={() => onCheck(item.id)}
