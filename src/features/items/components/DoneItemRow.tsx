@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { ItemAuthorAvatar } from './ItemAuthorAvatar'
 import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '@/features/items/types'
@@ -140,6 +141,7 @@ function DoneItemRowImpl({
         >
           {item.text}
         </Text>
+        <ItemAuthorAvatar name={item.createdByName} />
         {/* Always rendered (never conditionally mounted) so this icon's
             space is permanently reserved -- see ActiveItemRow for why. */}
         <Box

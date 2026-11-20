@@ -56,7 +56,7 @@ export function subscribeItems(
 export async function addItem(
   listId: string,
   text: string,
-  createdBy: string,
+  author: { uid: string; displayName?: string | null },
   activeItems: ShoppingItem[],
   firestore: Firestore = db,
 ): Promise<string> {
@@ -72,7 +72,10 @@ export async function addItem(
     activeOrder: nextActiveOrder(activeItems),
     completedAt: null,
     completedBy: null,
-    createdBy,
+    createdBy: author.uid,
+    ...(author.displayName?.trim() && {
+      createdByName: author.displayName.trim(),
+    }),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -219,6 +222,7 @@ export async function moveItemToList(
       completedAt: item.completedAt,
       completedBy: item.completedBy,
       createdBy: item.createdBy,
+      ...(item.createdByName && { createdByName: item.createdByName }),
       createdAt: item.createdAt,
       updatedAt: serverTimestamp(),
     })

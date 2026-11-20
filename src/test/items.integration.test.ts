@@ -217,7 +217,7 @@ describe('itemApi (emulator)', () => {
       const uid = await signInAsMember()
       await seedListAsAdmin('list-1', { name: 'Groceries' })
 
-      await addItem('list-1', 'mlieko', uid, [], db)
+      await addItem('list-1', 'mlieko', { uid }, [], db)
 
       const itemSnapshots = await getItemDocsAsAdmin('list-1')
       expect(itemSnapshots.size).toBe(1)
@@ -246,7 +246,7 @@ describe('itemApi (emulator)', () => {
         toActiveItem('item-1', { text: 'chlieb', activeOrder: 1 }),
       ]
 
-      await addItem('list-1', 'vajcia', uid, existingActive, db)
+      await addItem('list-1', 'vajcia', { uid }, existingActive, db)
 
       const itemSnapshots = await getItemDocsAsAdmin('list-1')
       const added = itemSnapshots.docs.find((d) => d.data().text === 'vajcia')
@@ -527,7 +527,7 @@ describe('itemApi (emulator)', () => {
       const uid = await signInAsMember()
       await seedListAsAdmin('list-1', { name: 'Groceries' })
 
-      await addItem('list-1', 'mlieko', uid, [], db)
+      await addItem('list-1', 'mlieko', { uid }, [], db)
 
       const itemSnapshots = await getItemDocsAsAdmin('list-1')
       expect(itemSnapshots.docs.map((d) => d.data().text)).toContain('mlieko')

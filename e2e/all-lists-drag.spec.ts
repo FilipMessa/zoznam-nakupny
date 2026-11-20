@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { getAuth } from 'firebase-admin/auth'
 import { deleteApp, type App } from 'firebase-admin/app'
 import {
   getAdminApp,
   seedSignedInMemberWithTwoLists,
+  seedSignedInMemberWithList,
   signInAsMember,
 } from './fixtures'
 
@@ -40,7 +42,35 @@ test.describe('All Lists screen — cross-list drag', () => {
     )
 
     const fixture = await seedSignedInMemberWithTwoLists(adminApp)
+    const author = await seedSignedInMemberWithList(adminApp)
+    await getAuth(adminApp).createUser({ uid: author.uid, displayName: 'Jana' })
+    await signInAsMember(page, author.customToken, fixture.listAId)
+    const itemText = 'Chlieb ' + fixture.itemId
+    await page.getByPlaceholder('Pridať položku…').fill(itemText)
+    await page.getByRole('button', { name: 'Pridať', exact: true }).click()
+    const row = page.getByRole('listitem').filter({ hasText: itemText })
+    await expect(
+      row.getByRole('img', { name: 'Autor položky: Jana', exact: true }),
+    ).toBeVisible()
+
+    const avatar = row.getByRole('img', {
+      name: 'Autor položky: Jana',
+      exact: true,
+    })
+    await expect(avatar).toHaveText('J')
+    await expect(row.getByTitle('Čaká na odoslanie')).toHaveCount(0)
+
     await signInAsMember(page, fixture.customToken, fixture.listAId)
+    await expect(
+      row.getByRole('img', { name: 'Autor položky: Jana', exact: true }),
+    ).toBeVisible()
+    await row.getByRole('checkbox').click({ force: true })
+    await expect(row.getByRole('checkbox')).toBeChecked()
+    await expect(
+      row.getByRole('img', { name: 'Autor položky: Jana', exact: true }),
+    ).toBeVisible()
+    await row.getByRole('checkbox').click({ force: true })
+    await expect(row.getByRole('checkbox')).not.toBeChecked()
 
     await page.getByRole('button', { name: 'Všetky zoznamy' }).click()
 
@@ -51,10 +81,12 @@ test.describe('All Lists screen — cross-list drag', () => {
       has: page.getByRole('button', { name: fixture.listBName }),
     })
 
-    await expect(listASection.getByText(fixture.itemText)).toBeVisible()
-    await expect(listBSection.getByText(fixture.itemText)).not.toBeVisible()
+    await expect(listASection.getByText(itemText)).toBeVisible()
+    await expect(listBSection.getByText(itemText)).not.toBeVisible()
 
-    const sourceRow = page.getByTestId(`active-item-content-${fixture.itemId}`)
+    const sourceRow = listASection
+      .getByTestId(/^active-item-content-/)
+      .filter({ hasText: itemText })
     const destHeader = page.getByRole('button', { name: fixture.listBName })
 
     // Driving dnd-kit with raw synthetic mouse events is inherently
@@ -115,7 +147,7 @@ test.describe('All Lists screen — cross-list drag', () => {
       await page.mouse.up()
 
       try {
-        await expect(listBSection.getByText(fixture.itemText)).toBeVisible({
+        await expect(listBSection.getByText(itemText)).toBeVisible({
           timeout: 3000,
         })
         moved = true
@@ -128,7 +160,7 @@ test.describe('All Lists screen — cross-list drag', () => {
     }
 
     expect(moved).toBe(true)
-    await expect(listASection.getByText(fixture.itemText)).not.toBeVisible()
+    await expect(listASection.getByText(itemText)).not.toBeVisible()
 
     // Reload to confirm the move actually persisted to Firestore, not just
     // an optimistic local UI state.
@@ -139,7 +171,10 @@ test.describe('All Lists screen — cross-list drag', () => {
       has: page.getByRole('button', { name: fixture.listBName }),
     })
     await expect(
-      listBSectionAfterReload.getByText(fixture.itemText),
+      listBSectionAfterReload
+        .getByRole('listitem')
+        .filter({ hasText: itemText })
+        .getByRole('img', { name: 'Autor položky: Jana', exact: true }),
     ).toBeVisible()
   })
 })

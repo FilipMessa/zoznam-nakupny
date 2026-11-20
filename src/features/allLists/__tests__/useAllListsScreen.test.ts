@@ -144,7 +144,7 @@ describe('useAllListsScreen', () => {
       return () => listeners.delete(listId)
     })
     mockedUseAuth.mockReturnValue({
-      user: { uid: 'uid-1' } as never,
+      user: { uid: 'uid-1', displayName: 'Jana' } as never,
       authLoading: false,
     })
     mockedReorderItem.mockResolvedValue(undefined)
@@ -511,7 +511,7 @@ describe('useAllListsScreen', () => {
       expect(mockedAddItem).toHaveBeenCalledWith(
         'list-1',
         'chlieb',
-        'uid-1',
+        { uid: 'uid-1', displayName: 'Jana' },
         items,
       )
     })

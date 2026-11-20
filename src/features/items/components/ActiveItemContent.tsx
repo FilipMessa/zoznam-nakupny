@@ -1,4 +1,5 @@
 import type { ComponentProps, Ref } from 'react'
+import { ItemAuthorAvatar } from './ItemAuthorAvatar'
 import { Box, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, GripVertical, Pencil, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '@/features/items/types'
@@ -94,6 +95,7 @@ export function ActiveItemContent({
       >
         {item.text}
       </Text>
+      <ItemAuthorAvatar name={item.createdByName} />
       {/* Always rendered (never conditionally mounted) so this icon's
           space is permanently reserved -- toggling it in and out of the
           layout would shift the checkbox next to it, which is exactly
