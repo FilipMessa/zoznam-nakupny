@@ -31,10 +31,10 @@ component (*.tsx)  ->  useX hook  ->  xService.ts  (ciste funkcie)
 ```
 
 - **Komponent** iba renderuje a vola callbacky z props / hooku. Ziadna business logika, ziadny pristup k Firebase, ziadny `useEffect` (efekty a prepojenie patria do `useX` hooku; pozri historicky spec `docs/refactor-presentation-business-split.md`, ktory tento dokument nahradza). Velky komponent sa deli na mensie prezentacne komponenty v tom istom priecinku (napr. `ActiveItemRow` -> `ActiveItemContent`, `ActiveItemSwipeActions`, `ActiveItemEditForm`).
-- **`useX` hook** drzi stav a prepaja: vola service funkcie a api funkcie, vracia hodnoty a handlery pre komponent. Jeden hook = jeden zamer; obrazovka ich sklada v `use<Obrazovka>` hooku (napr. `useAllListsScreen` raz odoberie polozky vsetkych zoznamov cez `useItemsByList` a sklada `useCollapsedSections`, `useAllListsDrag`, `useAddTarget`, `useDoneItemsActions`). Data tecu zhora nadol cez props; ziadne "hlasenie nahor" z potomkov cez efekty a registre.
+- **`useX` hook** drzi stav a prepaja: vola service funkcie a api funkcie, vracia hodnoty a handlery pre komponent. Jeden hook = jeden zamer; obrazovka ich sklada v `use<Obrazovka>` hooku (napr. `useAllListsScreen` raz odoberie polozky vsetkych zoznamov cez `useItemsByList` a sklada `useCollapsedSections`, `useAllListsDrag`, `useAddTarget`, `useDoneItemsActions`). Taky hook vracia vysledok kazdeho zlozeneho hooku ako skupinu (`drag`, `addTarget`, `createForm`, ...), nie ako dlhy zoznam prepisanych poli; komponent si skupiny rozbali sam. Callbacky riadkov su adresovane len id polozky, aby sa memoizovanym riadkom dali posielat stabilne handlery. Data tecu zhora nadol cez props; ziadne "hlasenie nahor" z potomkov cez efekty a registre.
 - **`xService.ts`** je ciste business logika: validacia, sort, vypocet `activeOrder`, tvorba patchov, texty chyb. Bez Reactu a bez Firebase runtime importov (`import type` z `firebase/*` je v poriadku). Testuje sa bez emulatora.
 - **`xApi.ts`** je jediné miesto, kde sa vola Firestore/Auth (`getDoc`, `onSnapshot`, `writeBatch`, `signInWithPopup`, ...). Kazda funkcia, ktora vola Firestore, prijima volitelny posledny parameter `firestore: Firestore = db`, aby ju testy mohli spustit proti emulatoru (`itemApi`, `listApi`, `inviteApi`, `membershipApi`). Vynimka je `authApi` (Firebase Auth): jeho funkcie ziadny `firestore` parameter nemaju. Realtime odbery su `subscribeX(..., onNext, firestore?)` a vracaju `Unsubscribe`.
-- **Cesty ku kolekciam** su len v `src/lib/firestorePaths.ts`.
+- **Cesty ku kolekciam** su len v `src/lib/firestorePaths.ts`: konstanty pre pevne cesty (`LISTS_COLLECTION_PATH`), funkcia len tam, kde cesta berie id rodica (`itemsCollectionPath(listId)`); dokument sa adresuje ako cesta kolekcie + id (`doc(firestore, LISTS_COLLECTION_PATH, listId)`), rovnako v `*Api.ts`, `scripts/seed.ts` aj `e2e/fixtures.ts`.
 
 Vynutene ESLintom (`@typescript-eslint/no-restricted-imports`, `allowTypeImports` kde ma zmysel):
 
@@ -62,13 +62,13 @@ Logika, ktoru pouziva jedna obrazovka, ide do `<obrazovka>Service.ts` vedla nej 
 ## Testy
 
 - Unit testy (Vitest, jsdom, bez emulatora) su v `__tests__/` vedla kodu, ktory testuju, s rovnakym zakladom nazvu (`foo.ts` -> `__tests__/foo.test.ts`).
-- Emulatorove testy maju koncovku `.integration.test.ts` (Firestore + Auth) alebo `.rules.test.ts` (bezpecnostne pravidla), zostavaju v `src/test/` a bezia cez vlastne konfiguracie (`npm run test:integration`, `npm run test:rules`). Priponu treba dodrzat, inak test nebezi nikde.
+- Emulatorove testy maju koncovku `.integration.test.ts` (Firestore + Auth) alebo `.rules.test.ts` (bezpecnostne pravidla), zostavaju v `src/test/` a bezia ako vlastne Vitest projekty z `vite.config.ts` (`npm run test:integration`, `npm run test:rules`, obe naraz v jednom emulatore `npm run test:emulators`; unit testy bezia ako projekt `unit`). Priponu treba dodrzat, inak test nebezi nikde.
 - E2E (Playwright) su v `e2e/`.
 - Komponenty sa testuju s mockovanymi hookmi alebo `*Api` modulmi, nie s Firebase.
 
 ## Importy
 
-- Alias `@/` ukazuje na `src/` (`tsconfig.app.json`, `tsconfig.emulator-tests.json`, `vite.config.ts`, `vitest.*.config.ts`). Importy mimo aktualneho priecinka pisem ako `@/features/items/itemService`, nie `../../items/itemService`.
+- Alias `@/` ukazuje na `src/` (`tsconfig.app.json`, `tsconfig.emulator-tests.json`, `vite.config.ts`). Importy mimo aktualneho priecinka pisem ako `@/features/items/itemService`, nie `../../items/itemService`.
 - Importy v tom istom priecinku zostavaju `./x`.
 - Ziadne `index.ts` barrely - importuje sa priamo z konkretneho suboru.
 - Cyklicke importy zachytava `npm run lint:cycles` (madge, sucast `npm run check`).
