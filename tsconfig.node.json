@@ -5,5 +5,10 @@
     "lib": ["ES2023"],
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "scripts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "pwa-assets.config.ts",
+    "scripts"
+  ]
 }
