@@ -64,7 +64,7 @@ test.describe('offline sync', () => {
     // rather than waiting for the input itself to be hit-testable.
     await itemCheckbox.click({ force: true })
 
-    const doneSection = page.getByRole('heading', { name: /hotové/i })
+    const doneSection = page.getByRole('heading', { name: /kúpené/i })
     await expect(
       page.locator('section', { has: doneSection }).getByText('mlieko'),
     ).toBeVisible()

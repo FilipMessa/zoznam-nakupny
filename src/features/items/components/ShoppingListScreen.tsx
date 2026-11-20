@@ -4,7 +4,7 @@ import { useShoppingListScreen } from '@/features/items/useShoppingListScreen'
 import { AddItemForm } from './AddItemForm'
 import { ActiveItemsList } from './ActiveItemsList'
 import { DoneItemsList } from './DoneItemsList'
-import { ClearDoneButton } from './ClearDoneButton'
+import { PurchasedSection } from './PurchasedSection'
 
 export interface ShoppingListScreenProps {
   listId: string
@@ -57,16 +57,11 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
           />
         </Box>
 
-        <Box as="section" borderTop="1px solid" borderColor="border">
-          <Flex align="center" justify="space-between" padding="14px 16px 6px">
-            <Heading as="h2" {...sectionHeadingStyle}>
-              {done.length > 0 ? `Hotové · ${done.length}` : 'Hotové'}
-            </Heading>
-            <ClearDoneButton
-              doneCount={done.length}
-              onClear={actions.handleClearDone}
-            />
-          </Flex>
+        <PurchasedSection
+          key={listId}
+          count={done.length}
+          onClear={actions.handleClearDone}
+        >
           <DoneItemsList
             items={done}
             onUncheck={actions.handleUncheck}
@@ -74,7 +69,7 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
             openSwipeItemId={swipe.openSwipeItemId}
             onSwipeOpenChange={swipe.handleSwipeOpenChange}
           />
-        </Box>
+        </PurchasedSection>
       </Box>
 
       <Box
@@ -84,7 +79,11 @@ export function ShoppingListScreen({ listId }: ShoppingListScreenProps) {
         borderColor="border"
         pb="env(safe-area-inset-bottom)"
       >
-        <AddItemForm onSubmit={add.handleAdd} error={add.addError} />
+        <AddItemForm
+          purchasedItems={done}
+          onSubmit={add.handleAdd}
+          error={add.addError}
+        />
       </Box>
     </Flex>
   )

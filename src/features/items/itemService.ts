@@ -43,6 +43,29 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
   return { active, done }
 }
 
+export function purchasedSuggestions(
+  items: readonly ShoppingItem[],
+  text: string,
+): string[] {
+  const prefix = text.trim().toLocaleLowerCase('sk')
+  if (!prefix) {
+    return []
+  }
+
+  const matches = new Map<string, string>()
+  for (const item of items) {
+    const name = item.text.trim()
+    const key = name.toLocaleLowerCase('sk')
+    if (key.startsWith(prefix) && !matches.has(key)) {
+      matches.set(key, name)
+      if (matches.size === 3) {
+        break
+      }
+    }
+  }
+  return Array.from(matches.values())
+}
+
 // Declared as type aliases (not interfaces) so they are assignable to
 // Firestore's UpdateData index-signature type without casts.
 export type CompleteItemPatch<T> = {

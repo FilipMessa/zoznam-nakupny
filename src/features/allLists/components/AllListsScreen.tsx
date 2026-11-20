@@ -22,6 +22,7 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     activeItemsOf,
     mainScrollRef,
     doneItems,
+    purchasedItems,
     createForm,
     drag,
     addTarget,
@@ -129,6 +130,7 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
           pb="env(safe-area-inset-bottom)"
         >
           <AddItemForm
+            purchasedItems={purchasedItems}
             onSubmit={addTarget.handleAdd}
             error={addTarget.addError}
           />

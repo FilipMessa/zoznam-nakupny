@@ -72,5 +72,7 @@ export function useAllListsScreen(lists: ShoppingList[]) {
     drag,
     addTarget,
     doneActions,
+    purchasedItems:
+      itemsByList.get(addTarget.addTargetListId ?? '')?.done ?? NO_ITEMS,
   }
 }

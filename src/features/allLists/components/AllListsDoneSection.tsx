@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { Box, Flex, Heading, Text } from '@chakra-ui/react'
-import { ClearDoneButton } from '@/features/items/components/ClearDoneButton'
+import { Box, Text } from '@chakra-ui/react'
+import { PurchasedSection } from '@/features/items/components/PurchasedSection'
 import { DoneItemRow } from '@/features/items/components/DoneItemRow'
 import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
 import {
@@ -15,15 +15,6 @@ export interface AllListsDoneSectionProps {
   onClearAll: () => void
 }
 
-const sectionHeadingStyle = {
-  fontWeight: '800',
-  fontSize: '11px',
-  color: 'fg.muted',
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  m: '0',
-}
-
 function AllListsDoneSectionImpl({
   items,
   onUncheck,
@@ -33,14 +24,7 @@ function AllListsDoneSectionImpl({
   const { openSwipeItemId, handleSwipeOpenChange } = useSwipeRowRegistry()
 
   return (
-    <Box as="section" borderTop="1px solid" borderColor="border">
-      <Flex align="center" justify="space-between" padding="14px 16px 6px">
-        <Heading as="h2" {...sectionHeadingStyle}>
-          {items.length > 0 ? `Hotové · ${items.length}` : 'Hotové'}
-        </Heading>
-        <ClearDoneButton doneCount={items.length} onClear={onClearAll} />
-      </Flex>
-
+    <PurchasedSection count={items.length} onClear={onClearAll}>
       {items.length === 0 ? (
         <Text
           padding="0 16px 20px"
@@ -65,7 +49,7 @@ function AllListsDoneSectionImpl({
           ))}
         </Box>
       )}
-    </Box>
+    </PurchasedSection>
   )
 }
 

@@ -92,19 +92,19 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
 
     await expect(page.getByText('mlieko')).toBeVisible()
 
-    // --- Check it off and confirm it moves to "Hotové" ----------------------
+    // --- Check it off and confirm it moves to "Kúpené" ----------------------
     const activeSection = page.getByRole('heading', { name: /na kúpu/i })
     await expect(activeSection).toBeVisible()
-    const doneSection = page.getByRole('heading', { name: /hotové/i })
+    const doneSection = page.getByRole('heading', { name: /kúpené/i })
     await expect(doneSection).toBeVisible()
 
     // The app's active-item checkbox is a controlled input that's always
     // unchecked while the item is active (an item only appears in "Na kúpu"
     // when it isn't done yet) -- checking it moves the item straight into
-    // "Hotové" rather than leaving a checked box behind. Playwright's
+    // "Kúpené" rather than leaving a checked box behind. Playwright's
     // `.check()` polls for the box to end up `checked` after the click,
     // which never happens here by design, so a plain `.click()` (verified
-    // below by the item showing up under the "Hotové" section) is the
+    // below by the item showing up under the "Kúpené" section) is the
     // correct action rather than `.check()`.
     const itemCheckbox = page.getByRole('checkbox').first()
     await expect(itemCheckbox).toBeVisible()
@@ -118,6 +118,13 @@ test.describe('mobile shopping list flow (Pixel 7)', () => {
     await expect(
       page.locator('section', { has: doneSection }).getByText('mlieko'),
     ).toBeVisible()
+
+    await doneSection.getByRole('button').click()
+    await addInput.fill('ml')
+    await page.getByRole('button', { name: 'mlieko', exact: true }).click()
+    await expect(addInput).toBeFocused()
+    await expect(addInput).toHaveValue('')
+    await expect(page.getByText('mlieko', { exact: true })).toBeVisible()
 
     // --- Open the list switcher and confirm it renders as a bottom sheet ---
     const switcherTrigger = page.getByRole('button', {

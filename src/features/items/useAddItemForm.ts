@@ -10,6 +10,7 @@ export interface UseAddItemFormResult {
   text: string
   handleTextChange: (event: ChangeEvent<HTMLInputElement>) => void
   inputRef: RefObject<HTMLInputElement | null>
+  submitText: (value: string) => void
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void
 }
 
@@ -21,21 +22,25 @@ export function useAddItemForm(
   const [text, setText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const trimmedText = text.trim()
-
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     setText(event.target.value)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const submitText = (value: string) => {
+    const trimmedText = value.trim()
     if (trimmedText.length === 0) {
       inputRef.current?.focus()
       return
     }
     setText('')
+    inputRef.current?.focus()
     onSubmit(trimmedText)
   }
 
-  return { text, handleTextChange, inputRef, handleSubmit }
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    submitText(text)
+  }
+
+  return { submitText, text, handleTextChange, inputRef, handleSubmit }
 }

@@ -62,6 +62,60 @@ describe('ShoppingListScreen — scroll new item into view', () => {
     vi.clearAllMocks()
   })
 
+  it('suggests a purchased name once while collapsed and preserves typed submissions', async () => {
+    mockedUseItems.mockReturnValue({
+      items: [
+        makeItem({
+          id: 'a',
+          status: 'done',
+          text: 'Mlieko',
+          completedAt: fakeTimestamp(2),
+        }),
+        makeItem({
+          id: 'b',
+          status: 'done',
+          text: 'mlieko',
+          completedAt: fakeTimestamp(1),
+        }),
+      ],
+      itemsLoading: false,
+    })
+    render(<ShoppingListScreen listId="list-1" />)
+    const user = userEvent.setup()
+    const toggle = screen.getByRole('button', { name: 'Kúpené · 2' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Mlieko')).toBeVisible()
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Mlieko')).not.toBeInTheDocument()
+
+    const input = screen.getByRole('textbox', { name: /položka/i })
+    await user.type(input, 'ml')
+    await user.click(screen.getByRole('button', { name: /^mlieko$/i }))
+    expect(mockedAddItem).toHaveBeenLastCalledWith(
+      'list-1',
+      'Mlieko',
+      { uid: 'uid-1', displayName: undefined },
+      [],
+    )
+    expect(input).toHaveFocus()
+    expect(input).toHaveValue('')
+    await user.type(input, 'ml{Enter}')
+    expect(mockedAddItem).toHaveBeenLastCalledWith(
+      'list-1',
+      'ml',
+      { uid: 'uid-1', displayName: undefined },
+      [],
+    )
+    await user.type(input, 'mlieko bez laktózy{Enter}')
+    expect(mockedAddItem).toHaveBeenLastCalledWith(
+      'list-1',
+      'mlieko bez laktózy',
+      { uid: 'uid-1', displayName: undefined },
+      [],
+    )
+  })
+
   it('scrolls the just-added item into view once it arrives in the snapshot', async () => {
     const initial = [
       makeItem({ id: 'a', activeOrder: 1 }),

@@ -467,6 +467,19 @@ describe('useAllListsScreen', () => {
       expect(result.current.addTarget.isAddTarget('list-1')).toBe(false)
     })
 
+    it('switches purchased suggestions to the current add target', () => {
+      const { result } = renderScreen()
+      const milk = makeItem({ id: 'milk', status: 'done' })
+      const bread = makeItem({ id: 'bread', status: 'done' })
+      emit('list-1', [milk])
+      emit('list-2', [bread])
+      expect(result.current.purchasedItems).toEqual([])
+      act(() => result.current.addTarget.selectAddTarget('list-1'))
+      expect(result.current.purchasedItems).toEqual([milk])
+      act(() => result.current.addTarget.selectAddTarget('list-2'))
+      expect(result.current.purchasedItems).toEqual([bread])
+    })
+
     it('selectAddTarget sets the target and expands a collapsed section', () => {
       const { result } = renderScreen()
       act(() => result.current.toggleSection('list-1'))
