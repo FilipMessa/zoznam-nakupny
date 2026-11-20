@@ -36,5 +36,6 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci
-      - run: npm run test:rules
-      - run: npm run test:integration
+      # One emulator start for both suites; they share a projectId, so they
+      # run one after the other (see the script).
+      - run: npm run test:emulators

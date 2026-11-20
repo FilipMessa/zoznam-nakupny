@@ -18,6 +18,7 @@
     "test:watch": "vitest --project unit",
     "test:rules": "firebase emulators:exec --only firestore \"vitest run --project rules\"",
     "test:integration": "firebase emulators:exec --only firestore,auth \"vitest run --project integration\"",
+    "test:emulators": "firebase emulators:exec --only firestore,auth \"vitest run --project rules && vitest run --project integration\"",
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run lint:cycles && npm run format:check && npm run test && npm run build",
     "preview": "vite preview",
