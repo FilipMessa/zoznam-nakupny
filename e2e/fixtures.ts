@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { randomBytes } from 'node:crypto'
-import { getApps, initializeApp, type App } from 'firebase-admin/app'
+import { deleteApp, getApps, initializeApp, type App } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { SELECTED_LIST_STORAGE_KEY } from '../src/constants/storage'
@@ -37,6 +37,31 @@ export function getAdminApp(name: string): App {
     getApps().find((a) => a.name === name) ??
     initializeApp({ projectId: PROJECT_ID }, name)
   )
+}
+
+// The Auth emulator, unlike the Firestore one, does not follow the client's
+// configured projectId: every browser (API-key) request -- including
+// window.__e2eSignIn's signInWithCustomToken -- lands in the single project
+// the emulator was started for, which `firebase emulators:exec` exports as
+// GCLOUD_PROJECT (.firebaserc's default, not PROJECT_ID). An Auth user
+// created through a PROJECT_ID admin app is therefore invisible to the
+// browser, which silently signs in a fresh profile-less user with the same
+// uid instead. Firestore data still has to be seeded under PROJECT_ID (the
+// app's VITE_FIREBASE_PROJECT_ID), so only Auth users go through here.
+export async function createAuthUser(user: {
+  uid: string
+  displayName: string
+}): Promise<void> {
+  process.env.FIREBASE_AUTH_EMULATOR_HOST ??= AUTH_EMULATOR_HOST
+  const app = initializeApp(
+    { projectId: process.env.GCLOUD_PROJECT ?? PROJECT_ID },
+    `e2e-auth-${user.uid}`,
+  )
+  try {
+    await getAuth(app).createUser(user)
+  } finally {
+    await deleteApp(app)
+  }
 }
 
 export interface SeededFixture {

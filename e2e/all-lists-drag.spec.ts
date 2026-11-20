@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { getAuth } from 'firebase-admin/auth'
 import { deleteApp, type App } from 'firebase-admin/app'
 import {
+  createAuthUser,
   getAdminApp,
   seedSignedInMemberWithTwoLists,
   seedSignedInMemberWithList,
@@ -43,7 +43,7 @@ test.describe('All Lists screen — cross-list drag', () => {
 
     const fixture = await seedSignedInMemberWithTwoLists(adminApp)
     const author = await seedSignedInMemberWithList(adminApp)
-    await getAuth(adminApp).createUser({ uid: author.uid, displayName: 'Jana' })
+    await createAuthUser({ uid: author.uid, displayName: 'Jana' })
     await signInAsMember(page, author.customToken, fixture.listAId)
     const itemText = 'Chlieb ' + fixture.itemId
     await page.getByPlaceholder('Pridať položku…').fill(itemText)

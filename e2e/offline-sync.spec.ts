@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { getAuth } from 'firebase-admin/auth'
 import { deleteApp, type App } from 'firebase-admin/app'
 import {
+  createAuthUser,
   getAdminApp,
   seedSignedInMemberWithList,
   signInAsMember,
@@ -30,10 +30,7 @@ test.describe('offline sync', () => {
     context,
   }) => {
     const fixture = await seedSignedInMemberWithList(adminApp)
-    await getAuth(adminApp).createUser({
-      uid: fixture.uid,
-      displayName: 'Šimon',
-    })
+    await createAuthUser({ uid: fixture.uid, displayName: 'Šimon' })
     await signInAsMember(page, fixture.customToken, fixture.listId)
 
     await expect(page.getByText(fixture.listName)).toBeVisible()
