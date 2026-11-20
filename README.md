@@ -144,3 +144,7 @@ Before `firebase deploy` works you need to:
 2. Have `.firebaserc` (or `firebase use <project-id>`) point at the Firebase project you want to deploy to.
 
 `firebase deploy` without `--only` deploys Hosting (the build from `dist/`), the Firestore rules (`firestore.rules`) and the Firestore indexes (`firestore.indexes.json`).
+
+## License
+
+[MIT](./LICENSE) © 2026 Filip Messa

@@ -10,7 +10,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // Phase 7 e2e coverage for the "All Lists" screen's cross-list drag-and-drop
-// (see /Users/fmessa/.claude/plans/navrhni-ako-by-sme-async-wind.md). This is
+// (docs/adr/0003-transaction-for-cross-list-item-move.md). This is
 // the first drag-simulation test in this codebase -- there's no dnd-kit
 // helper for Playwright, so the drag is driven via raw page.mouse
 // move/down/move/up calls. Runs under the `chromium` (desktop) project only:
