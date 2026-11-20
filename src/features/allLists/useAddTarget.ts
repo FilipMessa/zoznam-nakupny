@@ -1,24 +1,22 @@
 import { useCallback, useState } from 'react'
-import { addItem } from '@/features/items/itemApi'
-import { ADD_ITEM_ERROR_UNKNOWN } from './allListsService'
-import type { ItemRegistry } from './useItemRegistry'
+import { useAddItemSubmit } from '@/features/items/useAddItemSubmit'
+import type { ShoppingItem } from '@/features/items/types'
 
 // Which list the bottom "add item" form writes to. Deliberately separate
 // from the collapsed-sections state -- collapsing the target via its chevron
 // must not clear the selection.
 export function useAddTarget({
   uid,
-  getActiveItems,
+  activeItemsOf,
   requestScroll,
   expandIfCollapsed,
 }: {
   uid: string | null
-  getActiveItems: ItemRegistry['getActiveItems']
-  requestScroll: ItemRegistry['requestScroll']
+  activeItemsOf: (listId: string) => ShoppingItem[]
+  requestScroll: (listId: string) => void
   expandIfCollapsed: (listId: string) => void
 }) {
   const [addTargetListId, setAddTargetListId] = useState<string | null>(null)
-  const [addItemError, setAddItemError] = useState<string | null>(null)
 
   const isAddTarget = useCallback(
     (listId: string) => addTargetListId === listId,
@@ -33,33 +31,23 @@ export function useAddTarget({
     [expandIfCollapsed],
   )
 
-  // Not built on useAddItemSubmit: that hook takes activeItems as a plain
-  // param, which would read the registry's ref during render (refs must
-  // only be read in effects/handlers). Reading it here instead mirrors the
-  // drag handlers.
-  const handleAddItem = useCallback(
-    async (text: string) => {
-      if (!uid || !addTargetListId) {
-        return
-      }
-      const listId = addTargetListId
+  // Same submit as the single-list screen; landing in a collapsed target
+  // re-expands it so the user sees the item arrive.
+  const { addError, handleAdd } = useAddItemSubmit({
+    listId: addTargetListId,
+    uid,
+    activeItems: addTargetListId ? activeItemsOf(addTargetListId) : [],
+    onAddStart: (listId) => {
       requestScroll(listId)
       expandIfCollapsed(listId)
-      setAddItemError(null)
-      try {
-        await addItem(listId, text, uid, getActiveItems(listId))
-      } catch {
-        setAddItemError(ADD_ITEM_ERROR_UNKNOWN)
-      }
     },
-    [uid, addTargetListId, expandIfCollapsed, requestScroll, getActiveItems],
-  )
+  })
 
   return {
     addTargetListId,
     isAddTarget,
     selectAddTarget,
-    addItemError,
-    handleAddItem,
+    addItemError: addError,
+    handleAddItem: handleAdd,
   }
 }

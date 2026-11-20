@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useAuth } from '@/features/auth/useAuth'
 import { useItems } from './useItems'
 import { sortItems } from './itemService'
@@ -12,9 +13,14 @@ export function useShoppingListScreen(listId: string) {
   const uid = user?.uid ?? null
   const { items, itemsLoading } = useItems(listId)
 
-  const { active, done } = sortItems(items)
+  const { active, done } = useMemo(() => sortItems(items), [items])
+  const activeItemsByList = useMemo(
+    () => new Map([[listId, active]]),
+    [listId, active],
+  )
 
-  const { mainRef, requestScrollAfterAdd } = useScrollNewItemIntoView(items)
+  const { mainRef, requestScrollAfterAdd } =
+    useScrollNewItemIntoView(activeItemsByList)
   const { openSwipeItemId, handleSwipeOpenChange, handleListScroll } =
     useSwipeRowRegistry()
   const { editingItemId, handleStartEdit, handleSubmitEdit, handleCancelEdit } =

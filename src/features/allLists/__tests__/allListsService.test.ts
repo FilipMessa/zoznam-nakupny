@@ -13,7 +13,6 @@ import {
   LIST_BODY_DROPPABLE_PREFIX,
 } from '@/features/allLists/allListsService'
 import type { ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from '@/features/lists/types'
 
 function fakeTimestamp(millis: number): Timestamp {
   return { toMillis: () => millis } as unknown as Timestamp
@@ -34,62 +33,50 @@ function makeItem(overrides: Partial<ShoppingItem> = {}): ShoppingItem {
   }
 }
 
-function makeList(overrides: Partial<ShoppingList> = {}): ShoppingList {
-  return {
-    id: 'list-1',
-    name: 'Potraviny',
-    createdAt: fakeTimestamp(0),
-    createdBy: 'uid-1',
-    ...overrides,
-  }
+function done(items: ShoppingItem[]) {
+  return { active: [], done: items }
 }
 
 describe('mergeDoneItems', () => {
   it('returns an empty array when there are no lists or no done items', () => {
-    expect(mergeDoneItems([], new Map())).toEqual([])
-    expect(mergeDoneItems([makeList()], new Map())).toEqual([])
+    expect(mergeDoneItems(new Map())).toEqual([])
+    expect(mergeDoneItems(new Map([['list-1', done([])]]))).toEqual([])
   })
 
-  it('tags each item with its origin listId and listName', () => {
+  it('tags each item with its origin listId', () => {
     const item = makeItem({ id: 'a' })
-    const lists = [makeList({ id: 'list-1', name: 'Potraviny' })]
-    const doneItemsByListId = new Map([['list-1', [item]]])
 
-    const result = mergeDoneItems(lists, doneItemsByListId)
+    const result = mergeDoneItems(new Map([['list-1', done([item])]]))
 
-    expect(result).toEqual([{ item, listId: 'list-1', listName: 'Potraviny' }])
+    expect(result).toEqual([{ item, listId: 'list-1' }])
   })
 
   it('merges done items from multiple lists sorted by completedAt descending', () => {
     const a = makeItem({ id: 'a', completedAt: fakeTimestamp(100) })
     const b = makeItem({ id: 'b', completedAt: fakeTimestamp(300) })
     const c = makeItem({ id: 'c', completedAt: fakeTimestamp(200) })
-    const lists = [
-      makeList({ id: 'list-1', name: 'Potraviny' }),
-      makeList({ id: 'list-2', name: 'Drogéria' }),
-    ]
-    const doneItemsByListId = new Map([
-      ['list-1', [a]],
-      ['list-2', [b, c]],
+    const itemsByList = new Map([
+      ['list-1', done([a])],
+      ['list-2', done([b, c])],
     ])
 
-    const result = mergeDoneItems(lists, doneItemsByListId)
+    const result = mergeDoneItems(itemsByList)
 
     expect(result.map((entry) => entry.item.id)).toEqual(['b', 'c', 'a'])
   })
 
-  it('ignores registry entries for lists no longer present (e.g. deleted lists)', () => {
-    const stale = makeItem({ id: 'stale' })
-    const current = makeItem({ id: 'current' })
-    const lists = [makeList({ id: 'list-1', name: 'Potraviny' })]
-    const doneItemsByListId = new Map([
-      ['list-1', [current]],
-      ['list-deleted', [stale]],
+  it('keeps list order for items completed at the same time', () => {
+    const a = makeItem({ id: 'a', completedAt: null })
+    const b = makeItem({ id: 'b', completedAt: null })
+    const itemsByList = new Map([
+      ['list-2', done([b])],
+      ['list-1', done([a])],
     ])
 
-    const result = mergeDoneItems(lists, doneItemsByListId)
-
-    expect(result.map((entry) => entry.item.id)).toEqual(['current'])
+    expect(mergeDoneItems(itemsByList).map((entry) => entry.item.id)).toEqual([
+      'b',
+      'a',
+    ])
   })
 })
 

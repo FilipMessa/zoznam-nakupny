@@ -1,30 +1,25 @@
 import {
   insertActiveOrder,
   reorderActiveItems,
+  type SortedItems,
 } from '@/features/items/itemService'
 import type { MoveItemResult, ShoppingItem } from '@/features/items/types'
-import type { ShoppingList } from '@/features/lists/types'
 
 export interface DoneItemWithOrigin {
   item: ShoppingItem
   listId: string
-  listName: string
 }
 
-// Iterates over `lists` (the live source of truth from useLists()), never
-// over doneItemsByListId's own keys -- that map is a registry nothing ever
-// deletes from when an AllListsSection unmounts, so after a list is
-// hard-deleted (ADR-0001) a stale entry could still be sitting in it.
+// Every list's done items in one newest-first list for the combined Done
+// section, each tagged with the list it came from. Ties keep list order.
 export function mergeDoneItems(
-  lists: ShoppingList[],
-  doneItemsByListId: Map<string, ShoppingItem[]>,
+  itemsByList: ReadonlyMap<string, SortedItems>,
 ): DoneItemWithOrigin[] {
   const merged: DoneItemWithOrigin[] = []
 
-  for (const list of lists) {
-    const items = doneItemsByListId.get(list.id) ?? []
-    for (const item of items) {
-      merged.push({ item, listId: list.id, listName: list.name })
+  for (const [listId, { done }] of itemsByList) {
+    for (const item of done) {
+      merged.push({ item, listId })
     }
   }
 
@@ -229,6 +224,3 @@ export const REORDER_FAILED_MESSAGE = 'Preusporiadanie sa nepodarilo.'
 export const MOVE_FAILED_MESSAGE = 'Presun sa nepodarilo.'
 export const CLEAR_DONE_FAILED_MESSAGE =
   'Vyčistenie sa nepodarilo pre niektoré zoznamy.'
-// Code AddItemForm understands for "the add failed" (shared with the
-// single-list flow's useAddItemSubmit).
-export const ADD_ITEM_ERROR_UNKNOWN = 'unknown'

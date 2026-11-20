@@ -7,8 +7,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import * as listApi from '@/features/lists/listApi'
 import type { ShoppingList } from '@/features/lists/types'
 
-// AllListsSection has its own suite (mounts useAuth/useItems for a real
-// list); stub it here so this suite only exercises the screen shell
+// AllListsSection has its own suite; stub it here so this suite only exercises the screen shell
 // (header, back button, one section per list).
 vi.mock('@/features/allLists/components/AllListsSection', () => ({
   AllListsSection: ({ list }: { list: ShoppingList }) => (
@@ -21,6 +20,10 @@ vi.mock('@/features/allLists/components/AllListsDoneSection', () => ({
   AllListsDoneSection: () => <div data-testid="all-lists-done-section" />,
 }))
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
+// The screen subscribes to every list's items itself (useItemsByList).
+vi.mock('@/features/items/itemApi', () => ({
+  subscribeItems: vi.fn(() => () => {}),
+}))
 vi.mock('@/features/lists/listApi', () => ({
   createList: vi.fn(),
   generateListId: vi.fn(),

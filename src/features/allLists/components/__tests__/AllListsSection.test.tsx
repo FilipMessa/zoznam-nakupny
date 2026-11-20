@@ -8,13 +8,20 @@ import {
   type AllListsSectionProps,
 } from '@/features/allLists/components/AllListsSection'
 import { useAuth } from '@/features/auth/useAuth'
-import { useItems } from '@/features/items/useItems'
+import { useAllListsSection } from '@/features/allLists/useAllListsSection'
 import * as itemApi from '@/features/items/itemApi'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
 vi.mock('@/features/auth/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('@/features/items/useItems', () => ({ useItems: vi.fn() }))
+// Wrapped (not replaced) so the React.memo test below can count renders.
+vi.mock('@/features/allLists/useAllListsSection', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/features/allLists/useAllListsSection')
+    >()
+  return { useAllListsSection: vi.fn(actual.useAllListsSection) }
+})
 vi.mock('@/features/items/itemApi', () => ({
   checkItem: vi.fn(),
   uncheckItem: vi.fn(),
@@ -25,7 +32,7 @@ vi.mock('@/features/items/itemApi', () => ({
 }))
 
 const mockedUseAuth = vi.mocked(useAuth)
-const mockedUseItems = vi.mocked(useItems)
+const mockedUseAllListsSection = vi.mocked(useAllListsSection)
 const mockedCheckItem = vi.mocked(itemApi.checkItem)
 const mockedDeleteItem = vi.mocked(itemApi.deleteItem)
 
@@ -63,14 +70,11 @@ function defaultProps(
 ): AllListsSectionProps {
   return {
     list: makeList(),
+    activeItems: [],
     expanded: true,
     onToggle: vi.fn(),
-    onActiveItemsChange: vi.fn(),
-    onDoneItemsChange: vi.fn(),
     isAddTarget: false,
     onSelectAddTarget: vi.fn(),
-    mainScrollRef: { current: null },
-    onRegisterScrollRequester: vi.fn(),
     ...overrides,
   }
 }
@@ -88,63 +92,38 @@ describe('AllListsSection', () => {
   })
 
   it('shows the list name and active item count in the header', () => {
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a' }), makeItem({ id: 'b' })],
-      itemsLoading: false,
-    })
+    const activeItems = [makeItem({ id: 'a' }), makeItem({ id: 'b' })]
 
-    render(<AllListsSection {...defaultProps()} />)
+    render(<AllListsSection {...defaultProps({ activeItems })} />)
 
     expect(screen.getByText('Potraviny · 2')).toBeInTheDocument()
   })
 
-  it('reports its done items up without rendering them', () => {
-    const onDoneItemsChange = vi.fn()
-    const doneItem = makeItem({ id: 'd', text: 'chlieb', status: 'done' })
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a', text: 'mlieko' }), doneItem],
-      itemsLoading: false,
-    })
-
-    render(<AllListsSection {...defaultProps({ onDoneItemsChange })} />)
-
-    expect(onDoneItemsChange).toHaveBeenCalledWith('list-1', [doneItem])
-    expect(screen.queryByText(doneItem.text)).not.toBeInTheDocument()
-  })
-
   it('renders a list-color dot in the header', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
-
     render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByTestId('list-color-dot')).toBeInTheDocument()
   })
 
   it('renders active items when expanded', () => {
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a', text: 'mlieko' })],
-      itemsLoading: false,
-    })
+    const activeItems = [makeItem({ id: 'a', text: 'mlieko' })]
 
-    render(<AllListsSection {...defaultProps()} />)
+    render(<AllListsSection {...defaultProps({ activeItems })} />)
 
     expect(screen.getByText('mlieko')).toBeInTheDocument()
   })
 
   it('does not render items when collapsed', () => {
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a', text: 'mlieko' })],
-      itemsLoading: false,
-    })
+    const activeItems = [makeItem({ id: 'a', text: 'mlieko' })]
 
-    render(<AllListsSection {...defaultProps({ expanded: false })} />)
+    render(
+      <AllListsSection {...defaultProps({ activeItems, expanded: false })} />,
+    )
 
     expect(screen.queryByText('mlieko')).not.toBeInTheDocument()
   })
 
   it('shows an empty state when the list has no active items', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
-
     render(<AllListsSection {...defaultProps()} />)
 
     expect(screen.getByText('Žiadne položky na kúpu.')).toBeInTheDocument()
@@ -152,7 +131,6 @@ describe('AllListsSection', () => {
 
   it('calls onToggle when the chevron button is clicked', async () => {
     const onToggle = vi.fn()
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
     const user = userEvent.setup()
 
     render(<AllListsSection {...defaultProps({ onToggle })} />)
@@ -165,7 +143,6 @@ describe('AllListsSection', () => {
   it('calls onSelectAddTarget (not onToggle) when the list name is clicked', async () => {
     const onToggle = vi.fn()
     const onSelectAddTarget = vi.fn()
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
     const user = userEvent.setup()
 
     render(
@@ -179,8 +156,6 @@ describe('AllListsSection', () => {
   })
 
   it('marks the header as current when this list is the add target', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
-
     render(<AllListsSection {...defaultProps({ isAddTarget: true })} />)
 
     expect(screen.getByRole('button', { name: /potraviny/i })).toHaveAttribute(
@@ -190,8 +165,6 @@ describe('AllListsSection', () => {
   })
 
   it('does not mark the header as current when this list is not the add target', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
-
     render(<AllListsSection {...defaultProps({ isAddTarget: false })} />)
 
     expect(
@@ -200,16 +173,13 @@ describe('AllListsSection', () => {
   })
 
   it("calls checkItem with this section's listId when an item is checked", async () => {
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a', text: 'mlieko' })],
-      itemsLoading: false,
-    })
+    const activeItems = [makeItem({ id: 'a', text: 'mlieko' })]
     mockedCheckItem.mockResolvedValue(undefined)
     const user = userEvent.setup()
 
     render(
       <AllListsSection
-        {...defaultProps({ list: makeList({ id: 'list-42' }) })}
+        {...defaultProps({ activeItems, list: makeList({ id: 'list-42' }) })}
       />,
     )
 
@@ -219,16 +189,13 @@ describe('AllListsSection', () => {
   })
 
   it("calls deleteItem with this section's listId when an item is deleted", async () => {
-    mockedUseItems.mockReturnValue({
-      items: [makeItem({ id: 'a', text: 'mlieko' })],
-      itemsLoading: false,
-    })
+    const activeItems = [makeItem({ id: 'a', text: 'mlieko' })]
     mockedDeleteItem.mockResolvedValue(undefined)
     const user = userEvent.setup()
 
     const { container } = render(
       <AllListsSection
-        {...defaultProps({ list: makeList({ id: 'list-42' }) })}
+        {...defaultProps({ activeItems, list: makeList({ id: 'list-42' }) })}
       />,
     )
 
@@ -246,8 +213,6 @@ describe('AllListsSection', () => {
   })
 
   it('shows a pending-sync indicator when the list has not synced yet', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
-
     render(
       <AllListsSection
         {...defaultProps({ list: makeList({ pendingSync: true }) })}
@@ -258,10 +223,9 @@ describe('AllListsSection', () => {
   })
 
   it('does not re-render when re-rendered with referentially identical props (React.memo)', () => {
-    mockedUseItems.mockReturnValue({ items: [], itemsLoading: false })
     const props = defaultProps()
 
-    // mockedUseItems is called once per AllListsSection function-body
+    // useAllListsSection is called once per AllListsSection function-body
     // execution, so its call count is a proxy for "did this component
     // actually re-render" -- a re-render triggered by an unrelated sibling
     // (forceRerender here stands in for e.g. another section toggling)
@@ -279,10 +243,10 @@ describe('AllListsSection', () => {
     }
 
     render(<Harness />)
-    const callsBefore = mockedUseItems.mock.calls.length
+    const callsBefore = mockedUseAllListsSection.mock.calls.length
 
     fireEvent.click(screen.getByRole('button', { name: 'rerender' }))
 
-    expect(mockedUseItems.mock.calls.length).toBe(callsBefore)
+    expect(mockedUseAllListsSection.mock.calls.length).toBe(callsBefore)
   })
 })

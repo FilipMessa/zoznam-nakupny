@@ -1,5 +1,4 @@
 import { memo } from 'react'
-import type { RefObject } from 'react'
 import { Box, Flex, IconButton, Text, chakra } from '@chakra-ui/react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -15,39 +14,31 @@ import type { ShoppingList } from '@/features/lists/types'
 
 export interface AllListsSectionProps {
   list: ShoppingList
+  // This list's sorted active items (useAllListsScreen subscribes to every
+  // list's items once).
+  activeItems: ShoppingItem[]
   expanded: boolean
   // Takes listId rather than being pre-bound per instance, so the parent
   // can pass its own stable handler reference directly instead of a new
   // per-list closure every render -- required for React.memo below to
   // actually skip unrelated sections.
   onToggle: (listId: string) => void
-  // Report this section's items up to the screen -- see useAllListsSection.
-  onActiveItemsChange: (listId: string, items: ShoppingItem[]) => void
-  onDoneItemsChange: (listId: string, items: ShoppingItem[]) => void
   isAddTarget: boolean
   onSelectAddTarget: (listId: string) => void
-  // One shared container for the whole screen, not per section.
-  mainScrollRef: RefObject<HTMLElement | null>
-  onRegisterScrollRequester: (listId: string, requestScroll: () => void) => void
 }
 
-// Self-contained per-list accordion section: renders props plus the view
-// state from useAllListsSection (which owns this list's useItems
-// subscription) -- active items only, done items are shown in the screen's
-// combined Done section.
+// Per-list accordion section: renders props plus the per-list wiring from
+// useAllListsSection -- active items only, done items are shown in the
+// screen's combined Done section.
 function AllListsSectionImpl({
   list,
+  activeItems: active,
   expanded,
   onToggle,
-  onActiveItemsChange,
-  onDoneItemsChange,
   isAddTarget,
   onSelectAddTarget,
-  mainScrollRef,
-  onRegisterScrollRequester,
 }: AllListsSectionProps) {
   const {
-    active,
     listColor,
     sortableData,
     sortableIds,
@@ -60,13 +51,7 @@ function AllListsSectionImpl({
     handleCancelEdit,
     handleCheck,
     handleDelete,
-  } = useAllListsSection({
-    listId: list.id,
-    onActiveItemsChange,
-    onDoneItemsChange,
-    onRegisterScrollRequester,
-    mainScrollRef,
-  })
+  } = useAllListsSection(list.id, active)
 
   // Collapsed header is a drop target -- dragging an item onto it appends
   // to the end of this list, whether or not it's currently expanded to show

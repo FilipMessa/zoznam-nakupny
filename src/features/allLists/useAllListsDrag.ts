@@ -8,17 +8,15 @@ import {
   moveConflictMessage,
   planDragEnd,
 } from './allListsService'
-import type { ItemRegistry } from './useItemRegistry'
 import type { ShoppingItem } from '@/features/items/types'
 
 // Drag-and-drop orchestration for the shared DndContext: tracks the dragged
 // item for <DragOverlay> and turns a finished drag into the right write
 // (single-document fractional reorder within a list, or the transactional
 // cross-list move -- ADR 0003).
-export function useAllListsDrag({
-  getActiveItems,
-  getActiveItemsByListId,
-}: Pick<ItemRegistry, 'getActiveItems' | 'getActiveItemsByListId'>) {
+export function useAllListsDrag(
+  activeItemsByList: ReadonlyMap<string, ShoppingItem[]>,
+) {
   // The item currently being dragged, for <DragOverlay> to render a
   // floating clone of -- needed because a dragged row's own useSortable
   // transform only reflects its position *within its own SortableContext*
@@ -34,10 +32,10 @@ export function useAllListsDrag({
       if (typeof listId !== 'string') {
         return
       }
-      const items = getActiveItems(listId)
+      const items = activeItemsByList.get(listId) ?? []
       setDraggedItem(items.find((item) => item.id === event.active.id) ?? null)
     },
-    [getActiveItems],
+    [activeItemsByList],
   )
 
   const handleDragCancel = useCallback(() => {
@@ -53,7 +51,7 @@ export function useAllListsDrag({
         activeId: active.id,
         activeListId: active.data.current?.listId,
         over: over ? { id: over.id, data: over.data.current } : null,
-        activeItemsByListId: getActiveItemsByListId(),
+        activeItemsByListId: activeItemsByList,
       })
 
       if (plan.type === 'reorder') {
@@ -81,7 +79,7 @@ export function useAllListsDrag({
           })
       }
     },
-    [getActiveItemsByListId],
+    [activeItemsByList],
   )
 
   return { draggedItem, handleDragStart, handleDragEnd, handleDragCancel }

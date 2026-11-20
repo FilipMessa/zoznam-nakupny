@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { Box, Flex, Heading, IconButton } from '@chakra-ui/react'
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
 import { ArrowLeft, Plus } from 'lucide-react'
@@ -20,7 +19,8 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
   const {
     isExpanded,
     toggleSection,
-    registerActiveItems,
+    activeItemsOf,
+    mainScrollRef,
     draggedItem,
     handleDragStart,
     handleDragEnd,
@@ -34,17 +34,14 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
     addTargetListId,
     isAddTarget,
     selectAddTarget,
-    registerScrollRequester,
     addItemError,
     handleAddItem,
-    registerDoneItems,
     doneItems,
     handleUncheckDone,
     handleDeleteDone,
     handleClearAllDone,
   } = useAllListsScreen(lists)
   const sensors = useShoppingListDndSensors()
-  const mainScrollRef = useRef<HTMLElement>(null)
 
   return (
     <Flex direction="column" h="100dvh" minH="0" bg="bg">
@@ -116,14 +113,11 @@ export function AllListsScreen({ lists, onClose }: AllListsScreenProps) {
             <AllListsSection
               key={list.id}
               list={list}
+              activeItems={activeItemsOf(list.id)}
               expanded={isExpanded(list.id)}
               onToggle={toggleSection}
-              onActiveItemsChange={registerActiveItems}
-              onDoneItemsChange={registerDoneItems}
               isAddTarget={isAddTarget(list.id)}
               onSelectAddTarget={selectAddTarget}
-              mainScrollRef={mainScrollRef}
-              onRegisterScrollRequester={registerScrollRequester}
             />
           ))}
           <AllListsDoneSection

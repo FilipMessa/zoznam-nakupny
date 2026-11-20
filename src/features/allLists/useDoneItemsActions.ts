@@ -6,29 +6,29 @@ import {
 } from '@/features/items/itemApi'
 import { notify } from '@/lib/toaster'
 import { CLEAR_DONE_FAILED_MESSAGE } from './allListsService'
-import type { ItemRegistry } from './useItemRegistry'
+import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
 
 // Actions of the combined Done section, each addressed by the done item's
 // origin list.
 export function useDoneItemsActions({
   lists,
-  getActiveItems,
+  activeItemsOf,
   requestScroll,
   expandIfCollapsed,
 }: {
   lists: ShoppingList[]
-  getActiveItems: ItemRegistry['getActiveItems']
-  requestScroll: ItemRegistry['requestScroll']
+  activeItemsOf: (listId: string) => ShoppingItem[]
+  requestScroll: (listId: string) => void
   expandIfCollapsed: (listId: string) => void
 }) {
   const handleUncheckDone = useCallback(
     async (listId: string, itemId: string) => {
       requestScroll(listId)
       expandIfCollapsed(listId)
-      await uncheckItem(listId, itemId, getActiveItems(listId))
+      await uncheckItem(listId, itemId, activeItemsOf(listId))
     },
-    [requestScroll, expandIfCollapsed, getActiveItems],
+    [requestScroll, expandIfCollapsed, activeItemsOf],
   )
 
   const handleDeleteDone = useCallback(

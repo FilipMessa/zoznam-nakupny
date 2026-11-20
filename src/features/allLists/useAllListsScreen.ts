@@ -1,11 +1,13 @@
+import { useCallback, useMemo, type RefObject } from 'react'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCreateListForm } from '@/features/lists/useCreateListForm'
+import { useItemsByList } from '@/features/items/useItemsByList'
+import { useScrollNewItemIntoView } from '@/features/items/useScrollNewItemIntoView'
 import { useCollapsedSections } from './useCollapsedSections'
-import { useItemRegistry } from './useItemRegistry'
 import { useAllListsDrag } from './useAllListsDrag'
 import { useAddTarget } from './useAddTarget'
 import { useDoneItemsActions } from './useDoneItemsActions'
-import type { DoneItemWithOrigin } from './allListsService'
+import { mergeDoneItems, type DoneItemWithOrigin } from './allListsService'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { ShoppingItem } from '@/features/items/types'
 import type { ShoppingList } from '@/features/lists/types'
@@ -13,7 +15,11 @@ import type { ShoppingList } from '@/features/lists/types'
 export interface UseAllListsScreenResult {
   isExpanded: (listId: string) => boolean
   toggleSection: (listId: string) => void
-  registerActiveItems: (listId: string, items: ShoppingItem[]) => void
+  // A list's active items, sorted -- what its AllListsSection renders.
+  activeItemsOf: (listId: string) => ShoppingItem[]
+  // The screen's one scroll container (all sections share it), where an
+  // item the user just added or unchecked is scrolled into view.
+  mainScrollRef: RefObject<HTMLElement | null>
   // Add-list sheet -- creating here deliberately does not navigate away
   // (see docs/feature-all-lists-add-list.md); the new list's section just
   // appears already expanded since nothing marks it collapsed (see
@@ -29,11 +35,9 @@ export interface UseAllListsScreenResult {
   addTargetListId: string | null
   isAddTarget: (listId: string) => boolean
   selectAddTarget: (listId: string) => void
-  registerScrollRequester: (listId: string, requestScroll: () => void) => void
   addItemError: string | null
   handleAddItem: (text: string) => Promise<void>
   // Combined Done section (docs/feature-all-lists-done-items.md).
-  registerDoneItems: (listId: string, items: ShoppingItem[]) => void
   doneItems: DoneItemWithOrigin[]
   handleUncheckDone: (listId: string, itemId: string) => Promise<void>
   handleDeleteDone: (listId: string, itemId: string) => Promise<void>
@@ -45,9 +49,12 @@ export interface UseAllListsScreenResult {
   handleDragCancel: () => void
 }
 
-// Screen-level composer: each concern lives in its own single-intent hook
-// (collapsed sections, item registry, drag, add target, done actions) and
-// this just wires them together into the flat shape AllListsScreen renders.
+const NO_ITEMS: ShoppingItem[] = []
+
+// Screen-level composer: subscribes to every list's items once, here, and
+// hands each concern (collapsed sections, drag, add target, done actions)
+// its own single-intent hook; this just wires them together into the flat
+// shape AllListsScreen renders.
 export function useAllListsScreen(
   lists: ShoppingList[],
 ): UseAllListsScreenResult {
@@ -55,16 +62,20 @@ export function useAllListsScreen(
   const uid = user?.uid ?? null
   const { isExpanded, toggleSection, expandIfCollapsed } =
     useCollapsedSections()
-  const registry = useItemRegistry(lists)
-  const {
-    registerActiveItems,
-    getActiveItems,
-    getActiveItemsByListId,
-    registerScrollRequester,
-    requestScroll,
-    registerDoneItems,
-    doneItems,
-  } = registry
+
+  const itemsByList = useItemsByList(lists.map((list) => list.id))
+  const activeItemsByList = useMemo(
+    () => new Map(Array.from(itemsByList, ([id, { active }]) => [id, active])),
+    [itemsByList],
+  )
+  const doneItems = useMemo(() => mergeDoneItems(itemsByList), [itemsByList])
+  const activeItemsOf = useCallback(
+    (listId: string) => activeItemsByList.get(listId) ?? NO_ITEMS,
+    [activeItemsByList],
+  )
+
+  const { mainRef: mainScrollRef, requestScrollAfterAdd: requestScroll } =
+    useScrollNewItemIntoView(activeItemsByList)
 
   const {
     showCreateForm,
@@ -75,16 +86,16 @@ export function useAllListsScreen(
     createError,
   } = useCreateListForm({ uid, onCreated: () => {} })
 
-  const drag = useAllListsDrag({ getActiveItems, getActiveItemsByListId })
+  const drag = useAllListsDrag(activeItemsByList)
   const addTarget = useAddTarget({
     uid,
-    getActiveItems,
+    activeItemsOf,
     requestScroll,
     expandIfCollapsed,
   })
   const doneActions = useDoneItemsActions({
     lists,
-    getActiveItems,
+    activeItemsOf,
     requestScroll,
     expandIfCollapsed,
   })
@@ -92,15 +103,14 @@ export function useAllListsScreen(
   return {
     isExpanded,
     toggleSection,
-    registerActiveItems,
+    activeItemsOf,
+    mainScrollRef,
     showCreateForm,
     openCreateForm,
     handleCancelCreate,
     handleCreate,
     createPending,
     createError,
-    registerScrollRequester,
-    registerDoneItems,
     doneItems,
     ...drag,
     ...addTarget,

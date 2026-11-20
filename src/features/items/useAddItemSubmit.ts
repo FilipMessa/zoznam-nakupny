@@ -3,10 +3,12 @@ import { addItem } from './itemApi'
 import type { ShoppingItem } from './types'
 
 export interface UseAddItemSubmitParams {
-  listId: string
+  // null while there's nowhere to add to yet (the All Lists screen before a
+  // target list is picked) -- submitting is then a no-op.
+  listId: string | null
   uid: string | null
   activeItems: ShoppingItem[]
-  onAddStart: () => void
+  onAddStart: (listId: string) => void
 }
 
 export interface UseAddItemSubmitResult {
@@ -23,10 +25,10 @@ export function useAddItemSubmit({
   const [addError, setAddError] = useState<string | null>(null)
 
   const handleAdd = async (text: string) => {
-    if (!uid) {
+    if (!uid || !listId) {
       return
     }
-    onAddStart()
+    onAddStart(listId)
     setAddError(null)
     try {
       await addItem(listId, text, uid, activeItems)
