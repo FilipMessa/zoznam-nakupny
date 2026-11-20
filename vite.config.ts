@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
+// Excluded from every Vitest project. `.claude/**` holds agent git worktrees:
+// full copies of this repo (with their own node_modules) that the test globs
+// would otherwise collect alongside the real suites.
+const WORKSPACE_EXCLUDE = ['e2e/**', '**/node_modules/**', '.claude/**']
+
 export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
@@ -72,8 +77,7 @@ export default defineConfig({
           environment: 'jsdom',
           setupFiles: './src/test/setup.ts',
           exclude: [
-            'e2e/**',
-            'node_modules/**',
+            ...WORKSPACE_EXCLUDE,
             '**/*.integration.test.ts',
             '**/*.rules.test.ts',
           ],
@@ -85,7 +89,7 @@ export default defineConfig({
           name: 'rules',
           environment: 'node',
           include: ['**/*.rules.test.ts'],
-          exclude: ['node_modules/**', 'e2e/**'],
+          exclude: WORKSPACE_EXCLUDE,
         },
       },
       {
@@ -94,7 +98,7 @@ export default defineConfig({
           name: 'integration',
           environment: 'node',
           include: ['**/*.integration.test.ts'],
-          exclude: ['node_modules/**', 'e2e/**'],
+          exclude: WORKSPACE_EXCLUDE,
           // All suites spin up a RulesTestEnvironment against the same
           // emulator projectId and call clearFirestore()/cleanup() in their
           // own beforeEach/afterAll hooks. Running the files in parallel
