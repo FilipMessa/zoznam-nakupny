@@ -102,10 +102,14 @@ export function nextActiveOrder(items: ShoppingItem[]): number {
 // Computes the activeOrder an item should take when inserted at `toIndex`
 // within `items` (an array that does NOT already contain the item being
 // placed) -- the midpoint between its new neighbors, per ADR 0002
-// (fractional-index reordering). Shared by `reorderActiveItems` (moving an
-// item already in the list) and `insertActiveOrder` (moving an item in from
-// elsewhere, e.g. a different List).
-function computeInsertionOrder(items: ShoppingItem[], toIndex: number): number {
+// (fractional-index reordering). Used directly when moving an item in from
+// elsewhere (e.g. a different List -- the moved item isn't present in the
+// destination array to filter out) and by `reorderActiveItems` for moves
+// within one list.
+export function insertActiveOrder(
+  items: ShoppingItem[],
+  toIndex: number,
+): number {
   if (items.length === 0) {
     return nextActiveOrder(items)
   }
@@ -162,16 +166,32 @@ export function reorderActiveItems(
 
   const withoutMoved = activeItems.filter((_, index) => index !== fromIndex)
 
-  return computeInsertionOrder(withoutMoved, toIndex)
+  return insertActiveOrder(withoutMoved, toIndex)
 }
 
-// Computes the activeOrder an item not currently in `destActiveItems` should
-// take when inserted at `toIndex` -- the cross-list counterpart of
-// `reorderActiveItems`, used when moving an Item into a different List (the
-// moved item isn't present in the destination array to filter out).
-export function insertActiveOrder(
-  destActiveItems: ShoppingItem[],
-  toIndex: number,
-): number {
-  return computeInsertionOrder(destActiveItems, toIndex)
+// Plans a same-list reorder from the ids a drag interaction reports: the new
+// activeOrder for `activeId` when dropped on `overId` (an item of `items`),
+// or at the very end when `overId` is undefined. null means nothing to write
+// (dropped on itself, or either id isn't in `items`).
+//
+// The over item's index in the full array is passed straight through as
+// `toIndex` of the array-with-moved-item-removed; this mirrors
+// @dnd-kit/sortable's own `arrayMove(array, from, to)`.
+export function planReorder(
+  items: ShoppingItem[],
+  activeId: string,
+  overId?: string,
+): number | null {
+  if (activeId === overId) {
+    return null
+  }
+  const fromIndex = items.findIndex((item) => item.id === activeId)
+  const toIndex =
+    overId === undefined
+      ? items.length - 1
+      : items.findIndex((item) => item.id === overId)
+  if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+    return null
+  }
+  return reorderActiveItems(items, fromIndex, toIndex)
 }

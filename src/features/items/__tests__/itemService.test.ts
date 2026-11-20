@@ -8,6 +8,7 @@ import {
   nextActiveOrder,
   reorderActiveItems,
   insertActiveOrder,
+  planReorder,
   latestNewActiveId,
 } from '@/features/items/itemService'
 import type { ShoppingItem } from '@/features/items/types'
@@ -451,6 +452,43 @@ describe('insertActiveOrder', () => {
 
     expect(result).toBe(4)
     expect(dest.map((item) => item.id)).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('planReorder', () => {
+  const items = [
+    makeItem({ id: 'a', activeOrder: 1 }),
+    makeItem({ id: 'b', activeOrder: 2 }),
+    makeItem({ id: 'c', activeOrder: 3 }),
+  ]
+
+  it('returns the midpoint order when dropped on an item above', () => {
+    expect(planReorder(items, 'c', 'b')).toBe(1.5)
+  })
+
+  it('moves to the top when dropped on the first item', () => {
+    expect(planReorder(items, 'c', 'a')).toBe(0.5)
+  })
+
+  it('moves to the bottom when dropped on the last item', () => {
+    expect(planReorder(items, 'a', 'c')).toBe(4)
+  })
+
+  it('appends to the end when no over id is given', () => {
+    expect(planReorder(items, 'a')).toBe(4)
+  })
+
+  it('returns null when dropped on itself', () => {
+    expect(planReorder(items, 'b', 'b')).toBeNull()
+  })
+
+  it('returns null when appending an item that is already last', () => {
+    expect(planReorder(items, 'c')).toBeNull()
+  })
+
+  it('returns null when either id is not in the list', () => {
+    expect(planReorder(items, 'x', 'a')).toBeNull()
+    expect(planReorder(items, 'a', 'x')).toBeNull()
   })
 })
 

@@ -1,6 +1,6 @@
 import {
   insertActiveOrder,
-  reorderActiveItems,
+  planReorder,
   type SortedItems,
 } from '@/features/items/itemService'
 import type { MoveItemResult, ShoppingItem } from '@/features/items/types'
@@ -193,16 +193,20 @@ export function planDragEnd({
   const { destListId, toIndex } = drop
 
   if (destListId === sourceListId) {
-    const fromIndex = sourceItems.findIndex((item) => item.id === activeId)
-    const resolvedToIndex = toIndex ?? sourceItems.length - 1
-    if (fromIndex === resolvedToIndex) {
+    // `toIndex` is undefined for a drop on the list's header/body: append.
+    const newOrder = planReorder(
+      sourceItems,
+      String(activeId),
+      toIndex === undefined ? undefined : String(over.id),
+    )
+    if (newOrder === null) {
       return { type: 'none' }
     }
     return {
       type: 'reorder',
       listId: sourceListId,
       itemId: String(activeId),
-      newOrder: reorderActiveItems(sourceItems, fromIndex, resolvedToIndex),
+      newOrder,
     }
   }
 

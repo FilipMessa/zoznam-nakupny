@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { Box, Text } from '@chakra-ui/react'
-import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { ShoppingItem } from '@/features/items/types'
-import { reorderActiveItems } from '@/features/items/itemService'
-import { useShoppingListDndSensors } from '@/features/items/dndSensors'
+import { useActiveItemsReorder } from '@/features/items/useActiveItemsReorder'
 import { ActiveItemRow } from './ActiveItemRow'
 
 export interface ActiveItemsListProps {
@@ -32,11 +30,10 @@ export function ActiveItemsList({
   openSwipeItemId,
   onSwipeOpenChange,
 }: ActiveItemsListProps) {
-  const sensors = useShoppingListDndSensors()
-  // Stable across renders with the same items: SortableContext's value is
-  // keyed on this array's identity, and every row consumes that context, so
-  // a fresh array would re-render all (memoized) rows.
-  const sortableIds = useMemo(() => items.map((item) => item.id), [items])
+  const { sensors, sortableIds, handleDragEnd } = useActiveItemsReorder(
+    items,
+    onReorder,
+  )
 
   if (items.length === 0) {
     return (
@@ -49,28 +46,6 @@ export function ActiveItemsList({
         Žiadne položky na kúpu. Skvelá práca!
       </Text>
     )
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id || !onReorder) {
-      return
-    }
-
-    const fromIndex = items.findIndex((item) => item.id === active.id)
-    const overIndex = items.findIndex((item) => item.id === over.id)
-    if (fromIndex === -1 || overIndex === -1) {
-      return
-    }
-
-    // reorderActiveItems's `toIndex` is a position in the array-with-moved-
-    // item-removed. dnd-kit's `over` index (in the *original*, full array)
-    // maps onto that reduced array's index space directly -- this mirrors
-    // @dnd-kit/sortable's own `arrayMove(array, from, to)`, which splices
-    // the removed element back in at index `to` of the already-shortened
-    // array. So `overIndex` can be passed straight through as `toIndex`.
-    const newActiveOrder = reorderActiveItems(items, fromIndex, overIndex)
-    onReorder(active.id as string, newActiveOrder)
   }
 
   return (
