@@ -1,7 +1,8 @@
-import { Box, Flex, IconButton } from '@chakra-ui/react'
+import { Box, Flex, IconButton, Menu, Portal } from '@chakra-ui/react'
 import {
   ChevronDown,
   Clock,
+  Ellipsis,
   LayoutList,
   LogOut,
   Pencil,
@@ -18,6 +19,17 @@ export interface ListHeaderProps {
   onDeleteClick: () => void
   onSignOut: () => void
 }
+
+// Shared by every overflow-menu item. The highlighted bg replaces Chakra's
+// default bg.emphasized/60, which this theme doesn't define.
+const menuItemProps = {
+  minH: 'touchTarget',
+  gap: '10px',
+  padding: '0 12px',
+  borderRadius: '10px',
+  color: 'fg',
+  _highlighted: { bg: 'bg.muted' },
+} as const
 
 export function ListHeader({
   listName,
@@ -112,45 +124,64 @@ export function ListHeader({
       >
         <LayoutList size={18} />
       </IconButton>
-      <IconButton
-        type="button"
-        className="icon-btn"
-        aria-label="Premenovať"
-        onClick={onRenameClick}
-        variant="ghost"
-        minW="touchTarget"
-        minH="touchTarget"
-        color="fg.muted"
-        _hover={{ bg: 'bg.muted', color: 'fg' }}
-      >
-        <Pencil size={18} />
-      </IconButton>
-      <IconButton
-        type="button"
-        className="icon-btn"
-        aria-label="Zmazať zoznam"
-        onClick={onDeleteClick}
-        variant="ghost"
-        minW="touchTarget"
-        minH="touchTarget"
-        color="fg.muted"
-        _hover={{ bg: 'bg.muted', color: 'fg' }}
-      >
-        <Trash2 size={18} />
-      </IconButton>
-      <IconButton
-        type="button"
-        className="icon-btn"
-        aria-label="Odhlásiť sa"
-        onClick={onSignOut}
-        variant="ghost"
-        minW="touchTarget"
-        minH="touchTarget"
-        color="fg.muted"
-        _hover={{ bg: 'bg.muted', color: 'fg' }}
-      >
-        <LogOut size={18} />
-      </IconButton>
+      <Menu.Root positioning={{ placement: 'bottom-end' }}>
+        <Menu.Trigger asChild>
+          <IconButton
+            type="button"
+            className="icon-btn"
+            aria-label="Ďalšie možnosti"
+            variant="ghost"
+            minW="touchTarget"
+            minH="touchTarget"
+            color="fg.muted"
+            _hover={{ bg: 'bg.muted', color: 'fg' }}
+          >
+            <Ellipsis size={18} />
+          </IconButton>
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content
+              minW="200px"
+              bg="bg.panel"
+              color="fg"
+              border="1px solid"
+              borderColor="border"
+              borderRadius="14px"
+              boxShadow="md"
+              padding="4px"
+            >
+              <Menu.Item
+                value="rename"
+                {...menuItemProps}
+                onSelect={onRenameClick}
+              >
+                <Pencil size={18} />
+                Premenovať
+              </Menu.Item>
+              <Menu.Item
+                value="sign-out"
+                {...menuItemProps}
+                onSelect={onSignOut}
+              >
+                <LogOut size={18} />
+                Odhlásiť sa
+              </Menu.Item>
+              <Menu.Separator bg="border" />
+              <Menu.Item
+                value="delete"
+                {...menuItemProps}
+                color="red.solid"
+                _highlighted={{ bg: 'bg.muted', color: 'red.solid' }}
+                onSelect={onDeleteClick}
+              >
+                <Trash2 size={18} />
+                Zmazať zoznam
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
     </Flex>
   )
 }

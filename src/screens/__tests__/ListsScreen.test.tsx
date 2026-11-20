@@ -162,7 +162,8 @@ describe('ListsScreen — rename list', () => {
     render(<ListsScreen />)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Premenovať' }))
+    await user.click(screen.getByRole('button', { name: 'Ďalšie možnosti' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Premenovať' }))
 
     const input = screen.getByLabelText('List name')
     expect(input).toHaveValue('Týždenný nákup')
@@ -182,7 +183,8 @@ describe('ListsScreen — rename list', () => {
     render(<ListsScreen />)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Premenovať' }))
+    await user.click(screen.getByRole('button', { name: 'Ďalšie možnosti' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Premenovať' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -198,7 +200,8 @@ describe('ListsScreen — delete list', () => {
     render(<ListsScreen />)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Zmazať zoznam' }))
+    await user.click(screen.getByRole('button', { name: 'Ďalšie možnosti' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Zmazať zoznam' }))
 
     expect(screen.getByText(/Zmaže sa zoznam/)).toBeInTheDocument()
 
@@ -214,7 +217,8 @@ describe('ListsScreen — delete list', () => {
     render(<ListsScreen />)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Zmazať zoznam' }))
+    await user.click(screen.getByRole('button', { name: 'Ďalšie možnosti' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Zmazať zoznam' }))
     await user.click(screen.getByRole('button', { name: 'Zrušiť' }))
 
     expect(mockedDeleteList).not.toHaveBeenCalled()
