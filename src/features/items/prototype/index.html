@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="sk">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prototyp · Autor položky</title>
+<style>
+* { box-sizing: border-box }
+body { margin:0; background:#eee8e0; color:#302820; font:16px Nunito,system-ui,sans-serif }
+main { max-width:430px; margin:auto; min-height:100dvh; background:#fffcf8; padding:32px 18px 110px; box-shadow:0 12px 60px #55443122 }
+header small { color:#8a491f; font-weight:700 }
+h1 { font-size:28px; margin:8px 0 24px; letter-spacing:-1px }
+h2 { font-size:14px; margin:24px 0 4px; color:#695c50 }
+.row { display:flex; align-items:center; gap:12px; min-height:56px; padding:10px 2px; border-bottom:1px solid #e4d9cc }
+input { width:24px; height:24px; flex:none; accent-color:#437a4b; cursor:pointer }
+.name { flex:1; min-width:0; overflow-wrap:anywhere }
+small { display:block; font-size:13px; color:#685b50 }
+.done strong { text-decoration:line-through; color:#756b62; font-weight:500 }
+.badge { border-radius:16px; background:#f0e9df; padding:4px 9px; max-width:46%; overflow-wrap:anywhere }
+.group { font-size:13px; margin:15px 0 0; color:#7c4528 }
+nav { position:fixed; bottom:max(16px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:space-between; gap:8px; width:min(330px,94vw); background:#342b24; color:white; border-radius:28px; padding:3px; box-shadow:0 6px 22px #33221133 }
+button { background:transparent; border:0; color:inherit; font-size:22px; width:46px; height:46px; cursor:pointer }
+</style>
+<main>
+<header><small>Prototyp · Autor položky</small><h1>Rodinný nákup</h1></header>
+<div id="list"></div>
+</main>
+<nav aria-label="Variant prototypu"><button id="prev" aria-label="Predchádzajúci variant">←</button><b id="current" aria-live="polite"></b><button id="next" aria-label="Nasledujúci variant">→</button></nav>
+<script>
+// Three ways to identify the author in a phone-width shopping list.
+const variants = { A:'Meno pod položkou', B:'Menovka vpravo', C:'Skupiny podľa autora' }
+const items = [
+  {name:'Plnotučné mlieko', author:'Jana'},
+  {name:'Kváskový chlieb', author:'Martin'},
+  {name:'Paradajky na šalát', author:'Jana'},
+  {name:'Olivový olej', author:''},
+  {name:'Ovsené vločky', author:'Martin', done:true}
+]
+const url = new URL(location.href)
+let variant = url.searchParams.get('variant')
+if (!Object.hasOwn(variants, variant)) variant = 'A'
+function element(tag, text, className) {
+  const node = document.createElement(tag)
+  node.textContent = text
+  node.className = className || ''
+  return node
+}
+function row(item) {
+  const result = element('div', '', 'row')
+  const check = document.createElement('input')
+  check.type = 'checkbox'
+  check.id = 'item-' + items.indexOf(item)
+  check.setAttribute('aria-label', item.name)
+  check.checked = Boolean(item.done)
+  check.onchange = () => {
+    item.done = check.checked
+    render()
+    document.getElementById(check.id).focus()
+  }
+  const name = element('div', '', 'name')
+  name.append(element('strong', item.name))
+  result.append(check, name)
+  if (item.author && variant === 'A') name.append(element('small', 'Autor · ' + item.author))
+  if (item.author && variant === 'B') {
+    const badge = element('small', item.author, 'badge')
+    badge.title = 'Autor položky'
+    result.append(badge)
+  }
+  return result
+}
+function render() {
+  const list = document.querySelector('#list')
+  list.replaceChildren()
+  for (const done of [false, true]) {
+    const subset = items.filter(item => Boolean(item.done) === done)
+    const section = element('section', '', done ? 'done' : '')
+    section.append(element('h2', (done ? 'Vybavené' : 'Na nákup') + ' · ' + subset.length))
+    if (variant === 'C') {
+      for (const author of new Set(subset.map(item => item.author))) {
+        section.append(element('h3', author ? 'Autor · ' + author : 'Bez uvedeného autora', 'group'))
+        section.append(...subset.filter(item => item.author === author).map(row))
+      }
+    } else section.append(...subset.map(row))
+    list.append(section)
+  }
+  document.querySelector('#current').textContent = variant + ' · ' + variants[variant]
+}
+function cycle(step) {
+  const keys = Object.keys(variants)
+  variant = keys[(keys.indexOf(variant) + step + keys.length) % keys.length]
+  url.searchParams.set('variant',variant)
+  history.replaceState(null,'',url)
+  render()
+}
+document.querySelector('#prev').onclick = () => cycle(-1)
+document.querySelector('#next').onclick = () => cycle(1)
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, [contenteditable]')) return
+  if (e.key === 'ArrowLeft') cycle(-1)
+  if (e.key === 'ArrowRight') cycle(1)
+})
+render()
+</script>
+</html>
