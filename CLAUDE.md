@@ -72,3 +72,17 @@ Security is entirely rule-based (`firestore.rules`), not enforced by the client:
 ## Language
 
 UI copy, code comments in some files, and docs (`README.md`, `PLAN.md`) are in Slovak; identifiers and most in-code comments are in English. Match the existing convention of whichever file you're editing.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default triage labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout: `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
