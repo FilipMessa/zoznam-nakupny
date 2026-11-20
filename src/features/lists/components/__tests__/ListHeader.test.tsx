@@ -145,7 +145,7 @@ describe('ListHeader', () => {
   })
 
   // Touch-target polish (Phase 7): every icon action in the header (switcher
-  // trigger, rename, delete-list, sign-out) must be at least 44px tappable,
+  // trigger, all-lists, overflow-menu trigger) must be at least 44px tappable,
   // enforced via the shared `.icon-btn` class (min-width/min-height set from
   // --touch-target in CSS). We assert the class hook only, since jsdom
   // cannot reliably resolve CSS custom properties into computed pixels.

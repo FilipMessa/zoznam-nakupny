@@ -20,6 +20,17 @@ export interface ListHeaderProps {
   onSignOut: () => void
 }
 
+// Shared by every overflow-menu item. The highlighted bg replaces Chakra's
+// default bg.emphasized/60, which this theme doesn't define.
+const menuItemProps = {
+  minH: 'touchTarget',
+  gap: '10px',
+  padding: '0 12px',
+  borderRadius: '10px',
+  color: 'fg',
+  _highlighted: { bg: 'bg.muted' },
+} as const
+
 export function ListHeader({
   listName,
   pendingSync,
@@ -129,7 +140,7 @@ export function ListHeader({
           </IconButton>
         </Menu.Trigger>
         <Portal>
-          <Menu.Positioner zIndex="60">
+          <Menu.Positioner>
             <Menu.Content
               minW="200px"
               bg="bg.panel"
@@ -137,16 +148,12 @@ export function ListHeader({
               border="1px solid"
               borderColor="border"
               borderRadius="14px"
-              boxShadow="0 6px 24px rgba(28, 21, 16, 0.14)"
+              boxShadow="md"
               padding="4px"
             >
               <Menu.Item
                 value="rename"
-                minH="touchTarget"
-                gap="10px"
-                padding="0 12px"
-                borderRadius="10px"
-                color="fg"
+                {...menuItemProps}
                 onSelect={onRenameClick}
               >
                 <Pencil size={18} />
@@ -154,25 +161,18 @@ export function ListHeader({
               </Menu.Item>
               <Menu.Item
                 value="sign-out"
-                minH="touchTarget"
-                gap="10px"
-                padding="0 12px"
-                borderRadius="10px"
-                color="fg"
+                {...menuItemProps}
                 onSelect={onSignOut}
               >
                 <LogOut size={18} />
                 Odhlásiť sa
               </Menu.Item>
-              <Menu.Separator borderColor="border" />
+              <Menu.Separator bg="border" />
               <Menu.Item
                 value="delete"
-                minH="touchTarget"
-                gap="10px"
-                padding="0 12px"
-                borderRadius="10px"
+                {...menuItemProps}
                 color="red.solid"
-                _hover={{ bg: 'bg.muted' }}
+                _highlighted={{ bg: 'bg.muted', color: 'red.solid' }}
                 onSelect={onDeleteClick}
               >
                 <Trash2 size={18} />
