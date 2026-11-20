@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type RefObject } from 'react'
-import { useAuth } from '@/features/auth/useAuth'
+import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useCreateListForm } from '@/features/lists/useCreateListForm'
 import { useItemsByList } from '@/features/items/useItemsByList'
 import { useScrollNewItemIntoView } from '@/features/items/useScrollNewItemIntoView'
@@ -58,8 +58,7 @@ const NO_ITEMS: ShoppingItem[] = []
 export function useAllListsScreen(
   lists: ShoppingList[],
 ): UseAllListsScreenResult {
-  const { user } = useAuth()
-  const uid = user?.uid ?? null
+  const uid = useSignedInUid()
   const { isExpanded, toggleSection, expandIfCollapsed } =
     useCollapsedSections()
 

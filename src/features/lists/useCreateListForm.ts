@@ -4,7 +4,7 @@ import { validateListName } from './listService'
 import { createList, generateListId } from './listApi'
 
 export interface UseCreateListFormParams {
-  uid: string | null
+  uid: string
   // Called with the new list's id once it's known -- callers that navigate
   // to the new list pass their selectList; AllListsScreen's caller passes a
   // no-op since staying put and letting the new section auto-expand is the
@@ -40,9 +40,6 @@ export function useCreateListForm({
   }
 
   const handleCreate = async (name: string) => {
-    if (!uid) {
-      return
-    }
     setCreatePending(true)
     setCreateError(null)
 

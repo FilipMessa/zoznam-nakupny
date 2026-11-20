@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useAuth } from '@/features/auth/useAuth'
+import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useItems } from './useItems'
 import { sortItems } from './itemService'
 import { useScrollNewItemIntoView } from './useScrollNewItemIntoView'
@@ -9,8 +9,7 @@ import { useAddItemSubmit } from './useAddItemSubmit'
 import { useItemActions } from './useItemActions'
 
 export function useShoppingListScreen(listId: string) {
-  const { user } = useAuth()
-  const uid = user?.uid ?? null
+  const uid = useSignedInUid()
   const { items, itemsLoading } = useItems(listId)
 
   const { active, done } = useMemo(() => sortItems(items), [items])

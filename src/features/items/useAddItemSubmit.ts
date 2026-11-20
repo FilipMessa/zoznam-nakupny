@@ -6,7 +6,7 @@ export interface UseAddItemSubmitParams {
   // null while there's nowhere to add to yet (the All Lists screen before a
   // target list is picked) -- submitting is then a no-op.
   listId: string | null
-  uid: string | null
+  uid: string
   activeItems: ShoppingItem[]
   onAddStart: (listId: string) => void
 }
@@ -25,7 +25,7 @@ export function useAddItemSubmit({
   const [addError, setAddError] = useState<string | null>(null)
 
   const handleAdd = async (text: string) => {
-    if (!uid || !listId) {
+    if (!listId) {
       return
     }
     onAddStart(listId)

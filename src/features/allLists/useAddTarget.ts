@@ -11,7 +11,7 @@ export function useAddTarget({
   requestScroll,
   expandIfCollapsed,
 }: {
-  uid: string | null
+  uid: string
   activeItemsOf: (listId: string) => ShoppingItem[]
   requestScroll: (listId: string) => void
   expandIfCollapsed: (listId: string) => void

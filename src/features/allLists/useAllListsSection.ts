@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useAuth } from '@/features/auth/useAuth'
+import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useItemActions } from '@/features/items/useItemActions'
 import { useItemEditing } from '@/features/items/useItemEditing'
 import { useSwipeRowRegistry } from '@/features/items/useSwipeRowRegistry'
@@ -14,7 +14,7 @@ export function useAllListsSection(
   listId: string,
   activeItems: ShoppingItem[],
 ) {
-  const { user } = useAuth()
+  const uid = useSignedInUid()
   const listColor = listColorFor(listId)
 
   const { openSwipeItemId, handleSwipeOpenChange, handleListScroll } =
@@ -23,7 +23,7 @@ export function useAllListsSection(
     useItemEditing(listId)
   const { handleCheck, handleDelete } = useItemActions({
     listId,
-    uid: user?.uid ?? null,
+    uid,
     activeItems,
   })
 

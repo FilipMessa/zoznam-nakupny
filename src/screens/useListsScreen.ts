@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '@/features/auth/useAuth'
+import { useSignedInUid } from '@/features/auth/useSignedInUid'
 import { useLists } from '@/features/lists/useLists'
 import { useSelectedListId } from '@/features/lists/useSelectedListId'
 import { useCreateListForm } from '@/features/lists/useCreateListForm'
@@ -7,7 +7,7 @@ import { useRenameListForm } from '@/features/lists/useRenameListForm'
 import { useDeleteListFlow } from '@/features/lists/useDeleteListFlow'
 
 export function useListsScreen() {
-  const { user } = useAuth()
+  const uid = useSignedInUid()
   const { lists, listsLoading } = useLists()
   const { selectedListId, selectList } = useSelectedListId(lists)
 
@@ -21,7 +21,7 @@ export function useListsScreen() {
     createPending,
     createError,
   } = useCreateListForm({
-    uid: user?.uid ?? null,
+    uid,
     onCreated: selectList,
   })
   const {

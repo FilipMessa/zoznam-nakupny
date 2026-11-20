@@ -10,7 +10,7 @@ import type { ShoppingItem } from './types'
 
 export interface UseItemActionsParams {
   listId: string
-  uid: string | null
+  uid: string
   activeItems: ShoppingItem[]
 }
 
@@ -29,9 +29,6 @@ export function useItemActions({
 }: UseItemActionsParams): UseItemActionsResult {
   const handleCheck = useCallback(
     async (itemId: string) => {
-      if (!uid) {
-        return
-      }
       await checkItem(listId, itemId, uid)
     },
     [listId, uid],
