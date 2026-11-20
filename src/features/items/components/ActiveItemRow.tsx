@@ -5,7 +5,6 @@ import { CSS } from '@dnd-kit/utilities'
 import type { ShoppingItem } from '@/features/items/types'
 import { useSwipeActions } from '@/features/items/useSwipeActions'
 import { useItemEditForm } from '@/features/items/useItemEditForm'
-import { useRowTap } from '@/features/items/useRowTap'
 import {
   ActiveItemSwipeActions,
   SWIPE_ACTIONS_WIDTH,
@@ -63,14 +62,14 @@ function ActiveItemRowImpl({
     isDragging,
   } = useSortable({ id: item.id, disabled: isEditing, data: sortableData })
 
-  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
-    useSwipeActions({
-      actionsWidth: SWIPE_ACTIONS_WIDTH,
-      // The edit form doesn't apply the swipe transform, so an editing row
-      // always rests closed.
-      isOpen: isSwipeOpen && !isEditing,
-      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
-    })
+  const { swipeOffset, isSwiping, foregroundHandlers } = useSwipeActions({
+    actionsWidth: SWIPE_ACTIONS_WIDTH,
+    // The edit form doesn't apply the swipe transform, so an editing row
+    // always rests closed.
+    isOpen: isSwipeOpen && !isEditing,
+    onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    onTap: () => onCheck(item.id),
+  })
 
   const { inputRef, handleEditKeyDown, handleEditBlur, handleEditSubmit } =
     useItemEditForm({
@@ -78,8 +77,6 @@ function ActiveItemRowImpl({
       onSubmitEdit,
       onCancelEdit,
     })
-
-  const handleForegroundTap = useRowTap(() => onCheck(item.id))
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -144,9 +141,7 @@ function ActiveItemRowImpl({
           gestureProps={{
             ...attributes,
             ...listeners,
-            ...swipeHandlers,
-            onClickCapture: onForegroundClickCapture,
-            onClick: handleForegroundTap,
+            ...foregroundHandlers,
           }}
           onCheck={onCheck}
           onStartEdit={onStartEdit}

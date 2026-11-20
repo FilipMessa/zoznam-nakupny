@@ -6,6 +6,7 @@ import {
   type DoneItemRowProps,
 } from '@/features/items/components/DoneItemRow'
 import { withSwipeParent } from '@/test/withSwipeParent'
+import { touchGesture } from '@/test/touchGesture'
 import type { ShoppingItem } from '@/features/items/types'
 
 // Rendered under a parent that owns the open state, as in the app.
@@ -106,25 +107,18 @@ describe('DoneItemRow', () => {
   it('does not uncheck the item on the click that ends a swipe', () => {
     const onUncheck = vi.fn()
     render(<DoneItemRow {...makeProps({ onUncheck })} />)
-    const rowContent = screen.getByTestId('done-item-content-item-1')
-    rowContent.setPointerCapture = vi.fn()
 
-    fireEvent.pointerDown(rowContent, {
-      pointerType: 'touch',
-      clientX: 160,
-      clientY: 20,
-    })
-    fireEvent.pointerMove(rowContent, {
-      pointerType: 'touch',
-      clientX: 80,
-      clientY: 24,
-    })
-    fireEvent.pointerUp(rowContent, {
-      pointerType: 'touch',
-      clientX: 80,
-      clientY: 24,
-    })
+    touchGesture(screen.getByTestId('done-item-content-item-1'), [120])
     fireEvent.click(screen.getByText('mlieko'))
+
+    expect(onUncheck).not.toHaveBeenCalled()
+  })
+
+  it('ignores the second click of a double tap', () => {
+    const onUncheck = vi.fn()
+    render(<DoneItemRow {...makeProps({ onUncheck })} />)
+
+    fireEvent.click(screen.getByText('mlieko'), { detail: 2 })
 
     expect(onUncheck).not.toHaveBeenCalled()
   })
@@ -137,18 +131,8 @@ describe('DoneItemRow', () => {
         {...makeProps({ isSwipeOpen: true, onUncheck, onSwipeOpenChange })}
       />,
     )
-    const rowContent = screen.getByTestId('done-item-content-item-1')
 
-    fireEvent.pointerDown(rowContent, {
-      pointerType: 'touch',
-      clientX: 160,
-      clientY: 20,
-    })
-    fireEvent.pointerUp(rowContent, {
-      pointerType: 'touch',
-      clientX: 160,
-      clientY: 20,
-    })
+    touchGesture(screen.getByTestId('done-item-content-item-1'), [])
     fireEvent.click(screen.getByText('mlieko'))
 
     expect(onSwipeOpenChange).toHaveBeenCalledWith('item-1', false)

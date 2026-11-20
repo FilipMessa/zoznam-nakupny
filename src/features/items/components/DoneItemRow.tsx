@@ -4,7 +4,6 @@ import { Box, Button, Checkbox, IconButton, Text } from '@chakra-ui/react'
 import { Clock, Trash2 } from 'lucide-react'
 import type { ShoppingItem } from '@/features/items/types'
 import { useSwipeActions } from '@/features/items/useSwipeActions'
-import { useRowTap } from '@/features/items/useRowTap'
 
 // Done items only ever reveal a single "Zmazať" action -- editing a
 // checked-off item's text isn't supported (see ActiveItemRow for the
@@ -32,14 +31,12 @@ function DoneItemRowImpl({
   onSwipeOpenChange,
   originColor,
 }: DoneItemRowProps) {
-  const { swipeOffset, isSwiping, swipeHandlers, onForegroundClickCapture } =
-    useSwipeActions({
-      actionsWidth: swipeActionWidth,
-      isOpen: isSwipeOpen,
-      onOpenChange: (open) => onSwipeOpenChange(item.id, open),
-    })
-
-  const handleForegroundTap = useRowTap(() => onUncheck(item.id))
+  const { swipeOffset, isSwiping, foregroundHandlers } = useSwipeActions({
+    actionsWidth: swipeActionWidth,
+    isOpen: isSwipeOpen,
+    onOpenChange: (open) => onSwipeOpenChange(item.id, open),
+    onTap: () => onUncheck(item.id),
+  })
 
   const handleDelete = () => {
     onSwipeOpenChange(item.id, false)
@@ -91,14 +88,12 @@ function DoneItemRowImpl({
         transform={`translateX(${swipeOffset}px)`}
         transition={isSwiping ? 'none' : 'transform 160ms ease'}
         css={{ touchAction: 'pan-y' }}
-        {...swipeHandlers}
-        onClickCapture={onForegroundClickCapture}
-        onClick={handleForegroundTap}
+        {...foregroundHandlers}
       >
         {/* Checkbox.Root renders as a <label>, so only the control (not
             the item text) lives inside it -- a tap on the rest of the row
-            unchecks via handleForegroundTap, which leaves the label's own
-            clicks alone so one tap never toggles twice. */}
+            unchecks via useSwipeActions' onTap, which leaves the label's
+            own clicks alone so one tap never toggles twice. */}
         <Checkbox.Root
           checked={true}
           onCheckedChange={() => onUncheck(item.id)}

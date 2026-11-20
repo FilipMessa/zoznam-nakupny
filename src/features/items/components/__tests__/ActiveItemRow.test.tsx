@@ -6,6 +6,7 @@ import {
   type ActiveItemRowProps,
 } from '@/features/items/components/ActiveItemRow'
 import { withSwipeParent } from '@/test/withSwipeParent'
+import { touchGesture } from '@/test/touchGesture'
 import type { ShoppingItem } from '@/features/items/types'
 
 // Rendered under a parent that owns the open state, as in the app.
@@ -535,29 +536,6 @@ describe('ActiveItemRow', () => {
   })
 
   describe('tap to check', () => {
-    // A touch gesture on the row foreground: pointerdown at (200, 100),
-    // moves to each x in `moveXs`, pointerup at the last one.
-    function touchGesture(content: HTMLElement, moveXs: number[]) {
-      content.setPointerCapture = vi.fn()
-      fireEvent.pointerDown(content, {
-        pointerType: 'touch',
-        clientX: 200,
-        clientY: 100,
-      })
-      for (const clientX of moveXs) {
-        fireEvent.pointerMove(content, {
-          pointerType: 'touch',
-          clientX,
-          clientY: 101,
-        })
-      }
-      fireEvent.pointerUp(content, {
-        pointerType: 'touch',
-        clientX: moveXs.at(-1) ?? 200,
-        clientY: 101,
-      })
-    }
-
     it('checks the item on a touch tap that never starts swiping', () => {
       const onCheck = vi.fn()
       render(<ActiveItemRow {...makeProps({ onCheck })} />)
@@ -643,6 +621,17 @@ describe('ActiveItemRow', () => {
       fireEvent.click(screen.getByText('mlieko'))
 
       expect(onCheck).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores the second click of a double tap', () => {
+      // The first click checks the item, which then leaves the list; the
+      // second must not toggle whatever row slid in under the finger.
+      const onCheck = vi.fn()
+      render(<ActiveItemRow {...makeProps({ onCheck })} />)
+
+      fireEvent.click(screen.getByText('mlieko'), { detail: 2 })
+
+      expect(onCheck).not.toHaveBeenCalled()
     })
 
     it('does not check the item when a revealed swipe action is tapped', async () => {
