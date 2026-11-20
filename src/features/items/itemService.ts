@@ -43,22 +43,36 @@ export function sortItems(items: ShoppingItem[]): SortedItems {
   return { active, done }
 }
 
+// Fewer typed characters than this suggest nothing: one letter matches too
+// much of the purchase history to be useful.
+const MIN_SUGGESTION_PREFIX_LENGTH = 2
+const MAX_SUGGESTIONS = 3
+
+// Case- and diacritics-insensitive form of an item name, so typing "soj"
+// finds "Sójové mäso" and "salat"/"Šalát" count as one suggestion.
+function suggestionKey(text: string): string {
+  return text
+    .trim()
+    .toLocaleLowerCase('sk')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+}
+
 export function purchasedSuggestions(
   items: readonly ShoppingItem[],
   text: string,
 ): ShoppingItem[] {
-  const prefix = text.trim().toLocaleLowerCase('sk')
-  if (!prefix) {
+  const prefix = suggestionKey(text)
+  if (prefix.length < MIN_SUGGESTION_PREFIX_LENGTH) {
     return []
   }
 
   const matches = new Map<string, ShoppingItem>()
   for (const item of items) {
-    const name = item.text.trim()
-    const key = name.toLocaleLowerCase('sk')
+    const key = suggestionKey(item.text)
     if (key.startsWith(prefix) && !matches.has(key)) {
       matches.set(key, item)
-      if (matches.size === 3) {
+      if (matches.size === MAX_SUGGESTIONS) {
         break
       }
     }

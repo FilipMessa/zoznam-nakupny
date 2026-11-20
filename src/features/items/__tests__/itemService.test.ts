@@ -10,6 +10,7 @@ import {
   insertActiveOrder,
   planReorder,
   latestNewActiveId,
+  purchasedSuggestions,
 } from '@/features/items/itemService'
 import type { ActiveItem, ShoppingItem } from '@/features/items/types'
 
@@ -521,5 +522,61 @@ describe('validateItemText', () => {
   it('rejects empty and whitespace-only text', () => {
     expect(validateItemText('')).toEqual({ ok: false })
     expect(validateItemText('   ')).toEqual({ ok: false })
+  })
+})
+
+describe('purchasedSuggestions', () => {
+  const texts = (items: ShoppingItem[]) => items.map((item) => item.text)
+
+  it('matches regardless of diacritics, in both directions', () => {
+    const items = [
+      makeItem({ id: 'a', text: 'Čučoriedky' }),
+      makeItem({ id: 'b', text: 'cesnak' }),
+    ]
+
+    expect(texts(purchasedSuggestions(items, 'cuc'))).toEqual(['Čučoriedky'])
+    expect(texts(purchasedSuggestions(items, 'čes'))).toEqual(['cesnak'])
+  })
+
+  it('matches case-insensitively by prefix of the trimmed text', () => {
+    const items = [makeItem({ text: '  Mlieko ' })]
+
+    expect(texts(purchasedSuggestions(items, ' mli'))).toEqual(['  Mlieko '])
+    expect(purchasedSuggestions(items, 'lieko')).toEqual([])
+  })
+
+  it('finds "Sójové mäso" from "soj"', () => {
+    const items = [makeItem({ text: 'Sójové mäso' })]
+
+    expect(texts(purchasedSuggestions(items, 'soj'))).toEqual(['Sójové mäso'])
+  })
+
+  it('suggests nothing until at least two characters are typed', () => {
+    const items = [makeItem({ text: 'mlieko' })]
+
+    expect(purchasedSuggestions(items, '   ')).toEqual([])
+    expect(purchasedSuggestions(items, ' m ')).toEqual([])
+    expect(texts(purchasedSuggestions(items, 'ml'))).toEqual(['mlieko'])
+  })
+
+  it('treats names differing only in case or diacritics as one suggestion, keeping the first', () => {
+    const items = [
+      makeItem({ id: 'a', text: 'Šalát' }),
+      makeItem({ id: 'b', text: 'salat' }),
+      makeItem({ id: 'c', text: 'šalát ľadový' }),
+    ]
+
+    expect(texts(purchasedSuggestions(items, 'sal'))).toEqual([
+      'Šalát',
+      'šalát ľadový',
+    ])
+  })
+
+  it('returns at most three suggestions', () => {
+    const items = ['maslo', 'mak', 'mango', 'marhule'].map((text, i) =>
+      makeItem({ id: String(i), text }),
+    )
+
+    expect(purchasedSuggestions(items, 'ma')).toHaveLength(3)
   })
 })
